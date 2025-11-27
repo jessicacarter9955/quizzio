@@ -385,14 +385,12 @@ class AiSettingsPage extends StatefulWidget {
 
 class _AiSettingsPageState extends State<AiSettingsPage> {
   late final AiSettingsService _settings;
-  late final TextEditingController _puterModelController;
   late final TextEditingController _apiKeyController;
 
   @override
   void initState() {
     super.initState();
     _settings = AiSettingsService();
-    _puterModelController = TextEditingController(text: _settings.puterModel);
     _apiKeyController = TextEditingController(
       text: _settings.openAiApiKey ?? '',
     );
@@ -400,7 +398,6 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
 
   @override
   void dispose() {
-    _puterModelController.dispose();
     _apiKeyController.dispose();
     super.dispose();
   }
@@ -474,13 +471,43 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: _puterModelController,
+                    DropdownButtonFormField<String>(
+                      value:
+                          const [
+                            'gpt-5-nano',
+                            'gpt-5-nano-reasoning',
+                            'gpt-4.1-mini',
+                            'gpt-4o-mini',
+                          ].contains(_settings.puterModel)
+                          ? _settings.puterModel
+                          : 'gpt-5-nano',
                       decoration: const InputDecoration(
-                        labelText: 'Model (e.g. gpt-5-nano)',
                         border: OutlineInputBorder(),
+                        labelText: 'Model',
                       ),
-                      onChanged: _settings.setPuterModel,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'gpt-5-nano',
+                          child: Text('gpt-5-nano'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'gpt-5-nano-reasoning',
+                          child: Text('gpt-5-nano-reasoning'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'gpt-4.1-mini',
+                          child: Text('gpt-4.1-mini'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'gpt-4o-mini',
+                          child: Text('gpt-4o-mini'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          _settings.setPuterModel(value);
+                        }
+                      },
                     ),
                   ] else ...[
                     Text(
