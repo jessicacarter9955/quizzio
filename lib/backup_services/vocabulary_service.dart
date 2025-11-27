@@ -1,0 +1,331 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wordweaver/models/vocabulary_word.dart';
+import 'dart:math';
+
+class VocabularyService extends ChangeNotifier {
+  static const int _vocabVersion = 4;
+  // Singleton instance to ensure vocabulary is loaded once and shared
+  static final VocabularyService _instance = VocabularyService._internal();
+  factory VocabularyService() => _instance;
+
+  late final Completer<void> _readyCompleter;
+  Map<String, Map<String, List<VocabularyWord>>> _vocabulary = {};
+  DateTime? _lastUpdated;
+  DateTime? get lastUpdated => _lastUpdated;
+
+  VocabularyService._internal() {
+    _readyCompleter = Completer<void>();
+    _loadVocabulary();
+  }
+
+  /// Await this before accessing data to ensure it's loaded.
+  Future<void> get ready async => _readyCompleter.future;
+
+  Future<void> _loadVocabulary() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final vocabData = prefs.getString('vocabulary');
+      final lastUpdatedStr = prefs.getString('vocabularyLastUpdated');
+      final savedVersion = prefs.getInt('vocabularyVersion');
+
+      if (vocabData != null && savedVersion == _vocabVersion) {
+        final Map<String, dynamic> decoded =
+            jsonDecode(vocabData) as Map<String, dynamic>;
+        _vocabulary = {};
+        decoded.forEach((langPairKey, topics) {
+          _vocabulary[langPairKey] = {};
+          (topics as Map<String, dynamic>).forEach((topicKey, words) {
+            _vocabulary[langPairKey]![topicKey] = (words as List)
+                .map((w) => VocabularyWord.fromJson(w as Map<String, dynamic>))
+                .toList();
+          });
+        });
+        if (lastUpdatedStr != null) {
+          _lastUpdated = DateTime.parse(lastUpdatedStr);
+        }
+      } else {
+        await _initializeSampleData();
+      }
+      notifyListeners();
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+    } catch (e) {
+      debugPrint('Error loading vocabulary: $e');
+      await _initializeSampleData();
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+    }
+  }
+
+  Future<void> _initializeSampleData() async {
+    try {
+      // Load bundled default JSON (fully merged all-pairs file)
+      final jsonString = await rootBundle.loadString(
+        'assets/data/vocabulary_merged_all_topics_merged_po.json',
+      );
+      final decoded = jsonDecode(jsonString);
+      // Support either Map root or List of maps root
+      Map<String, dynamic> merged = {};
+      if (decoded is List) {
+        for (final part in decoded) {
+          if (part is Map<String, dynamic>) {
+            for (final entry in part.entries) {
+              if (merged.containsKey(entry.key) &&
+                  merged[entry.key] is Map<String, dynamic> &&
+                  entry.value is Map<String, dynamic>) {
+                // Deep-merge topics for same language pair
+                final existing = merged[entry.key] as Map<String, dynamic>;
+                final incoming = entry.value as Map<String, dynamic>;
+                incoming.forEach((topicKey, words) {
+                  existing[topicKey] = words;
+                });
+              } else {
+                merged[entry.key] = entry.value;
+              }
+            }
+          }
+        }
+      } else if (decoded is Map<String, dynamic>) {
+        merged = decoded;
+      } else {
+        throw Exception(
+          'Unsupported vocabulary JSON root: ${decoded.runtimeType}',
+        );
+      }
+      await importFromJson(merged);
+    } catch (e) {
+      // Fallback to minimal hardcoded Spanish->English dataset if asset not found
+      _vocabulary = {
+        'es_en': {
+          'food': [
+            VocabularyWord(
+              id: '1',
+              sourceWord: 'Pan',
+              targetWord: 'Bread',
+              languagePairKey: 'es_en',
+              topic: 'food',
+              createdAt: DateTime.now(),
+            ),
+            VocabularyWord(
+              id: '2',
+              sourceWord: 'Agua',
+              targetWord: 'Water',
+              languagePairKey: 'es_en',
+              topic: 'food',
+              createdAt: DateTime.now(),
+            ),
+            VocabularyWord(
+              id: '3',
+              sourceWord: 'Manzana',
+              targetWord: 'Apple',
+              languagePairKey: 'es_en',
+              topic: 'food',
+              createdAt: DateTime.now(),
+            ),
+            VocabularyWord(
+              id: '4',
+              sourceWord: 'Leche',
+              targetWord: 'Milk',
+              languagePairKey: 'es_en',
+              topic: 'food',
+              createdAt: DateTime.now(),
+            ),
+          ],
+          'family': [
+            VocabularyWord(
+              id: '11',
+              sourceWord: 'Madre',
+              targetWord: 'Mother',
+              languagePairKey: 'es_en',
+              topic: 'family',
+              createdAt: DateTime.now(),
+            ),
+            VocabularyWord(
+              id: '12',
+              sourceWord: 'Padre',
+              targetWord: 'Father',
+              languagePairKey: 'es_en',
+              topic: 'family',
+              createdAt: DateTime.now(),
+            ),
+            VocabularyWord(
+              id: '13',
+              sourceWord: 'Hermano',
+              targetWord: 'Brother',
+              languagePairKey: 'es_en',
+              topic: 'family',
+              createdAt: DateTime.now(),
+            ),
+            VocabularyWord(
+              id: '14',
+              sourceWord: 'Hermana',
+              targetWord: 'Sister',
+              languagePairKey: 'es_en',
+              topic: 'family',
+              createdAt: DateTime.now(),
+            ),
+          ],
+        },
+      };
+      _lastUpdated = DateTime.now();
+      await _saveVocabulary();
+      notifyListeners();
+      debugPrint('Loaded fallback sample vocabulary due to asset error: $e');
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+    }
+  }
+
+  Future<void> _saveVocabulary() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final Map<String, dynamic> toSave = {};
+      _vocabulary.forEach((langPairKey, topics) {
+        toSave[langPairKey] = {};
+        topics.forEach((topicKey, words) {
+          toSave[langPairKey][topicKey] = words.map((w) => w.toJson()).toList();
+        });
+      });
+      await prefs.setString('vocabulary', jsonEncode(toSave));
+      await prefs.setInt('vocabularyVersion', _vocabVersion);
+      if (_lastUpdated != null) {
+        await prefs.setString(
+          'vocabularyLastUpdated',
+          _lastUpdated!.toIso8601String(),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error saving vocabulary: $e');
+    }
+  }
+
+  /// Returns the total number of vocabulary words for a given
+  /// language pair and topic. If either the pair or topic
+  /// doesn't exist, returns 0.
+  int getWordCountForTopic(String languagePairKey, String topicId) {
+    final langVocab = _vocabulary[languagePairKey];
+    if (langVocab == null) return 0;
+    final words = langVocab[topicId];
+    if (words == null) return 0;
+    return words.length;
+  }
+
+  List<VocabularyWord> getWordsForQuiz(
+    String languagePairKey,
+    List<String> topicIds,
+    int count,
+  ) {
+    debugPrint(
+      'Getting words for language: $languagePairKey, topics: $topicIds',
+    );
+    final words = <VocabularyWord>[];
+
+    if (!_vocabulary.containsKey(languagePairKey)) {
+      debugPrint('Language pair not found: $languagePairKey');
+      return [];
+    }
+
+    final languageVocab = _vocabulary[languagePairKey]!;
+    final availableTopics = languageVocab.keys.toList();
+    debugPrint('Available topics for $languagePairKey: $availableTopics');
+
+    for (var topicId in topicIds) {
+      // Try exact match first
+      if (languageVocab.containsKey(topicId)) {
+        words.addAll(languageVocab[topicId]!);
+      } else {
+        // Try case-insensitive match
+        final matchingTopic = availableTopics.firstWhere(
+          (t) => t.toLowerCase() == topicId.toLowerCase(),
+          orElse: () => '',
+        );
+        if (matchingTopic.isNotEmpty) {
+          words.addAll(languageVocab[matchingTopic]!);
+        } else {
+          debugPrint('Topic not found: $topicId in $languagePairKey');
+        }
+      }
+    }
+
+    debugPrint('Found ${words.length} words for quiz');
+    if (words.isEmpty) {
+      debugPrint('No words found for the selected topics');
+      return [];
+    }
+
+    words.shuffle(Random());
+    final result = words.take(count).toList();
+    debugPrint('Returning ${result.length} questions');
+    return result;
+  }
+
+  List<String> getRandomWrongAnswers(
+    String languagePairKey,
+    String correctAnswer,
+    int count, {
+    String? topicId,
+    List<String>? topicIds,
+  }) {
+    final langVocab = _vocabulary[languagePairKey];
+    if (langVocab == null) return [];
+
+    final candidates = <VocabularyWord>[];
+
+    if (topicId != null) {
+      final fromTopic = langVocab[topicId];
+      if (fromTopic != null) {
+        candidates.addAll(fromTopic);
+      }
+    } else if (topicIds != null && topicIds.isNotEmpty) {
+      for (final id in topicIds) {
+        final fromTopic = langVocab[id];
+        if (fromTopic != null) {
+          candidates.addAll(fromTopic);
+        }
+      }
+    }
+
+    // Fallback: if no candidates from the requested topics, use all topics
+    if (candidates.isEmpty) {
+      langVocab.forEach((_, words) {
+        candidates.addAll(words);
+      });
+    }
+
+    final allWords = candidates
+        .map((w) => w.targetWord)
+        .where((w) => w != correctAnswer)
+        .toList();
+    allWords.shuffle(Random());
+    return allWords.take(count).toList();
+  }
+
+  Future<void> importFromJson(Map<String, dynamic> data) async {
+    try {
+      _vocabulary = {};
+      data.forEach((langPairKey, topics) {
+        _vocabulary[langPairKey] = {};
+        (topics as Map<String, dynamic>).forEach((topicKey, words) {
+          _vocabulary[langPairKey]![topicKey] = (words as List).map((w) {
+            return VocabularyWord(
+              id: '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}',
+              sourceWord: w['source'] as String,
+              targetWord: w['target'] as String,
+              languagePairKey: langPairKey,
+              topic: topicKey,
+              createdAt: DateTime.now(),
+            );
+          }).toList();
+        });
+      });
+      _lastUpdated = DateTime.now();
+      await _saveVocabulary();
+      notifyListeners();
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+    } catch (e) {
+      debugPrint('Error importing vocabulary: $e');
+      if (!_readyCompleter.isCompleted) _readyCompleter.completeError(e);
+    }
+  }
+}
