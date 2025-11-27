@@ -12,6 +12,7 @@ import 'package:wordweaver/screens/ruzzle_page.dart';
 import 'package:wordweaver/screens/blue_quiz_mock_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/screens/chat_mock_page.dart';
+import 'package:wordweaver/screens/settings_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 
 class HomePage extends StatelessWidget {
@@ -63,6 +64,25 @@ class HomePage extends StatelessWidget {
                             backgroundColor: Theme.of(
                               context,
                             ).colorScheme.primaryContainer,
+                            padding: const EdgeInsets.all(12),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SettingsPage(),
+                            ),
+                          ),
+                          icon: Icon(
+                            Icons.settings,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             padding: const EdgeInsets.all(12),
                           ),
                         ),

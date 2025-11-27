@@ -20,6 +20,15 @@ class WordweaverApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: Listenable.merge([themeService, localeService]),
       builder: (context, _) {
+        final lightScheme = ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.light,
+        );
+        final darkScheme = ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6750A4),
+          brightness: Brightness.dark,
+        );
+
         return MaterialApp(
           title: 'Wordweaver',
           debugShowCheckedModeBanner: false,
@@ -36,6 +45,8 @@ class WordweaverApp extends StatelessWidget {
             Locale('fr'),
             Locale('de'),
           ],
+          theme: ThemeData(useMaterial3: true, colorScheme: lightScheme),
+          darkTheme: ThemeData(useMaterial3: true, colorScheme: darkScheme),
           themeMode: themeService.themeMode,
           locale: localeService.locale,
           home: const HomePage(),

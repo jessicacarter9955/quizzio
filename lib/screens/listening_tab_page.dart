@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:wordweaver/services/language_service.dart';
+import 'package:wordweaver/l10n/app_localizations.dart';
+import 'package:wordweaver/screens/settings_page.dart';
 
 class ListeningTabPage extends StatefulWidget {
   const ListeningTabPage({super.key});
@@ -132,17 +134,28 @@ class _ListeningTabPageState extends State<ListeningTabPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final item = _currentItem;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Listening',
+          l10n.navListening,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(

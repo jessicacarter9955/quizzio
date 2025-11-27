@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/speech_service.dart';
+import 'package:wordweaver/screens/settings_page.dart';
 
 class ReadingTabPage extends StatelessWidget {
   const ReadingTabPage({super.key});
@@ -22,6 +23,16 @@ class ReadingTabPage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+            },
+          ),
+        ],
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
