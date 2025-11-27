@@ -1,9 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:record/record.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:wordweaver/models/language.dart';
+import 'package:wordweaver/services/language_service.dart';
+import 'package:wordweaver/services/ai_chat_service.dart';
+import 'package:wordweaver/services/ai_settings_service.dart';
+import 'package:wordweaver/screens/puter_tutor_page.dart';
 
 class ChatMockPage extends StatefulWidget {
   const ChatMockPage({super.key});
@@ -19,12 +26,159 @@ class _ChatMockPageState extends State<ChatMockPage> {
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
 
+  final LanguageService _languageService = LanguageService();
+  final AiChatService _aiChatService = AiChatService();
+  final AiSettingsService _aiSettingsService = AiSettingsService();
+
   bool _isRecording = false;
   DateTime? _recordingStart;
+  Language? _tutorLanguage;
+  bool _isSending = false;
+
+  // Temporary inline Puter bridge HTML. This can later be replaced by a
+  // server-backed implementation that exposes a simple HTTP endpoint.
+  static const String _puterHtml = '''<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Puter Inline Bridge</title>
+    <script src="https://js.puter.com/v2/"></script>
+  </head>
+  <body>
+    <script>
+      window.PuterFlutterBridge = {
+        send: async function(requestJson) {
+          try {
+            const req = typeof requestJson === 'string'
+              ? JSON.parse(requestJson)
+              : requestJson;
+            const id = req.id;
+            const kind = req.kind || 'chat';
+
+            let content = '';
+            let audioDataUrl = '';
+
+            if (kind === 'speech2txt') {
+              const source = req.source || req.audio || req.file;
+              const options = {};
+              if (req.model) options.model = req.model;
+              if (req.language) options.language = req.language;
+              if (typeof req.translate === 'boolean') options.translate = !!req.translate;
+
+              let result;
+              if (Object.keys(options).length === 0) {
+                result = await puter.ai.speech2txt(source);
+              } else {
+                result = await puter.ai.speech2txt(source, options);
+              }
+              content = result && result.text ? result.text : ('' + result);
+            } else if (kind === 'speech2speech') {
+              const source = req.source || req.audio || req.file;
+              const options = {};
+              if (req.voice || req.voiceId || req.voice_id) {
+                options.voice = req.voice || req.voiceId || req.voice_id;
+              }
+              if (req.model || req.modelId || req.model_id) {
+                options.model = req.model || req.modelId || req.model_id;
+              }
+
+              const audioEl = Object.keys(options).length === 0
+                ? await puter.ai.speech2speech(source)
+                : await puter.ai.speech2speech(source, options);
+
+              let src = audioEl && audioEl.src ? audioEl.src : '';
+              if (src.startsWith('blob:')) {
+                try {
+                  const resp = await fetch(src);
+                  const blob = await resp.blob();
+                  src = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                  });
+                } catch (e) {
+                  src = '';
+                }
+              }
+
+              audioDataUrl = src || '';
+            } else {
+              const model = req.model || 'gpt-5-nano';
+              const messages = req.messages || [];
+
+              const resp = await puter.ai.chat(messages, { model });
+
+              try {
+                if (typeof resp === 'string') {
+                  content = resp;
+                } else if (resp && resp.message && resp.message.content) {
+                  const mc = resp.message.content;
+                  if (Array.isArray(mc)) {
+                    content = mc.map(p => p.text || '').join('\n');
+                  } else {
+                    content = String(mc);
+                  }
+                } else {
+                  content = JSON.stringify(resp);
+                }
+              } catch (e) {
+                content = String(resp);
+              }
+            }
+
+            if (window.FlutterPuterBridge && window.FlutterPuterBridge.postMessage) {
+              window.FlutterPuterBridge.postMessage(
+                JSON.stringify({ id, content, audioDataUrl }),
+              );
+            }
+          } catch (e) {
+            let parsedId = null;
+            try {
+              const parsed = JSON.parse(requestJson);
+              parsedId = parsed.id;
+            } catch (_) {}
+
+            if (window.FlutterPuterBridge && window.FlutterPuterBridge.postMessage) {
+              window.FlutterPuterBridge.postMessage(
+                JSON.stringify({ id: parsedId, error: String(e) }),
+              );
+            }
+          }
+        }
+      };
+    </script>
+  </body>
+</html>
+''';
+
+  WebViewController? _puterWebViewController;
+  Completer<void>? _puterReadyCompleter;
+  final Map<String, Completer<String>> _puterPendingRequests = {};
+
+  Language? get _currentTutorLanguage =>
+      _tutorLanguage ?? _languageService.currentLanguagePair?.targetLanguage;
 
   @override
   void initState() {
     super.initState();
+    final pair = _languageService.currentLanguagePair;
+    _tutorLanguage =
+        pair?.targetLanguage ??
+        _languageService.getLanguages().firstWhere(
+          (l) => l.code == 'es',
+          orElse: () {
+            final all = _languageService.getLanguages();
+            return all.isNotEmpty
+                ? all.first
+                : const Language(
+                    code: 'es',
+                    name: 'Spanish',
+                    nativeName: 'Español',
+                    flag: '🇪🇸',
+                  );
+          },
+        );
     _messages.add(
       _ChatMessage(
         text: 'Hello, how can I help you?',
@@ -77,6 +231,7 @@ class _ChatMockPageState extends State<ChatMockPage> {
     _addUserMessage(
       _ChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
     );
+    _handleReplyForNewMessage();
   }
 
   Future<void> _handleSendAudio() async {
@@ -103,6 +258,67 @@ class _ChatMockPageState extends State<ChatMockPage> {
           timestamp: DateTime.now(),
         ),
       );
+
+      if (_aiSettingsService.usePuterBackend) {
+        final tutor = _currentTutorLanguage;
+        final code = tutor?.code ?? 'es';
+
+        try {
+          final file = File(path);
+          if (!await file.exists()) return;
+          final bytes = await file.readAsBytes();
+          final b64 = base64Encode(bytes);
+          final dataUrl = 'data:audio/m4a;base64,$b64';
+
+          final transcript = await _sendPuterTranscription(
+            dataUrl: dataUrl,
+            tutorLanguageCode: code,
+          );
+
+          if (!mounted) return;
+          final trimmed = transcript.trim();
+          if (trimmed.isEmpty) return;
+
+          _addUserMessage(
+            _ChatMessage(
+              text: trimmed,
+              isUser: true,
+              timestamp: DateTime.now(),
+            ),
+          );
+
+          final s2sPath = await _sendPuterSpeech2Speech(dataUrl: dataUrl);
+          if (!mounted) return;
+          _addUserMessage(
+            _ChatMessage(
+              text: 'AI voice',
+              isUser: false,
+              isAudio: true,
+              audioDuration: duration,
+              audioPath: s2sPath,
+              timestamp: DateTime.now(),
+            ),
+          );
+
+          _maybeSendPuterReply();
+        } on AiChatException catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } catch (_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to transcribe audio with Puter.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
       return;
     }
 
@@ -134,7 +350,289 @@ class _ChatMockPageState extends State<ChatMockPage> {
       _messages.add(message);
     });
     _scrollToBottom();
-    _scheduleAutoReply();
+  }
+
+  void _handleReplyForNewMessage() {
+    if (_aiSettingsService.usePuterBackend) {
+      _maybeSendPuterReply();
+      return;
+    }
+
+    final provider = _aiSettingsService.provider;
+    if (provider == AiProvider.none) {
+      _scheduleAutoReply();
+      return;
+    }
+    _maybeSendAiReply();
+  }
+
+  List<Map<String, String>> _buildHistory() {
+    return _messages
+        .map(
+          (m) => {'role': m.isUser ? 'user' : 'assistant', 'content': m.text},
+        )
+        .toList();
+  }
+
+  Future<void> _maybeSendPuterReply() async {
+    if (_isSending) return;
+    final tutor = _currentTutorLanguage;
+    final code = tutor?.code ?? 'es';
+    final name = tutor?.name ?? 'Spanish';
+
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final reply = await _sendPuterMessage(
+        history: _buildHistory(),
+        tutorLanguageCode: code,
+        tutorLanguageName: name,
+      );
+      if (!mounted) return;
+      setState(() {
+        _messages.add(
+          _ChatMessage(text: reply, isUser: false, timestamp: DateTime.now()),
+        );
+      });
+      _scrollToBottom();
+    } on AiChatException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), behavior: SnackBarBehavior.floating),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to get AI reply.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _ensurePuterWebView() async {
+    if (_puterWebViewController != null && _puterReadyCompleter != null) {
+      await _puterReadyCompleter!.future;
+      return;
+    }
+
+    _puterReadyCompleter = Completer<void>();
+
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.transparent)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (_) {
+            if (!(_puterReadyCompleter?.isCompleted ?? true)) {
+              _puterReadyCompleter?.complete();
+            }
+          },
+        ),
+      )
+      ..addJavaScriptChannel(
+        'FlutterPuterBridge',
+        onMessageReceived: (message) {
+          _handlePuterJsMessage(message.message);
+        },
+      )
+      ..loadHtmlString(_puterHtml);
+
+    _puterWebViewController = controller;
+    await _puterReadyCompleter!.future;
+  }
+
+  void _handlePuterJsMessage(String data) {
+    try {
+      final decoded = jsonDecode(data) as Map<String, dynamic>;
+      final id = decoded['id']?.toString();
+      final error = decoded['error']?.toString();
+      final content = decoded['content']?.toString();
+      final audioDataUrl = decoded['audioDataUrl']?.toString();
+
+      if (id == null) return;
+      final completer = _puterPendingRequests.remove(id);
+      if (completer == null) return;
+
+      if (error != null && error.isNotEmpty) {
+        completer.completeError(AiChatException('Puter error: $error'));
+      } else {
+        final hasAudio = audioDataUrl != null && audioDataUrl.trim().isNotEmpty;
+        final hasText = content != null && content.trim().isNotEmpty;
+
+        if (!hasAudio && !hasText) {
+          completer.completeError(
+            AiChatException('Puter returned an empty response.'),
+          );
+        } else if (hasAudio) {
+          completer.complete(audioDataUrl.trim());
+        } else {
+          completer.complete(content!.trim());
+        }
+      }
+    } catch (_) {}
+  }
+
+  // NOTE: This inline Puter bridge uses a hidden WebView + puter.js.
+  // For a server-backed implementation later, keep this method signature
+  // and replace the WebView call with an HTTP client to your own backend.
+  Future<String> _sendPuterMessage({
+    required List<Map<String, String>> history,
+    required String tutorLanguageCode,
+    required String tutorLanguageName,
+  }) async {
+    await _ensurePuterWebView();
+
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final completer = Completer<String>();
+    _puterPendingRequests[id] = completer;
+
+    final model = _aiSettingsService.puterModel;
+
+    final request = {
+      'id': id,
+      'kind': 'chat',
+      'model': model,
+      'messages': [
+        {
+          'role': 'system',
+          'content':
+              'You are a friendly $tutorLanguageName tutor (code: $tutorLanguageCode) running via Puter.ai.',
+        },
+        ...history,
+      ],
+    };
+
+    final jsCode = 'window.PuterFlutterBridge.send(${jsonEncode(request)});';
+
+    try {
+      await _puterWebViewController!.runJavaScript(jsCode);
+    } catch (e) {
+      _puterPendingRequests.remove(id);
+      throw AiChatException('Failed to invoke Puter: $e');
+    }
+
+    return completer.future;
+  }
+
+  Future<String> _sendPuterSpeech2Speech({required String dataUrl}) async {
+    await _ensurePuterWebView();
+
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final completer = Completer<String>();
+    _puterPendingRequests[id] = completer;
+
+    final request = {'id': id, 'kind': 'speech2speech', 'source': dataUrl};
+
+    final jsCode = 'window.PuterFlutterBridge.send(${jsonEncode(request)});';
+
+    try {
+      await _puterWebViewController!.runJavaScript(jsCode);
+    } catch (e) {
+      _puterPendingRequests.remove(id);
+      throw AiChatException('Failed to invoke Puter speech2speech: $e');
+    }
+
+    final resultDataUrl = await completer.future;
+    if (!resultDataUrl.startsWith('data:audio')) {
+      throw AiChatException('Puter speech2speech returned invalid audio data.');
+    }
+
+    final parts = resultDataUrl.split(',');
+    if (parts.length != 2) {
+      throw AiChatException('Puter speech2speech returned malformed data URL.');
+    }
+    final bytes = base64Decode(parts[1]);
+
+    final tempDir = Directory.systemTemp;
+    final filePath =
+        '${tempDir.path}/puter_s2s_${DateTime.now().millisecondsSinceEpoch}.mp3';
+    final file = File(filePath);
+    await file.writeAsBytes(bytes, flush: true);
+    return filePath;
+  }
+
+  Future<String> _sendPuterTranscription({
+    required String dataUrl,
+    required String tutorLanguageCode,
+  }) async {
+    await _ensurePuterWebView();
+
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final completer = Completer<String>();
+    _puterPendingRequests[id] = completer;
+
+    final request = {
+      'id': id,
+      'kind': 'speech2txt',
+      'source': dataUrl,
+      'language': tutorLanguageCode,
+    };
+
+    final jsCode = 'window.PuterFlutterBridge.send(${jsonEncode(request)});';
+
+    try {
+      await _puterWebViewController!.runJavaScript(jsCode);
+    } catch (e) {
+      _puterPendingRequests.remove(id);
+      throw AiChatException('Failed to invoke Puter STT: $e');
+    }
+
+    return completer.future;
+  }
+
+  Future<void> _maybeSendAiReply() async {
+    if (_isSending) return;
+    final tutor = _currentTutorLanguage;
+    final code = tutor?.code ?? 'es';
+    final name = tutor?.name ?? 'Spanish';
+
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final reply = await _aiChatService.sendMessage(
+        history: _buildHistory(),
+        tutorLanguageCode: code,
+        tutorLanguageName: name,
+      );
+      if (!mounted) return;
+      setState(() {
+        _messages.add(
+          _ChatMessage(text: reply, isUser: false, timestamp: DateTime.now()),
+        );
+      });
+      _scrollToBottom();
+    } on AiChatException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), behavior: SnackBarBehavior.floating),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to get AI reply.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+      }
+    }
   }
 
   void _scheduleAutoReply() {
@@ -158,6 +656,30 @@ class _ChatMockPageState extends State<ChatMockPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final tutorLanguage = _currentTutorLanguage;
+    final tutorFlag = tutorLanguage?.flag ?? '🇪🇸';
+    final tutorName = tutorLanguage?.name ?? 'Spanish';
+
+    final usePuter = _aiSettingsService.usePuterBackend;
+    String backendLabel;
+    if (usePuter) {
+      backendLabel = 'Puter';
+    } else {
+      switch (_aiSettingsService.provider) {
+        case AiProvider.openAi:
+          backendLabel = 'Direct: OpenAI';
+          break;
+        case AiProvider.gemini:
+          backendLabel = 'Direct: Gemini';
+          break;
+        case AiProvider.claudeAssembly:
+          backendLabel = 'Direct: Claude';
+          break;
+        case AiProvider.none:
+          backendLabel = 'Direct: (none)';
+          break;
+      }
+    }
 
     final chatBackgroundDecoration = BoxDecoration(
       gradient: isDark
@@ -187,21 +709,82 @@ class _ChatMockPageState extends State<ChatMockPage> {
         title: Row(
           children: [
             const SizedBox(width: 4),
-            const CircleAvatar(
+            CircleAvatar(
               radius: 16,
               backgroundColor: Colors.transparent,
-              child: Text('🇪🇸', style: TextStyle(fontSize: 20)),
+              child: Text(tutorFlag, style: const TextStyle(fontSize: 20)),
             ),
             const SizedBox(width: 8),
-            Text(
-              'Spanish tutor',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
+            PopupMenuButton<Language>(
+              onSelected: (lang) {
+                setState(() {
+                  _tutorLanguage = lang;
+                });
+              },
+              itemBuilder: (context) {
+                final languages = _languageService.getLanguages();
+                return languages
+                    .map(
+                      (lang) => PopupMenuItem<Language>(
+                        value: lang,
+                        child: Text('${lang.name} tutor'),
+                      ),
+                    )
+                    .toList();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$tutorName tutor',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
               ),
             ),
           ],
         ),
+        actions: [
+          PopupMenuButton<bool>(
+            tooltip: 'AI backend',
+            onSelected: (value) {
+              _aiSettingsService.setUsePuterBackend(value);
+              setState(() {});
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem<bool>(
+                value: true,
+                child: Text('Puter (no API key)'),
+              ),
+              PopupMenuItem<bool>(value: false, child: Text('Direct provider')),
+            ],
+            child: Row(
+              children: [
+                const Icon(Icons.memory),
+                const SizedBox(width: 4),
+                Text(
+                  backendLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.cloud),
+            tooltip: 'Open Puter AI tutor',
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PuterTutorPage()));
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -286,6 +869,16 @@ class _ChatMockPageState extends State<ChatMockPage> {
               ),
             ),
           ),
+          if (_aiSettingsService.usePuterBackend &&
+              _puterWebViewController != null)
+            Offstage(
+              offstage: true,
+              child: SizedBox(
+                height: 0,
+                width: 0,
+                child: WebViewWidget(controller: _puterWebViewController!),
+              ),
+            ),
         ],
       ),
     );

@@ -6,6 +6,7 @@ import 'package:wordweaver/services/theme_service.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
 import 'package:wordweaver/services/locale_service.dart';
+import 'package:wordweaver/services/ai_settings_service.dart';
 import 'package:intl/intl.dart';
 import 'package:wordweaver/screens/stats_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
@@ -252,6 +253,21 @@ class SettingsPage extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                 ),
+                child: SettingsListTile(
+                  icon: Icons.mic,
+                  title: 'Speech & AI',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AiSettingsPage()),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
                     SettingsListTile(
@@ -356,6 +372,196 @@ class SettingsPage extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class AiSettingsPage extends StatefulWidget {
+  const AiSettingsPage({super.key});
+
+  @override
+  State<AiSettingsPage> createState() => _AiSettingsPageState();
+}
+
+class _AiSettingsPageState extends State<AiSettingsPage> {
+  late final AiSettingsService _settings;
+  late final TextEditingController _puterModelController;
+  late final TextEditingController _apiKeyController;
+
+  @override
+  void initState() {
+    super.initState();
+    _settings = AiSettingsService();
+    _puterModelController = TextEditingController(text: _settings.puterModel);
+    _apiKeyController = TextEditingController(
+      text: _settings.openAiApiKey ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _puterModelController.dispose();
+    _apiKeyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Speech & AI',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: ListenableBuilder(
+            listenable: _settings,
+            builder: (context, _) {
+              final usePuter = _settings.usePuterBackend;
+              final provider = _settings.provider;
+
+              String? currentKey;
+              switch (provider) {
+                case AiProvider.openAi:
+                  currentKey = _settings.openAiApiKey;
+                  break;
+                case AiProvider.gemini:
+                  currentKey = _settings.geminiApiKey;
+                  break;
+                case AiProvider.claudeAssembly:
+                  currentKey = _settings.claudeAssemblyApiKey;
+                  break;
+                case AiProvider.none:
+                  currentKey = null;
+                  break;
+              }
+              _apiKeyController.text = currentKey ?? '';
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Backend mode',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    value: usePuter,
+                    onChanged: (value) => _settings.setUsePuterBackend(value),
+                    title: const Text('Use Puter (no API key)'),
+                    subtitle: const Text(
+                      'Default. Uses Puter.ai as a gateway to OpenAI and other models.',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (usePuter) ...[
+                    Text(
+                      'Puter model',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _puterModelController,
+                      decoration: const InputDecoration(
+                        labelText: 'Model (e.g. gpt-5-nano)',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: _settings.setPuterModel,
+                    ),
+                  ] else ...[
+                    Text(
+                      'Direct provider',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<AiProvider>(
+                      value: provider,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Provider',
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: AiProvider.openAi,
+                          child: Text('OpenAI'),
+                        ),
+                        DropdownMenuItem(
+                          value: AiProvider.gemini,
+                          child: Text('Gemini'),
+                        ),
+                        DropdownMenuItem(
+                          value: AiProvider.claudeAssembly,
+                          child: Text('Claude/Assembly'),
+                        ),
+                        DropdownMenuItem(
+                          value: AiProvider.none,
+                          child: Text('None'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          _settings.setProvider(value);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _apiKeyController,
+                      decoration: const InputDecoration(
+                        labelText: 'API key',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                      onChanged: (value) {
+                        switch (provider) {
+                          case AiProvider.openAi:
+                            _settings.setOpenAiApiKey(
+                              value.isEmpty ? null : value,
+                            );
+                            break;
+                          case AiProvider.gemini:
+                            _settings.setGeminiApiKey(
+                              value.isEmpty ? null : value,
+                            );
+                            break;
+                          case AiProvider.claudeAssembly:
+                            _settings.setClaudeAssemblyApiKey(
+                              value.isEmpty ? null : value,
+                            );
+                            break;
+                          case AiProvider.none:
+                            break;
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Keys are stored locally on this device. Only OpenAI is wired for chat right now.',
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 }

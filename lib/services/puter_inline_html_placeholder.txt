@@ -1,0 +1,5 @@
+This file is intentionally left as a placeholder description for the inline Puter WebView bridge.
+
+The actual HTML string is embedded directly in chat_mock_page.dart as _puterHtml.
+
+In a future refactor with a backend, this file can be replaced by documentation of the server-side Puter integration.
