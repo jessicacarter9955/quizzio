@@ -41,7 +41,7 @@ class _MyListPageState extends State<MyListPage> {
   }
 
   Future<void> _startQuizFromList(BuildContext context, List words) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final pair = _languageService.currentLanguagePair;
     if (pair == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,7 +159,7 @@ class _MyListPageState extends State<MyListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(

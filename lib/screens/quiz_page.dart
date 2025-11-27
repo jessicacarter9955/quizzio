@@ -211,7 +211,7 @@ class _QuizPageState extends State<QuizPage> {
       topic: q.topic,
     );
     if (!mounted) return;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.commonAddedToMyList),
@@ -281,7 +281,7 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     if (questions == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.quizTitle)),

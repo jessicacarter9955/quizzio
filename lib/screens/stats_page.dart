@@ -17,7 +17,7 @@ class StatsPage extends StatefulWidget {
 }
 
 class _StatsPageState extends State<StatsPage> {
-  String _range = 'all'; // all, today, yesterday, 7d, 30d
+  final String _range = 'all'; // all, today, yesterday, 7d, 30d
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +26,9 @@ class _StatsPageState extends State<StatsPage> {
     final languageService = LanguageService();
     final topicService = TopicService();
     final userService = UserService();
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
-    String _flagForCode(String code) {
+    String flagForCode(String code) {
       final lang = languageService.getLanguages().firstWhere(
         (l) => l.code == code,
         orElse: () => languageService.getLanguages().first,
@@ -36,11 +36,11 @@ class _StatsPageState extends State<StatsPage> {
       return lang.flag;
     }
 
-    Widget _pairLabel(String key) {
+    Widget pairLabel(String key) {
       final parts = key.split('_');
       if (parts.length == 2) {
-        final left = _flagForCode(parts[0]);
-        final right = _flagForCode(parts[1]);
+        final left = flagForCode(parts[0]);
+        final right = flagForCode(parts[1]);
         return Row(
           children: [
             Text(left, style: const TextStyle(fontSize: 18)),
@@ -107,7 +107,7 @@ class _StatsPageState extends State<StatsPage> {
       }
     }
 
-    List<QuizResult> _filteredResults(List<QuizResult> results) {
+    List<QuizResult> filteredResults(List<QuizResult> results) {
       if (_range == 'all') return results;
       final now = DateTime.now();
       if (_range == 'today') {
@@ -131,7 +131,7 @@ class _StatsPageState extends State<StatsPage> {
           .toList();
     }
 
-    Map<String, dynamic> _aggregate(List<QuizResult> results) {
+    Map<String, dynamic> aggregate(List<QuizResult> results) {
       final int totalQuizzes = results.length;
       int totalQuestions = 0;
       int correct = 0;
@@ -201,8 +201,8 @@ class _StatsPageState extends State<StatsPage> {
             return ListenableBuilder(
               listenable: quizService,
               builder: (context, __) {
-                final history = _filteredResults(quizService.quizHistory);
-                final agg = _aggregate(history);
+                final history = filteredResults(quizService.quizHistory);
+                final agg = aggregate(history);
                 final accuracy = (agg['totalQuestions'] == 0)
                     ? 0.0
                     : (agg['correct'] / agg['totalQuestions'] * 100.0);
@@ -266,10 +266,10 @@ class _StatsPageState extends State<StatsPage> {
                             : (corr / attempts * 100.0);
                         final parts = e.key.split('_');
                         final from = parts.length == 2
-                            ? _flagForCode(parts[0])
+                            ? flagForCode(parts[0])
                             : '';
                         final to = parts.length == 2
-                            ? _flagForCode(parts[1])
+                            ? flagForCode(parts[1])
                             : '';
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -456,10 +456,10 @@ class _StatsPageState extends State<StatsPage> {
                                         .toInt();
                               final parts = r.languagePairKey.split('_');
                               final left = parts.length == 2
-                                  ? _flagForCode(parts[0])
+                                  ? flagForCode(parts[0])
                                   : '';
                               final right = parts.length == 2
-                                  ? _flagForCode(parts[1])
+                                  ? flagForCode(parts[1])
                                   : '';
                               final dateFormatter = DateFormat.yMMMd(
                                 Localizations.localeOf(context).toLanguageTag(),
@@ -549,7 +549,7 @@ class QuickStatsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final summary = userService.getStatsSummary();
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     return GridView(
       shrinkWrap: true,

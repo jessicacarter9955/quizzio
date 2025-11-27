@@ -142,7 +142,7 @@ class _PuterTutorPageState extends State<PuterTutorPage> {
         }
       });
 
-      appendMessage('Hola, soy tu tutor de idiomas impulsado por IA. \'Frag mich auf Deutsch, pregúntame en español, chiedimi in italiano...\'', false);
+      appendMessage('Hola, soy tu tutor de idiomas impulsado por IA. 'Frag mich auf Deutsch, pregúntame en español, chiedimi in italiano...'', false);
     </script>
   </body>
 </html>

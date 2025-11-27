@@ -20,7 +20,7 @@ class SettingsPage extends StatelessWidget {
     final themeService = ThemeService();
     final vocabularyService = VocabularyService();
 
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -341,7 +341,7 @@ class SettingsPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         return AlertDialog(
           title: Text(l10n.settingsComingSoonTitle),
           content: Text(l10n.settingsComingSoonBody),
@@ -360,7 +360,7 @@ class SettingsPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
-        final l10n = AppLocalizations.of(context)!;
+        final l10n = AppLocalizations.of(context);
         return AlertDialog(
           title: Text(l10n.settingsAboutTitle),
           content: Text(l10n.settingsAboutBody),
@@ -777,7 +777,7 @@ class AppLanguagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final localeService = LocaleService();
     final theme = Theme.of(context);
 

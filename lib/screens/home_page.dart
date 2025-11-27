@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final languageService = LanguageService();
     final topicService = TopicService();
     final userService = UserService();
@@ -617,7 +617,7 @@ class RecentTopicsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return ListenableBuilder(
       listenable: topicService,
       builder: (context, _) {
@@ -768,7 +768,7 @@ class _StartQuizCtaState extends State<StartQuizCta> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return ListenableBuilder(
       listenable: Listenable.merge([
         widget.topicService,
@@ -860,7 +860,7 @@ class _CompleteWordCtaState extends State<CompleteWordCta> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return ListenableBuilder(
       listenable: Listenable.merge([
         widget.topicService,
@@ -933,7 +933,7 @@ class CurrentTopicsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return ListenableBuilder(
       listenable: topicService,
       builder: (context, _) {
@@ -1099,7 +1099,7 @@ class StartQuizButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
