@@ -13,6 +13,7 @@ import 'package:wordweaver/screens/blue_quiz_mock_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/screens/chat_mock_page.dart';
 import 'package:wordweaver/screens/settings_page.dart';
+import 'package:wordweaver/screens/image_hotspot_quiz_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 
 class HomePage extends StatelessWidget {
@@ -293,6 +294,20 @@ class StartModesButton extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => const WordMatchPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildModeTile(
+                            sheetContext,
+                            icon: Icons.image_outlined,
+                            title: 'Image hotspots',
+                            subtitle: 'Tap spots and type labels',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ImageHotspotQuizPage(),
                                 ),
                               );
                             },
