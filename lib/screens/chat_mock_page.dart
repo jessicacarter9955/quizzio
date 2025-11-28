@@ -616,9 +616,6 @@ class _ChatMockPageState extends State<ChatMockPage> {
     }
   }
 
-  // NOTE: This inline Puter bridge uses a hidden WebView + puter.js.
-  // For a server-backed implementation later, keep this method signature
-  // and replace the WebView call with an HTTP client to your own backend.
   Future<String> _sendPuterMessage({
     required List<Map<String, String>> history,
     required String tutorLanguageCode,
@@ -803,6 +800,85 @@ class _ChatMockPageState extends State<ChatMockPage> {
       });
       _scrollToBottom();
     });
+  }
+
+  Future<void> _runPuterTranscription(_ChatMessage message) async {
+    if (message.audioPath == null) {
+      _addLogMessage('[Puter STT manual] No audioPath on message');
+      return;
+    }
+
+    final path = message.audioPath!;
+    final file = File(path);
+    if (!await file.exists()) {
+      _addLogMessage('[Puter STT manual] File does not exist at $path');
+      return;
+    }
+
+    try {
+      final bytes = await file.readAsBytes();
+      final b64 = base64Encode(bytes);
+      final dataUrl = 'data:audio/m4a;base64,$b64';
+
+      final tutor = _currentTutorLanguage;
+      final code = tutor?.code ?? 'es';
+
+      _addLogMessage(
+        '[Puter STT manual] Sending manual STT for path=$path bytes=${bytes.length} lang=$code',
+      );
+
+      final transcript = await _sendPuterTranscription(
+        dataUrl: dataUrl,
+        tutorLanguageCode: code,
+      );
+
+      final trimmed = transcript.trim();
+      if (trimmed.isEmpty) {
+        _addLogMessage('[Puter STT manual] Empty transcription result');
+        return;
+      }
+
+      final index = _messages.indexOf(message);
+      if (index == -1) {
+        _addLogMessage('[Puter STT manual] Message not found in list');
+        return;
+      }
+
+      setState(() {
+        final old = _messages[index];
+        _messages[index] = _ChatMessage(
+          text: old.text,
+          isUser: old.isUser,
+          timestamp: old.timestamp,
+          isAudio: old.isAudio,
+          audioDuration: old.audioDuration,
+          audioPath: old.audioPath,
+          isLog: old.isLog,
+          transcript: trimmed,
+          transcriptVisible: true,
+        );
+        _messages.add(
+          _ChatMessage(
+            text: trimmed,
+            isUser: old.isUser,
+            timestamp: DateTime.now(),
+          ),
+        );
+      });
+      _addLogMessage('[Puter STT manual] Transcript attached to audio msg');
+      _scrollToBottom();
+    } on AiChatException catch (e) {
+      _addLogMessage('[Puter STT manual error] ${e.message}');
+    } catch (e) {
+      _addLogMessage('[Puter STT manual error] $e');
+    }
+  }
+
+  Future<void> _runDeviceTranscription(_ChatMessage message) async {
+    // Placeholder for native / on-device STT from an existing audio file.
+    // Current dependencies do not provide offline transcription for
+    // prerecorded files, so this just logs for now.
+    _addLogMessage('[Device STT] Not implemented for prerecorded audio.');
   }
 
   @override
@@ -994,6 +1070,12 @@ class _ChatMockPageState extends State<ChatMockPage> {
                     onToggleTranscript: message.isAudio
                         ? () => _toggleTranscriptForMessage(index)
                         : null,
+                    onNativeStt: message.isAudio
+                        ? () => _runDeviceTranscription(message)
+                        : null,
+                    onPuterStt: message.isAudio
+                        ? () => _runPuterTranscription(message)
+                        : null,
                   );
                 },
               ),
@@ -1101,11 +1183,15 @@ class _ChatBubble extends StatelessWidget {
   final _ChatMessage message;
   final VoidCallback? onAudioTap;
   final VoidCallback? onToggleTranscript;
+  final VoidCallback? onNativeStt;
+  final VoidCallback? onPuterStt;
 
   const _ChatBubble({
     required this.message,
     this.onAudioTap,
     this.onToggleTranscript,
+    this.onNativeStt,
+    this.onPuterStt,
   });
 
   @override
@@ -1162,6 +1248,20 @@ class _ChatBubble extends StatelessWidget {
                     size: 18,
                     color: textColor,
                   ),
+                ),
+              ],
+              if (onNativeStt != null) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onNativeStt,
+                  child: Icon(Icons.phone_android, size: 18, color: textColor),
+                ),
+              ],
+              if (onPuterStt != null) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onPuterStt,
+                  child: Icon(Icons.cloud, size: 18, color: textColor),
                 ),
               ],
             ],
