@@ -50,6 +50,19 @@ class _ChatMockPageState extends State<ChatMockPage> {
   </head>
   <body>
     <script>
+      function flutterPuterPing() {
+        try {
+          if (window.FlutterPuterBridge && window.FlutterPuterBridge.postMessage) {
+            window.FlutterPuterBridge.postMessage(
+              JSON.stringify({ id: "ping", content: "ping from JS" }),
+            );
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+      setTimeout(flutterPuterPing, 1500);
+
       window.PuterFlutterBridge = {
         send: async function(requestJson) {
           try {
@@ -216,6 +229,26 @@ class _ChatMockPageState extends State<ChatMockPage> {
     super.dispose();
   }
 
+  void _startPuterTimeout(
+    String id,
+    Completer<String> completer,
+    String label,
+  ) {
+    // If Puter never answers, fail the request instead of hanging forever.
+    Timer(const Duration(seconds: 30), () {
+      if (!mounted) return;
+      if (!completer.isCompleted) {
+        _puterPendingRequests.remove(id);
+        _addLogMessage(
+          '[$label] Timeout waiting for Puter response for id=$id',
+        );
+        completer.completeError(
+          AiChatException('Puter did not respond in time. Please try again.'),
+        );
+      }
+    });
+  }
+
   void _addLogMessage(String text) {
     if (!_debugAiLogs) return;
     setState(() {
@@ -229,6 +262,26 @@ class _ChatMockPageState extends State<ChatMockPage> {
       );
     });
     _scrollToBottom();
+  }
+
+  void _toggleTranscriptForMessage(int index) {
+    if (index < 0 || index >= _messages.length) return;
+    final msg = _messages[index];
+    if (msg.transcript == null) return;
+
+    setState(() {
+      _messages[index] = _ChatMessage(
+        text: msg.text,
+        isUser: msg.isUser,
+        timestamp: msg.timestamp,
+        isAudio: msg.isAudio,
+        audioDuration: msg.audioDuration,
+        audioPath: msg.audioPath,
+        isLog: msg.isLog,
+        transcript: msg.transcript,
+        transcriptVisible: !msg.transcriptVisible,
+      );
+    });
   }
 
   void _scrollToBottom() {
@@ -334,9 +387,32 @@ class _ChatMockPageState extends State<ChatMockPage> {
         return;
       }
 
-      _addUserMessage(
-        _ChatMessage(text: trimmed, isUser: true, timestamp: DateTime.now()),
+      // Attach the transcript to the existing audio message so it can be
+      // shown/hidden inside the same bubble via a transcript icon.
+      final index = _messages.lastIndexWhere(
+        (m) => m.isUser && m.isAudio && m.audioPath == path,
       );
+
+      if (index != -1) {
+        final old = _messages[index];
+        setState(() {
+          _messages[index] = _ChatMessage(
+            text: old.text,
+            isUser: old.isUser,
+            timestamp: old.timestamp,
+            isAudio: old.isAudio,
+            audioDuration: old.audioDuration,
+            audioPath: old.audioPath,
+            isLog: old.isLog,
+            transcript: trimmed,
+            transcriptVisible: false,
+          );
+        });
+      } else {
+        _addUserMessage(
+          _ChatMessage(text: trimmed, isUser: true, timestamp: DateTime.now()),
+        );
+      }
 
       if (_aiSettingsService.usePuterBackend) {
         try {
@@ -548,6 +624,8 @@ class _ChatMockPageState extends State<ChatMockPage> {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     final completer = Completer<String>();
     _puterPendingRequests[id] = completer;
+
+    _startPuterTimeout(id, completer, 'Puter chat');
 
     final model = _aiSettingsService.puterModel;
 
@@ -912,13 +990,15 @@ class _ChatMockPageState extends State<ChatMockPage> {
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   final message = _messages[index];
-                  if (message.isAudio) {
-                    return GestureDetector(
-                      onTap: () => _playAudio(message),
-                      child: _ChatBubble(message: message),
-                    );
-                  }
-                  return _ChatBubble(message: message);
+                  return _ChatBubble(
+                    message: message,
+                    onAudioTap: message.isAudio
+                        ? () => _playAudio(message)
+                        : null,
+                    onToggleTranscript: message.isAudio
+                        ? () => _toggleTranscriptForMessage(index)
+                        : null,
+                  );
                 },
               ),
             ),
@@ -1005,6 +1085,8 @@ class _ChatMessage {
   final Duration? audioDuration;
   final String? audioPath;
   final bool isLog;
+  final String? transcript;
+  final bool transcriptVisible;
 
   _ChatMessage({
     required this.text,
@@ -1014,13 +1096,21 @@ class _ChatMessage {
     this.audioDuration,
     this.audioPath,
     this.isLog = false,
+    this.transcript,
+    this.transcriptVisible = false,
   });
 }
 
 class _ChatBubble extends StatelessWidget {
   final _ChatMessage message;
+  final VoidCallback? onAudioTap;
+  final VoidCallback? onToggleTranscript;
 
-  const _ChatBubble({required this.message});
+  const _ChatBubble({
+    required this.message,
+    this.onAudioTap,
+    this.onToggleTranscript,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1049,15 +1139,44 @@ class _ChatBubble extends StatelessWidget {
       final minutes = duration.inMinutes;
       final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
       final label = '$minutes:$seconds';
-      content = Row(
+      final hasTranscript =
+          message.transcript != null && message.transcript!.trim().isNotEmpty;
+
+      content = Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.mic, size: 18, color: textColor),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.mic, size: 18, color: textColor),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+              ),
+              if (hasTranscript) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onToggleTranscript,
+                  child: Icon(
+                    message.transcriptVisible
+                        ? Icons.expand_less
+                        : Icons.subtitles_outlined,
+                    size: 18,
+                    color: textColor,
+                  ),
+                ),
+              ],
+            ],
           ),
+          if (hasTranscript && message.transcriptVisible) ...[
+            const SizedBox(height: 6),
+            Text(
+              message.transcript!,
+              style: theme.textTheme.bodySmall?.copyWith(color: textColor),
+            ),
+          ],
         ],
       );
     } else {
@@ -1071,19 +1190,22 @@ class _ChatBubble extends StatelessWidget {
       alignment: alignment,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 320),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: bubbleColor,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(18),
-              topRight: const Radius.circular(18),
-              bottomLeft: Radius.circular(isUser ? 18 : 4),
-              bottomRight: Radius.circular(isUser ? 4 : 18),
+        child: GestureDetector(
+          onTap: message.isAudio ? onAudioTap : null,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: bubbleColor,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
+                bottomLeft: Radius.circular(isUser ? 18 : 4),
+                bottomRight: Radius.circular(isUser ? 4 : 18),
+              ),
             ),
+            child: content,
           ),
-          child: content,
         ),
       ),
     );
