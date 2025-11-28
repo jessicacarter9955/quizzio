@@ -167,8 +167,19 @@ class _ImageHotspotQuizPageState extends State<ImageHotspotQuizPage> {
                             child: TextField(
                               controller: _controllers[h.id],
                               decoration: InputDecoration(
-                                labelText: 'Label for #${h.id}',
-                                border: const OutlineInputBorder(),
+                                labelText: 'Number ${h.id}',
+                                border: const UnderlineInputBorder(),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.outlineVariant,
+                                  ),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -246,7 +257,7 @@ class _ImageHotspotQuizPageState extends State<ImageHotspotQuizPage> {
     ThemeData theme,
   ) {
     const tooltipWidth = 180.0;
-    const tooltipHeight = 80.0;
+    const tooltipHeight = 96.0;
 
     final cx = h.x * width;
     final cy = h.y * height;

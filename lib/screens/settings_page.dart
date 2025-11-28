@@ -440,6 +440,9 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                 case AiProvider.none:
                   currentKey = null;
                   break;
+                case AiProvider.proxyServer:
+                  currentKey = _settings.proxyBaseUrl;
+                  break;
               }
               _apiKeyController.text = currentKey ?? '';
 
@@ -558,6 +561,10 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                             value: AiProvider.none,
                             child: Text('None'),
                           ),
+                          DropdownMenuItem(
+                            value: AiProvider.proxyServer,
+                            child: Text('Custom server (Node/worker)'),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value != null) {
@@ -566,39 +573,59 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      TextField(
-                        controller: _apiKeyController,
-                        decoration: const InputDecoration(
-                          labelText: 'API key',
-                          border: OutlineInputBorder(),
+                      if (provider == AiProvider.proxyServer) ...[
+                        TextField(
+                          controller: _apiKeyController,
+                          decoration: const InputDecoration(
+                            labelText: 'Server URL (https://...)',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            _settings.setProxyBaseUrl(
+                              value.isEmpty ? null : value.trim(),
+                            );
+                          },
                         ),
-                        obscureText: true,
-                        onChanged: (value) {
-                          switch (provider) {
-                            case AiProvider.openAi:
-                              _settings.setOpenAiApiKey(
-                                value.isEmpty ? null : value,
-                              );
-                              break;
-                            case AiProvider.gemini:
-                              _settings.setGeminiApiKey(
-                                value.isEmpty ? null : value,
-                              );
-                              break;
-                            case AiProvider.claudeAssembly:
-                              _settings.setClaudeAssemblyApiKey(
-                                value.isEmpty ? null : value,
-                              );
-                              break;
-                            case AiProvider.none:
-                              break;
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Keys are stored locally on this device. Only OpenAI is wired for chat right now.',
-                      ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Example: https://your-worker.example.workers.dev',
+                        ),
+                      ] else ...[
+                        TextField(
+                          controller: _apiKeyController,
+                          decoration: const InputDecoration(
+                            labelText: 'API key',
+                            border: OutlineInputBorder(),
+                          ),
+                          obscureText: true,
+                          onChanged: (value) {
+                            switch (provider) {
+                              case AiProvider.openAi:
+                                _settings.setOpenAiApiKey(
+                                  value.isEmpty ? null : value,
+                                );
+                                break;
+                              case AiProvider.gemini:
+                                _settings.setGeminiApiKey(
+                                  value.isEmpty ? null : value,
+                                );
+                                break;
+                              case AiProvider.claudeAssembly:
+                                _settings.setClaudeAssemblyApiKey(
+                                  value.isEmpty ? null : value,
+                                );
+                                break;
+                              case AiProvider.none:
+                              case AiProvider.proxyServer:
+                                break;
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Keys are stored locally on this device. Only OpenAI is wired for chat right now.',
+                        ),
+                      ],
                     ],
                   ],
                 ),

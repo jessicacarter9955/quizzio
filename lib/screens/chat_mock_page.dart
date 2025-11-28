@@ -63,6 +63,30 @@ class _ChatMockPageState extends State<ChatMockPage> {
       }
       setTimeout(flutterPuterPing, 1500);
 
+      function puterBootstrapReport() {
+        try {
+          if (!window.FlutterPuterBridge || !window.FlutterPuterBridge.postMessage) {
+            return;
+          }
+          const hasPuter = typeof puter !== 'undefined';
+          window.FlutterPuterBridge.postMessage(
+            JSON.stringify({
+              id: "bootstrap",
+              content: hasPuter
+                ? "Puter JS loaded in WebView"
+                : "Puter JS NOT available in WebView (network / CSP?)",
+            }),
+          );
+        } catch (e) {
+          try {
+            window.FlutterPuterBridge.postMessage(
+              JSON.stringify({ id: "bootstrap", error: String(e) }),
+            );
+          } catch (_) {}
+        }
+      }
+      setTimeout(puterBootstrapReport, 2500);
+
       window.PuterFlutterBridge = {
         send: async function(requestJson) {
           try {
@@ -668,6 +692,8 @@ class _ChatMockPageState extends State<ChatMockPage> {
     final completer = Completer<String>();
     _puterPendingRequests[id] = completer;
 
+    _startPuterTimeout(id, completer, 'Puter s2s');
+
     final request = {'id': id, 'kind': 'speech2speech', 'source': dataUrl};
 
     final jsCode = 'window.PuterFlutterBridge.send(${jsonEncode(request)});';
@@ -711,6 +737,8 @@ class _ChatMockPageState extends State<ChatMockPage> {
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     final completer = Completer<String>();
     _puterPendingRequests[id] = completer;
+
+    _startPuterTimeout(id, completer, 'Puter STT');
 
     final request = {
       'id': id,
@@ -906,6 +934,9 @@ class _ChatMockPageState extends State<ChatMockPage> {
         case AiProvider.none:
           backendLabel = 'Direct: (none)';
           break;
+        case AiProvider.proxyServer:
+          backendLabel = 'Server';
+          break;
       }
     }
 
@@ -996,37 +1027,56 @@ class _ChatMockPageState extends State<ChatMockPage> {
             ),
           ),
           if (usePuter)
-            DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value:
-                    const [
+            IconButton(
+              icon: const Icon(Icons.auto_awesome),
+              tooltip: 'Puter model',
+              onPressed: () async {
+                final current = _aiSettingsService.puterModel;
+                final selected = await showModalBottomSheet<String>(
+                  context: context,
+                  builder: (sheetContext) {
+                    final theme = Theme.of(sheetContext);
+                    const models = [
                       'gpt-5-nano',
                       'gpt-5-nano-reasoning',
                       'gpt-4.1-mini',
-                    ].contains(_aiSettingsService.puterModel)
-                    ? _aiSettingsService.puterModel
-                    : 'gpt-5-nano',
-                items: const [
-                  DropdownMenuItem(
-                    value: 'gpt-5-nano',
-                    child: Text('gpt-5-nano'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'gpt-5-nano-reasoning',
-                    child: Text('gpt-5-nano-reasoning'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'gpt-4.1-mini',
-                    child: Text('gpt-4.1-mini'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    _aiSettingsService.setPuterModel(value);
-                    setState(() {});
-                  }
-                },
-              ),
+                    ];
+                    return SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            child: Text(
+                              'Puter model',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          ...models.map(
+                            (m) => RadioListTile<String>(
+                              value: m,
+                              groupValue: current,
+                              title: Text(m),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  Navigator.pop(sheetContext, value);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+                if (selected != null && selected != current) {
+                  _aiSettingsService.setPuterModel(selected);
+                  setState(() {});
+                }
+              },
             ),
           IconButton(
             icon: const Icon(Icons.settings),

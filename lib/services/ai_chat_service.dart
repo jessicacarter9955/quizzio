@@ -30,7 +30,7 @@ class AiChatService {
         final key = _settings.openAiApiKey;
         if (key == null || key.isEmpty) {
           throw AiChatException(
-            'OpenAI API key is not set. Add it in Settings 	 Speech & AI.',
+            'OpenAI API key is not set. Add it in Settings \t Speech & AI.',
           );
         }
         return _sendToOpenAi(
@@ -39,14 +39,20 @@ class AiChatService {
           tutorLanguageCode: tutorLanguageCode,
           tutorLanguageName: tutorLanguageName,
         );
+      case AiProvider.proxyServer:
+        return _sendViaProxyServer(
+          history: history,
+          tutorLanguageCode: tutorLanguageCode,
+          tutorLanguageName: tutorLanguageName,
+        );
       case AiProvider.none:
         throw AiChatException(
-          'AI is not enabled. Select a provider in Settings 	 Speech & AI.',
+          'AI is not enabled. Select a provider in Settings \t Speech & AI.',
         );
       case AiProvider.gemini:
       case AiProvider.claudeAssembly:
         throw AiChatException(
-          'This AI provider is not wired yet. For now, use OpenAI in Settings 	 Speech & AI.',
+          'This AI provider is not wired yet. For now, use OpenAI in Settings \t Speech & AI.',
         );
     }
   }
@@ -120,5 +126,73 @@ class AiChatService {
       throw AiChatException('AI returned an empty response.');
     }
     return content.trim();
+  }
+
+  Future<String> _sendViaProxyServer({
+    required List<Map<String, String>> history,
+    required String tutorLanguageCode,
+    required String tutorLanguageName,
+  }) async {
+    final baseUrl = _settings.proxyBaseUrl?.trim();
+    if (baseUrl == null || baseUrl.isEmpty) {
+      throw AiChatException(
+        'Server URL is not set. Add it in Settings \t Speech & AI (Custom server).',
+      );
+    }
+
+    final messages = <Map<String, String>>[
+      {
+        'role': 'system',
+        'content':
+            'You are a friendly $tutorLanguageName language tutor. Chat naturally in $tutorLanguageName (code: $tutorLanguageCode), correct mistakes gently, and use short explanations in English when helpful.',
+      },
+      ...history,
+    ];
+
+    final uri = Uri.parse(
+      baseUrl.endsWith('/') ? '${baseUrl}chat' : '$baseUrl/chat',
+    );
+
+    final body = jsonEncode({
+      'provider': 'openai',
+      'model': 'gpt-4o-mini',
+      'temperature': 0.7,
+      'messages': messages,
+    });
+
+    final response = await http.post(
+      uri,
+      headers: const {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode != 200) {
+      String details = '';
+      try {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final error = decoded['error'];
+        if (error is Map<String, dynamic>) {
+          final msg = error['message']?.toString();
+          if (msg != null && msg.isNotEmpty) {
+            details = msg;
+          }
+        }
+      } catch (_) {}
+
+      if (details.isEmpty) {
+        details = 'Server request failed (${response.statusCode}).';
+      } else {
+        details = 'Server request failed (${response.statusCode}): $details';
+      }
+
+      throw AiChatException(details);
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final reply = data['reply']?.toString();
+    if (reply == null || reply.trim().isEmpty) {
+      throw AiChatException('Server returned an empty response.');
+    }
+    return reply.trim();
   }
 }

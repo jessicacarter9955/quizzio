@@ -352,6 +352,15 @@ class StartModesButton extends StatelessWidget {
     QuizService quizService, {
     bool speaking = false,
   }) {
+    _startQuizInternal(context, quizService, speaking: speaking);
+  }
+
+  Future<void> _startQuizInternal(
+    BuildContext context,
+    QuizService quizService, {
+    bool speaking = false,
+    bool cameFromRetry = false,
+  }) async {
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
     final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
@@ -361,10 +370,81 @@ class StartModesButton extends StatelessWidget {
         : baseTopics;
     final pair = languageService.currentLanguagePair;
 
-    if (pair == null || topicsToUse.isEmpty) {
-      Navigator.push(
+    if (pair == null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LanguageSetupPage()),
+      );
+      if (cameFromRetry) {
+        if (languageService.currentLanguagePair == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please pick a study language to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startQuizInternal(
+          context,
+          quizService,
+          speaking: speaking,
+          cameFromRetry: true,
+        );
+        return;
+      }
+    }
+
+    if (topicsToUse.isEmpty) {
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const TopicSelectionPage()),
+      );
+      if (cameFromRetry) {
+        final refreshedSelected = topicService.getSelectedTopics();
+        final refreshedAll = topicService.topics;
+        final refreshedBase = refreshedSelected.isEmpty
+            ? refreshedAll
+            : refreshedSelected;
+        final refreshedTopicsToUse =
+            (topicMode == 'single' && refreshedBase.isNotEmpty)
+            ? [refreshedBase.first]
+            : refreshedBase;
+        if (refreshedTopicsToUse.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select at least one topic to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startQuizInternal(
+          context,
+          quizService,
+          speaking: speaking,
+          cameFromRetry: true,
+        );
+        return;
+      }
+    }
+
+    final finalSelected = topicService.getSelectedTopics();
+    final finalAll = topicService.topics;
+    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
+        ? [finalBase.first]
+        : finalBase;
+    final finalPair = languageService.currentLanguagePair;
+
+    if (finalPair == null || finalTopicsToUse.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please pick a language and at least one topic.'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -375,8 +455,8 @@ class StartModesButton extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (_) => QuizPage(
-          languagePair: pair,
-          selectedTopics: topicsToUse,
+          languagePair: finalPair,
+          selectedTopics: finalTopicsToUse,
           questionCount: questionCount,
           answerOptionCount: answerOptionCount,
           speakingMode: speaking,
@@ -390,6 +470,15 @@ class StartModesButton extends StatelessWidget {
     QuizService quizService, {
     bool speaking = false,
   }) {
+    _startCompleteWordInternal(context, quizService, speaking: speaking);
+  }
+
+  Future<void> _startCompleteWordInternal(
+    BuildContext context,
+    QuizService quizService, {
+    bool speaking = false,
+    bool cameFromRetry = false,
+  }) async {
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
     final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
@@ -399,10 +488,81 @@ class StartModesButton extends StatelessWidget {
         : baseTopics;
     final pair = languageService.currentLanguagePair;
 
-    if (pair == null || topicsToUse.isEmpty) {
-      Navigator.push(
+    if (pair == null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LanguageSetupPage()),
+      );
+      if (cameFromRetry) {
+        if (languageService.currentLanguagePair == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please pick a study language to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startCompleteWordInternal(
+          context,
+          quizService,
+          speaking: speaking,
+          cameFromRetry: true,
+        );
+        return;
+      }
+    }
+
+    if (topicsToUse.isEmpty) {
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const TopicSelectionPage()),
+      );
+      if (cameFromRetry) {
+        final refreshedSelected = topicService.getSelectedTopics();
+        final refreshedAll = topicService.topics;
+        final refreshedBase = refreshedSelected.isEmpty
+            ? refreshedAll
+            : refreshedSelected;
+        final refreshedTopicsToUse =
+            (topicMode == 'single' && refreshedBase.isNotEmpty)
+            ? [refreshedBase.first]
+            : refreshedBase;
+        if (refreshedTopicsToUse.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select at least one topic to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startCompleteWordInternal(
+          context,
+          quizService,
+          speaking: speaking,
+          cameFromRetry: true,
+        );
+        return;
+      }
+    }
+
+    final finalSelected = topicService.getSelectedTopics();
+    final finalAll = topicService.topics;
+    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
+        ? [finalBase.first]
+        : finalBase;
+    final finalPair = languageService.currentLanguagePair;
+
+    if (finalPair == null || finalTopicsToUse.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please pick a language and at least one topic.'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -413,8 +573,8 @@ class StartModesButton extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (_) => CompleteWordPage(
-          languagePair: pair,
-          selectedTopics: topicsToUse,
+          languagePair: finalPair,
+          selectedTopics: finalTopicsToUse,
           questionCount: questionCount,
           answerOptionCount: answerOptionCount,
           speakingMode: speaking,
@@ -424,6 +584,14 @@ class StartModesButton extends StatelessWidget {
   }
 
   void _startRuzzle(BuildContext context, QuizService quizService) {
+    _startRuzzleInternal(context, quizService);
+  }
+
+  Future<void> _startRuzzleInternal(
+    BuildContext context,
+    QuizService quizService, {
+    bool cameFromRetry = false,
+  }) async {
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
     final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
@@ -433,10 +601,71 @@ class StartModesButton extends StatelessWidget {
         : baseTopics;
     final pair = languageService.currentLanguagePair;
 
-    if (pair == null || topicsToUse.isEmpty) {
-      Navigator.push(
+    if (pair == null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LanguageSetupPage()),
+      );
+      if (cameFromRetry) {
+        if (languageService.currentLanguagePair == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please pick a study language to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startRuzzleInternal(context, quizService, cameFromRetry: true);
+        return;
+      }
+    }
+
+    if (topicsToUse.isEmpty) {
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const TopicSelectionPage()),
+      );
+      if (cameFromRetry) {
+        final refreshedSelected = topicService.getSelectedTopics();
+        final refreshedAll = topicService.topics;
+        final refreshedBase = refreshedSelected.isEmpty
+            ? refreshedAll
+            : refreshedSelected;
+        final refreshedTopicsToUse =
+            (topicMode == 'single' && refreshedBase.isNotEmpty)
+            ? [refreshedBase.first]
+            : refreshedBase;
+        if (refreshedTopicsToUse.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select at least one topic to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startRuzzleInternal(context, quizService, cameFromRetry: true);
+        return;
+      }
+    }
+
+    final finalSelected = topicService.getSelectedTopics();
+    final finalAll = topicService.topics;
+    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
+        ? [finalBase.first]
+        : finalBase;
+    final finalPair = languageService.currentLanguagePair;
+
+    if (finalPair == null || finalTopicsToUse.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please pick a language and at least one topic.'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -444,13 +673,23 @@ class StartModesButton extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            RuzzlePage(languagePair: pair, selectedTopics: topicsToUse),
+        builder: (_) => RuzzlePage(
+          languagePair: finalPair,
+          selectedTopics: finalTopicsToUse,
+        ),
       ),
     );
   }
 
   void _startBlueQuiz(BuildContext context, QuizService quizService) {
+    _startBlueQuizInternal(context, quizService);
+  }
+
+  Future<void> _startBlueQuizInternal(
+    BuildContext context,
+    QuizService quizService, {
+    bool cameFromRetry = false,
+  }) async {
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
     final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
@@ -460,10 +699,71 @@ class StartModesButton extends StatelessWidget {
         : baseTopics;
     final pair = languageService.currentLanguagePair;
 
-    if (pair == null || topicsToUse.isEmpty) {
-      Navigator.push(
+    if (pair == null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LanguageSetupPage()),
+      );
+      if (cameFromRetry) {
+        if (languageService.currentLanguagePair == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please pick a study language to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startBlueQuizInternal(context, quizService, cameFromRetry: true);
+        return;
+      }
+    }
+
+    if (topicsToUse.isEmpty) {
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const TopicSelectionPage()),
+      );
+      if (cameFromRetry) {
+        final refreshedSelected = topicService.getSelectedTopics();
+        final refreshedAll = topicService.topics;
+        final refreshedBase = refreshedSelected.isEmpty
+            ? refreshedAll
+            : refreshedSelected;
+        final refreshedTopicsToUse =
+            (topicMode == 'single' && refreshedBase.isNotEmpty)
+            ? [refreshedBase.first]
+            : refreshedBase;
+        if (refreshedTopicsToUse.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select at least one topic to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startBlueQuizInternal(context, quizService, cameFromRetry: true);
+        return;
+      }
+    }
+
+    final finalSelected = topicService.getSelectedTopics();
+    final finalAll = topicService.topics;
+    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
+        ? [finalBase.first]
+        : finalBase;
+    final finalPair = languageService.currentLanguagePair;
+
+    if (finalPair == null || finalTopicsToUse.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please pick a language and at least one topic.'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -473,8 +773,8 @@ class StartModesButton extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (_) => BlueQuizMockPage(
-          languagePair: pair,
-          selectedTopics: topicsToUse,
+          languagePair: finalPair,
+          selectedTopics: finalTopicsToUse,
           questionCount: questionCount,
         ),
       ),
