@@ -10,6 +10,7 @@ import 'package:wordweaver/services/ai_settings_service.dart';
 import 'package:intl/intl.dart';
 import 'package:wordweaver/screens/stats_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
+import 'package:wordweaver/screens/puter_auth_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -442,148 +443,165 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
               }
               _apiKeyController.text = currentKey ?? '';
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Backend mode',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    value: usePuter,
-                    onChanged: (value) => _settings.setUsePuterBackend(value),
-                    title: const Text('Use Puter (no API key)'),
-                    subtitle: const Text(
-                      'Default. Uses Puter.ai as a gateway to OpenAI and other models.',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (usePuter) ...[
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Puter model',
+                      'Backend mode',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      value:
-                          const [
-                            'gpt-5-nano',
-                            'gpt-5-nano-reasoning',
-                            'gpt-4.1-mini',
-                            'gpt-4o-mini',
-                          ].contains(_settings.puterModel)
-                          ? _settings.puterModel
-                          : 'gpt-5-nano',
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Model',
+                    SwitchListTile(
+                      value: usePuter,
+                      onChanged: (value) => _settings.setUsePuterBackend(value),
+                      title: const Text('Use Puter (no API key)'),
+                      subtitle: const Text(
+                        'Default. Uses Puter.ai as a gateway to OpenAI and other models.',
                       ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'gpt-5-nano',
-                          child: Text('gpt-5-nano'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'gpt-5-nano-reasoning',
-                          child: Text('gpt-5-nano-reasoning'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'gpt-4.1-mini',
-                          child: Text('gpt-4.1-mini'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'gpt-4o-mini',
-                          child: Text('gpt-4o-mini'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          _settings.setPuterModel(value);
-                        }
-                      },
-                    ),
-                  ] else ...[
-                    Text(
-                      'Direct provider',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<AiProvider>(
-                      value: provider,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Provider',
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: AiProvider.openAi,
-                          child: Text('OpenAI'),
-                        ),
-                        DropdownMenuItem(
-                          value: AiProvider.gemini,
-                          child: Text('Gemini'),
-                        ),
-                        DropdownMenuItem(
-                          value: AiProvider.claudeAssembly,
-                          child: Text('Claude/Assembly'),
-                        ),
-                        DropdownMenuItem(
-                          value: AiProvider.none,
-                          child: Text('None'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          _settings.setProvider(value);
-                        }
-                      },
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: _apiKeyController,
-                      decoration: const InputDecoration(
-                        labelText: 'API key',
-                        border: OutlineInputBorder(),
+                    if (usePuter) ...[
+                      Text(
+                        'Puter model',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
                       ),
-                      obscureText: true,
-                      onChanged: (value) {
-                        switch (provider) {
-                          case AiProvider.openAi:
-                            _settings.setOpenAiApiKey(
-                              value.isEmpty ? null : value,
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value:
+                            const [
+                              'gpt-5-nano',
+                              'gpt-5-nano-reasoning',
+                              'gpt-4.1-mini',
+                              'gpt-4o-mini',
+                            ].contains(_settings.puterModel)
+                            ? _settings.puterModel
+                            : 'gpt-5-nano',
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Model',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'gpt-5-nano',
+                            child: Text('gpt-5-nano'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'gpt-5-nano-reasoning',
+                            child: Text('gpt-5-nano-reasoning'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'gpt-4.1-mini',
+                            child: Text('gpt-4.1-mini'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'gpt-4o-mini',
+                            child: Text('gpt-4o-mini'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            _settings.setPuterModel(value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const PuterAuthPage(),
+                              ),
                             );
-                            break;
-                          case AiProvider.gemini:
-                            _settings.setGeminiApiKey(
-                              value.isEmpty ? null : value,
-                            );
-                            break;
-                          case AiProvider.claudeAssembly:
-                            _settings.setClaudeAssemblyApiKey(
-                              value.isEmpty ? null : value,
-                            );
-                            break;
-                          case AiProvider.none:
-                            break;
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Keys are stored locally on this device. Only OpenAI is wired for chat right now.',
-                    ),
+                          },
+                          icon: const Icon(Icons.login),
+                          label: const Text('Puter login (optional)'),
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        'Direct provider',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<AiProvider>(
+                        value: provider,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Provider',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: AiProvider.openAi,
+                            child: Text('OpenAI'),
+                          ),
+                          DropdownMenuItem(
+                            value: AiProvider.gemini,
+                            child: Text('Gemini'),
+                          ),
+                          DropdownMenuItem(
+                            value: AiProvider.claudeAssembly,
+                            child: Text('Claude/Assembly'),
+                          ),
+                          DropdownMenuItem(
+                            value: AiProvider.none,
+                            child: Text('None'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            _settings.setProvider(value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _apiKeyController,
+                        decoration: const InputDecoration(
+                          labelText: 'API key',
+                          border: OutlineInputBorder(),
+                        ),
+                        obscureText: true,
+                        onChanged: (value) {
+                          switch (provider) {
+                            case AiProvider.openAi:
+                              _settings.setOpenAiApiKey(
+                                value.isEmpty ? null : value,
+                              );
+                              break;
+                            case AiProvider.gemini:
+                              _settings.setGeminiApiKey(
+                                value.isEmpty ? null : value,
+                              );
+                              break;
+                            case AiProvider.claudeAssembly:
+                              _settings.setClaudeAssemblyApiKey(
+                                value.isEmpty ? null : value,
+                              );
+                              break;
+                            case AiProvider.none:
+                              break;
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Keys are stored locally on this device. Only OpenAI is wired for chat right now.',
+                      ),
+                    ],
                   ],
-                ],
+                ),
               );
             },
           ),

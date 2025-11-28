@@ -555,6 +555,11 @@ class _ChatMockPageState extends State<ChatMockPage> {
             }
             _addLogMessage('[Puter] WebView page finished loading');
           },
+          onWebResourceError: (error) {
+            _addLogMessage(
+              '[Puter] WebView resource error ${error.errorCode}: ${error.description}',
+            );
+          },
         ),
       )
       ..addJavaScriptChannel(
@@ -806,7 +811,6 @@ class _ChatMockPageState extends State<ChatMockPage> {
     final isDark = theme.brightness == Brightness.dark;
     final tutorLanguage = _currentTutorLanguage;
     final tutorFlag = tutorLanguage?.flag ?? '🇪🇸';
-    final tutorName = tutorLanguage?.name ?? 'Spanish';
 
     final usePuter = _aiSettingsService.usePuterBackend;
     String backendLabel;
@@ -857,12 +861,6 @@ class _ChatMockPageState extends State<ChatMockPage> {
         title: Row(
           children: [
             const SizedBox(width: 4),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.transparent,
-              child: Text(tutorFlag, style: const TextStyle(fontSize: 20)),
-            ),
-            const SizedBox(width: 8),
             PopupMenuButton<Language>(
               onSelected: (lang) {
                 setState(() {
@@ -875,23 +873,21 @@ class _ChatMockPageState extends State<ChatMockPage> {
                     .map(
                       (lang) => PopupMenuItem<Language>(
                         value: lang,
-                        child: Text('${lang.name} tutor'),
+                        child: Row(
+                          children: [
+                            Text(lang.flag),
+                            const SizedBox(width: 8),
+                            Text(lang.name),
+                          ],
+                        ),
                       ),
                     )
                     .toList();
               },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '$tutorName tutor',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Icon(Icons.arrow_drop_down),
-                ],
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.transparent,
+                child: Text(tutorFlag, style: const TextStyle(fontSize: 20)),
               ),
             ),
           ],

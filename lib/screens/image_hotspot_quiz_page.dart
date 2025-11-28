@@ -115,12 +115,12 @@ class _ImageHotspotQuizPageState extends State<ImageHotspotQuizPage> {
                             child: Container(
                               color: theme.colorScheme.surfaceContainerHighest,
                               child: Image.asset(
-                                'assets/images/hotspot_living_room.jpg',
+                                'assets/images/01.jpg',
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Center(
                                     child: Text(
-                                      'Place hotspot_living_room.jpg in assets/images/',
+                                      'Place 01.jpg in assets/images/',
                                       textAlign: TextAlign.center,
                                       style: theme.textTheme.bodyMedium,
                                     ),

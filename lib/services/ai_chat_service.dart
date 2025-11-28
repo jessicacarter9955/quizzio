@@ -84,7 +84,29 @@ class AiChatService {
     );
 
     if (response.statusCode != 200) {
-      throw AiChatException('AI request failed (${response.statusCode}).');
+      String details = '';
+      try {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final error = decoded['error'];
+        if (error is Map<String, dynamic>) {
+          final msg = error['message']?.toString();
+          final code = error['code']?.toString();
+          if (msg != null && msg.isNotEmpty) {
+            details = msg;
+            if (code != null && code.isNotEmpty) {
+              details = '$details (code: $code)';
+            }
+          }
+        }
+      } catch (_) {}
+
+      if (details.isEmpty) {
+        details = 'AI request failed (${response.statusCode}).';
+      } else {
+        details = 'AI request failed (${response.statusCode}): $details';
+      }
+
+      throw AiChatException(details);
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
