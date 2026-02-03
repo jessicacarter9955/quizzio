@@ -1,5 +1,6 @@
 name: wordweaver
 description: "Boost your language skills with our fun, customizable quiz app! Select your language pair and topics, then master new vocabulary through engaging quizzes, all while enjoying a sleek interface with dark mode and flag emojis."
+# This comment is added to trigger GitHub Actions workflow
 publish_to: "none"
 version: 1.0.0
 
