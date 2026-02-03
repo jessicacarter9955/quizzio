@@ -387,6 +387,7 @@ class AiSettingsPage extends StatefulWidget {
 class _AiSettingsPageState extends State<AiSettingsPage> {
   late final AiSettingsService _settings;
   late final TextEditingController _apiKeyController;
+  late final TextEditingController _bridgeUrlController;
 
   @override
   void initState() {
@@ -395,11 +396,15 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
     _apiKeyController = TextEditingController(
       text: _settings.openAiApiKey ?? '',
     );
+    _bridgeUrlController = TextEditingController(
+      text: _settings.puterBridgeUrl ?? '',
+    );
   }
 
   @override
   void dispose() {
     _apiKeyController.dispose();
+    _bridgeUrlController.dispose();
     super.dispose();
   }
 
@@ -477,7 +482,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value:
+                        initialValue:
                             const [
                               'gpt-5-nano',
                               'gpt-5-nano-reasoning',
@@ -515,6 +520,28 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                         },
                       ),
                       const SizedBox(height: 16),
+                      Text(
+                        'Puter bridge URL (optional)',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _bridgeUrlController,
+                        decoration: const InputDecoration(
+                          labelText:
+                              'https://your-pages.example.com/puter-bridge/',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          _settings.setPuterBridgeUrl(
+                            value.trim().isEmpty ? null : value.trim(),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -539,7 +566,7 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<AiProvider>(
-                        value: provider,
+                        initialValue: provider,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           labelText: 'Provider',

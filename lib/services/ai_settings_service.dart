@@ -10,6 +10,7 @@ class AiSettingsService extends ChangeNotifier {
 
   bool _usePuterBackend = true;
   String _puterModel = 'gpt-5-nano';
+  String? _puterBridgeUrl;
 
   AiProvider _provider = AiProvider.openAi;
   String? _openAiApiKey;
@@ -19,6 +20,7 @@ class AiSettingsService extends ChangeNotifier {
 
   bool get usePuterBackend => _usePuterBackend;
   String get puterModel => _puterModel;
+  String? get puterBridgeUrl => _puterBridgeUrl;
 
   AiProvider get provider => _provider;
   String? get openAiApiKey => _openAiApiKey;
@@ -35,6 +37,12 @@ class AiSettingsService extends ChangeNotifier {
   void setPuterModel(String value) {
     if (value == _puterModel) return;
     _puterModel = value;
+    notifyListeners();
+  }
+
+  void setPuterBridgeUrl(String? value) {
+    if (value == _puterBridgeUrl) return;
+    _puterBridgeUrl = value;
     notifyListeners();
   }
 

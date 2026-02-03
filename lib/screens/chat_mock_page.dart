@@ -50,6 +50,15 @@ class _ChatMockPageState extends State<ChatMockPage> {
   </head>
   <body>
     <script>
+      function withTimeout(promise, ms) {
+        return new Promise((resolve, reject) => {
+          const t = setTimeout(() => reject(new Error('Request timed out')), ms);
+          Promise.resolve(promise).then(
+            (v) => { clearTimeout(t); resolve(v); },
+            (e) => { clearTimeout(t); reject(e); }
+          );
+        });
+      }
       function flutterPuterPing() {
         try {
           if (window.FlutterPuterBridge && window.FlutterPuterBridge.postMessage) {
@@ -108,9 +117,9 @@ class _ChatMockPageState extends State<ChatMockPage> {
 
               let result;
               if (Object.keys(options).length === 0) {
-                result = await puter.ai.speech2txt(source);
+                result = await withTimeout(puter.ai.speech2txt(source), 25000);
               } else {
-                result = await puter.ai.speech2txt(source, options);
+                result = await withTimeout(puter.ai.speech2txt(source, options), 25000);
               }
               content = result && result.text ? result.text : ('' + result);
             } else if (kind === 'speech2speech') {
@@ -124,8 +133,8 @@ class _ChatMockPageState extends State<ChatMockPage> {
               }
 
               const audioEl = Object.keys(options).length === 0
-                ? await puter.ai.speech2speech(source)
-                : await puter.ai.speech2speech(source, options);
+                ? await withTimeout(puter.ai.speech2speech(source), 25000)
+                : await withTimeout(puter.ai.speech2speech(source, options), 25000);
 
               let src = audioEl && audioEl.src ? audioEl.src : '';
               if (src.startsWith('blob:')) {
@@ -147,7 +156,7 @@ class _ChatMockPageState extends State<ChatMockPage> {
               const model = req.model || 'gpt-5-nano';
               const messages = req.messages || [];
 
-              const resp = await puter.ai.chat(messages, { model });
+              const resp = await withTimeout(puter.ai.chat(messages, { model }), 25000);
 
               try {
                 if (typeof resp === 'string') {
@@ -259,7 +268,7 @@ class _ChatMockPageState extends State<ChatMockPage> {
     String label,
   ) {
     // If Puter never answers, fail the request instead of hanging forever.
-    Timer(const Duration(seconds: 30), () {
+    Timer(const Duration(seconds: 35), () {
       if (!mounted) return;
       if (!completer.isCompleted) {
         _puterPendingRequests.remove(id);
@@ -591,8 +600,24 @@ class _ChatMockPageState extends State<ChatMockPage> {
         onMessageReceived: (message) {
           _handlePuterJsMessage(message.message);
         },
-      )
-      ..loadHtmlString(_puterHtml);
+      );
+
+    final bridgeUrl = _aiSettingsService.puterBridgeUrl;
+    if (bridgeUrl != null && bridgeUrl.trim().isNotEmpty) {
+      try {
+        controller.loadRequest(Uri.parse(bridgeUrl.trim()));
+        _addLogMessage(
+          '[Puter] Loading remote bridge URL: ${bridgeUrl.trim()}',
+        );
+      } catch (e) {
+        _addLogMessage(
+          '[Puter] Failed to load remote bridge URL, falling back to inline. Error: $e',
+        );
+        controller.loadHtmlString(_puterHtml);
+      }
+    } else {
+      controller.loadHtmlString(_puterHtml);
+    }
 
     _puterWebViewController = controller;
     await _puterReadyCompleter!.future;

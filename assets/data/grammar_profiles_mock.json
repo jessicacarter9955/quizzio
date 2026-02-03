@@ -1,0 +1,134 @@
+{
+  "languagePairs": [
+    {
+      "key": "en_fr",
+      "sourceLanguage": "English",
+      "targetLanguage": "French",
+      "syntaxProfile": "romance_basic"
+    },
+    {
+      "key": "en_it",
+      "sourceLanguage": "English",
+      "targetLanguage": "Italian",
+      "syntaxProfile": "romance_basic"
+    },
+    {
+      "key": "it_en",
+      "sourceLanguage": "Italian",
+      "targetLanguage": "English",
+      "syntaxProfile": "english_basic"
+    }
+  ],
+  "syntaxProfiles": {
+    "romance_basic": [
+      "subject",
+      "adverb_frequency",
+      "verb",
+      "adjective",
+      "object"
+    ],
+    "english_basic": [
+      "subject",
+      "adverb_frequency",
+      "verb",
+      "adjective",
+      "object"
+    ]
+  },
+  "topics": [
+    {
+      "id": "subject",
+      "name": "Subject Pronouns",
+      "words": [
+        { "languagePairKey": "en_fr", "source": "I", "target": "je" },
+        { "languagePairKey": "en_fr", "source": "you", "target": "tu" },
+        { "languagePairKey": "en_fr", "source": "he", "target": "il" },
+        { "languagePairKey": "en_fr", "source": "she", "target": "elle" },
+        { "languagePairKey": "en_fr", "source": "we", "target": "nous" },
+        { "languagePairKey": "en_fr", "source": "they", "target": "ils" },
+
+        { "languagePairKey": "en_it", "source": "I", "target": "io" },
+        { "languagePairKey": "en_it", "source": "you", "target": "tu" },
+        { "languagePairKey": "en_it", "source": "he", "target": "lui" },
+        { "languagePairKey": "en_it", "source": "she", "target": "lei" },
+        { "languagePairKey": "en_it", "source": "we", "target": "noi" },
+        { "languagePairKey": "en_it", "source": "they", "target": "loro" },
+
+        { "languagePairKey": "it_en", "source": "io", "target": "I" },
+        { "languagePairKey": "it_en", "source": "tu", "target": "you" },
+        { "languagePairKey": "it_en", "source": "lui", "target": "he" },
+        { "languagePairKey": "it_en", "source": "lei", "target": "she" },
+        { "languagePairKey": "it_en", "source": "noi", "target": "we" },
+        { "languagePairKey": "it_en", "source": "loro", "target": "they" }
+      ]
+    },
+    {
+      "id": "adverb_frequency",
+      "name": "Frequency Adverbs",
+      "words": [
+        { "languagePairKey": "en_fr", "source": "always", "target": "toujours" },
+        { "languagePairKey": "en_fr", "source": "often", "target": "souvent" },
+        { "languagePairKey": "en_fr", "source": "sometimes", "target": "parfois" },
+
+        { "languagePairKey": "en_it", "source": "always", "target": "sempre" },
+        { "languagePairKey": "en_it", "source": "often", "target": "spesso" },
+        { "languagePairKey": "en_it", "source": "sometimes", "target": "qualche volta" },
+
+        { "languagePairKey": "it_en", "source": "sempre", "target": "always" },
+        { "languagePairKey": "it_en", "source": "spesso", "target": "often" },
+        { "languagePairKey": "it_en", "source": "qualche volta", "target": "sometimes" }
+      ]
+    },
+    {
+      "id": "verb",
+      "name": "Present Tense Verbs",
+      "words": [
+        { "languagePairKey": "en_fr", "source": "eat", "target": "mange" },
+        { "languagePairKey": "en_fr", "source": "drink", "target": "bois" },
+        { "languagePairKey": "en_fr", "source": "see", "target": "vois" },
+
+        { "languagePairKey": "en_it", "source": "eat", "target": "mangio" },
+        { "languagePairKey": "en_it", "source": "drink", "target": "bevo" },
+        { "languagePairKey": "en_it", "source": "see", "target": "vedo" },
+
+        { "languagePairKey": "it_en", "source": "mangio", "target": "eat" },
+        { "languagePairKey": "it_en", "source": "bevo", "target": "drink" },
+        { "languagePairKey": "it_en", "source": "vedo", "target": "see" }
+      ]
+    },
+    {
+      "id": "adjective",
+      "name": "Common Adjectives",
+      "words": [
+        { "languagePairKey": "en_fr", "source": "big", "target": "grand" },
+        { "languagePairKey": "en_fr", "source": "small", "target": "petit" },
+        { "languagePairKey": "en_fr", "source": "new", "target": "nouveau" },
+
+        { "languagePairKey": "en_it", "source": "big", "target": "grande" },
+        { "languagePairKey": "en_it", "source": "small", "target": "piccolo" },
+        { "languagePairKey": "en_it", "source": "new", "target": "nuovo" },
+
+        { "languagePairKey": "it_en", "source": "grande", "target": "big" },
+        { "languagePairKey": "it_en", "source": "piccolo", "target": "small" },
+        { "languagePairKey": "it_en", "source": "nuovo", "target": "new" }
+      ]
+    },
+    {
+      "id": "object",
+      "name": "Common Objects",
+      "words": [
+        { "languagePairKey": "en_fr", "source": "the house", "target": "la maison" },
+        { "languagePairKey": "en_fr", "source": "the book", "target": "le livre" },
+        { "languagePairKey": "en_fr", "source": "the car", "target": "la voiture" },
+
+        { "languagePairKey": "en_it", "source": "the house", "target": "la casa" },
+        { "languagePairKey": "en_it", "source": "the book", "target": "il libro" },
+        { "languagePairKey": "en_it", "source": "the car", "target": "la macchina" },
+
+        { "languagePairKey": "it_en", "source": "la casa", "target": "the house" },
+        { "languagePairKey": "it_en", "source": "il libro", "target": "the book" },
+        { "languagePairKey": "it_en", "source": "la macchina", "target": "the car" }
+      ]
+    }
+  ]
+}

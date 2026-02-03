@@ -10,6 +10,7 @@ import 'package:wordweaver/screens/word_match_page.dart';
 import 'package:wordweaver/screens/complete_word_page.dart';
 import 'package:wordweaver/screens/ruzzle_page.dart';
 import 'package:wordweaver/screens/blue_quiz_mock_page.dart';
+import 'package:wordweaver/screens/grammar_sentences_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/screens/chat_mock_page.dart';
 import 'package:wordweaver/screens/settings_page.dart';
@@ -279,6 +280,15 @@ class StartModesButton extends StatelessWidget {
                           ),
                           _buildModeTile(
                             sheetContext,
+                            icon: Icons.menu_book_outlined,
+                            title: 'Grammar sentences',
+                            subtitle: 'View generated sentence pairs',
+                            onTap: () {
+                              _startGrammarSentences(context);
+                            },
+                          ),
+                          _buildModeTile(
+                            sheetContext,
                             icon: Icons.view_column_outlined,
                             title: 'Word Match',
                             subtitle: 'Match translations in pairs',
@@ -344,6 +354,57 @@ class StartModesButton extends StatelessWidget {
         Navigator.pop(sheetContext);
         onTap();
       },
+    );
+  }
+
+  void _startGrammarSentences(BuildContext context) {
+    _startGrammarSentencesInternal(context);
+  }
+
+  Future<void> _startGrammarSentencesInternal(
+    BuildContext context, {
+    bool cameFromRetry = false,
+  }) async {
+    final pair = languageService.currentLanguagePair;
+
+    if (pair == null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LanguageSetupPage()),
+      );
+      if (cameFromRetry) {
+        if (languageService.currentLanguagePair == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please pick a study language to start.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        await _startGrammarSentencesInternal(context, cameFromRetry: true);
+        return;
+      }
+    }
+
+    final finalPair = languageService.currentLanguagePair;
+
+    if (finalPair == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please pick a language.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GrammarSentencesPage(languagePair: finalPair),
+      ),
     );
   }
 
