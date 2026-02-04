@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wordweaver/models/language_pair.dart';
+import 'package:wordweaver/screens/language_setup_page.dart';
+import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/services/grammar_service.dart';
 import 'package:wordweaver/services/verb_conjugation_service.dart';
 
@@ -128,7 +130,12 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
     final pairKey = widget.languagePair.key;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Grammar sentences')),
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Grammar sentences'),
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -153,31 +160,26 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Language pair',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
-                          ),
+                      _buildLanguagePairPill(theme),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MyListPage(),
+                            ),
+                          );
+                        },
+                        icon: Icon(
+                          Icons.bookmark_border,
+                          color: theme.colorScheme.onSurface,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_sourceLanguageName ?? ''} → ${_targetLanguageName ?? ''} ($pairKey)',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Generated sentence rotations from grammar_profiles_mock.json',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
-                          ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          padding: const EdgeInsets.all(12),
                         ),
                       ),
                     ],
@@ -255,6 +257,51 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
     );
   }
 
+  Widget _buildLanguagePairPill(ThemeData theme) {
+    final pair = widget.languagePair;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const LanguageSetupPage()),
+          );
+        },
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                pair.sourceLanguage.flag,
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.arrow_forward,
+                size: 18,
+                color: theme.colorScheme.onPrimaryContainer.withValues(
+                  alpha: 0.7,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                pair.targetLanguage.flag,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildWheelsBody(ThemeData theme) {
     if (_tenseIds.isEmpty || _verbKeys.isEmpty || _conjugations.isEmpty) {
       return Center(
@@ -278,10 +325,18 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: selectedTenseId,
-                  decoration: const InputDecoration(
+                  isDense: true,
+                  decoration: InputDecoration(
                     labelText: 'Tense',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
+                  style: theme.textTheme.bodyMedium,
                   items: _tenseIds
                       .map(
                         (id) => DropdownMenuItem<String>(
@@ -300,10 +355,18 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: selectedVerbKey,
-                  decoration: const InputDecoration(
+                  isDense: true,
+                  decoration: InputDecoration(
                     labelText: 'Verb',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
+                  style: theme.textTheme.bodyMedium,
                   items: _verbKeys
                       .map(
                         (v) =>
@@ -319,119 +382,133 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
             ],
           ),
         ),
-        SizedBox(
-          height: 220,
-          child: Row(
-            children: List.generate(_columns.length, (index) {
-              final column = _columns[index];
-              final controller = _wheelControllers[index];
-              return Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        column.name,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: SizedBox(
+              height: 220,
+              child: Row(
+                children: List.generate(_columns.length, (index) {
+                  final column = _columns[index];
+                  final controller = _wheelControllers[index];
+                  return Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            column.name,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListWheelScrollView.useDelegate(
-                        controller: controller,
-                        physics: const FixedExtentScrollPhysics(),
-                        itemExtent: 32,
-                        onSelectedItemChanged: (selected) {
-                          if (column.id == 'subject' || column.id == 'verb') {
-                            setState(() {
-                              if (selected < 0 ||
-                                  selected >= _conjugations.length) {
-                                _conjugationIndex = 0;
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: controller,
+                            physics: const FixedExtentScrollPhysics(),
+                            itemExtent: 32,
+                            onSelectedItemChanged: (selected) {
+                              if (column.id == 'subject' ||
+                                  column.id == 'verb') {
+                                setState(() {
+                                  if (selected < 0 ||
+                                      selected >= _conjugations.length) {
+                                    _conjugationIndex = 0;
+                                  } else {
+                                    _conjugationIndex = selected;
+                                  }
+                                });
+                                // Keep subject and verb aligned
+                                for (
+                                  var i = 0;
+                                  i < _columns.length &&
+                                      i < _wheelControllers.length;
+                                  i++
+                                ) {
+                                  if (_columns[i].id != 'subject' &&
+                                      _columns[i].id != 'verb') {
+                                    continue;
+                                  }
+                                  final c = _wheelControllers[i];
+                                  if (c.hasClients) {
+                                    c.animateToItem(
+                                      _conjugationIndex,
+                                      duration: const Duration(
+                                        milliseconds: 150,
+                                      ),
+                                      curve: Curves.easeOut,
+                                    );
+                                  }
+                                }
                               } else {
-                                _conjugationIndex = selected;
+                                setState(() {
+                                  if (_wheelIndices.length != _columns.length) {
+                                    _wheelIndices = List<int>.filled(
+                                      _columns.length,
+                                      0,
+                                    );
+                                  }
+                                  _wheelIndices[index] = selected;
+                                });
                               }
-                            });
-                            // Keep subject and verb aligned
-                            for (
-                              var i = 0;
-                              i < _columns.length &&
-                                  i < _wheelControllers.length;
-                              i++
-                            ) {
-                              if (_columns[i].id != 'subject' &&
-                                  _columns[i].id != 'verb') {
-                                continue;
-                              }
-                              final c = _wheelControllers[i];
-                              if (c.hasClients) {
-                                c.animateToItem(
-                                  _conjugationIndex,
-                                  duration: const Duration(milliseconds: 150),
-                                  curve: Curves.easeOut,
-                                );
-                              }
-                            }
-                          } else {
-                            setState(() {
-                              if (_wheelIndices.length != _columns.length) {
-                                _wheelIndices = List<int>.filled(
-                                  _columns.length,
-                                  0,
-                                );
-                              }
-                              _wheelIndices[index] = selected;
-                            });
-                          }
-                        },
-                        childDelegate: ListWheelChildBuilderDelegate(
-                          builder: (context, itemIndex) {
-                            if (column.id == 'subject' || column.id == 'verb') {
-                              if (itemIndex < 0 ||
-                                  itemIndex >= _conjugations.length) {
-                                return null;
-                              }
-                              final entry = _conjugations[itemIndex];
-                              final text = column.id == 'subject'
-                                  ? entry.subjectTarget
-                                  : entry.verbTarget;
-                              return Center(
-                                child: Text(
-                                  text,
-                                  style: theme.textTheme.bodyMedium,
-                                  textAlign: TextAlign.center,
-                                ),
-                              );
-                            }
+                            },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              builder: (context, itemIndex) {
+                                if (column.id == 'subject' ||
+                                    column.id == 'verb') {
+                                  if (itemIndex < 0 ||
+                                      itemIndex >= _conjugations.length) {
+                                    return null;
+                                  }
+                                  final entry = _conjugations[itemIndex];
+                                  final text = column.id == 'subject'
+                                      ? entry.subjectTarget
+                                      : entry.verbTarget;
+                                  return Center(
+                                    child: Text(
+                                      text,
+                                      style: theme.textTheme.bodyMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  );
+                                }
 
-                            if (itemIndex < 0 ||
-                                itemIndex >= column.entries.length) {
-                              return null;
-                            }
-                            final entry = column.entries[itemIndex];
-                            return Center(
-                              child: Text(
-                                entry.target,
-                                style: theme.textTheme.bodyMedium,
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          },
-                          childCount:
-                              column.id == 'subject' || column.id == 'verb'
-                              ? _conjugations.length
-                              : column.entries.length,
+                                if (itemIndex < 0 ||
+                                    itemIndex >= column.entries.length) {
+                                  return null;
+                                }
+                                final entry = column.entries[itemIndex];
+                                return Center(
+                                  child: Text(
+                                    entry.target,
+                                    style: theme.textTheme.bodyMedium,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                              childCount:
+                                  column.id == 'subject' || column.id == 'verb'
+                                  ? _conjugations.length
+                                  : column.entries.length,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            }),
+                  );
+                }),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -462,28 +539,28 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
         const SizedBox(height: 8),
         const Divider(height: 1),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_savedSentences.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    'Saved sentences',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          child: _savedSentences.isEmpty
+              ? const SizedBox.shrink()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        'Saved sentences',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    Expanded(child: _buildSavedList(theme)),
+                  ],
                 ),
-                _buildSavedList(theme),
-                const Divider(height: 1),
-              ],
-              Expanded(child: _buildListBody(theme)),
-            ],
-          ),
         ),
       ],
     );
@@ -635,8 +712,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
 
   Widget _buildSavedList(ThemeData theme) {
     return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       itemCount: _savedSentences.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
