@@ -34,8 +34,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   String? _selectedTenseId;
   String? _selectedVerbKey;
   List<ConjugationEntry> _conjugations = [];
-  FixedExtentScrollController? _pronounWheelController;
-  FixedExtentScrollController? _verbWheelController;
   int _conjugationIndex = 0;
 
   @override
@@ -105,8 +103,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
         _selectedVerbKey = selectedVerbKey;
         _conjugations = conjugations;
         _conjugationIndex = 0;
-        _pronounWheelController = FixedExtentScrollController();
-        _verbWheelController = FixedExtentScrollController();
         _loading = false;
       });
     } catch (e) {
@@ -123,8 +119,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
     for (final controller in _wheelControllers) {
       controller.dispose();
     }
-    _pronounWheelController?.dispose();
-    _verbWheelController?.dispose();
     super.dispose();
   }
 
@@ -272,13 +266,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
       );
     }
 
-    _pronounWheelController ??= FixedExtentScrollController(
-      initialItem: _conjugationIndex,
-    );
-    _verbWheelController ??= FixedExtentScrollController(
-      initialItem: _conjugationIndex,
-    );
-
     final selectedTenseId = _selectedTenseId;
     final selectedVerbKey = _selectedVerbKey;
 
@@ -333,17 +320,19 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
           ),
         ),
         SizedBox(
-          height: 200,
+          height: 220,
           child: Row(
-            children: [
-              Expanded(
+            children: List.generate(_columns.length, (index) {
+              final column = _columns[index];
+              final controller = _wheelControllers[index];
+              return Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        'Subject',
+                        column.name,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.7,
@@ -354,142 +343,40 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
                     ),
                     Expanded(
                       child: ListWheelScrollView.useDelegate(
-                        controller: _pronounWheelController!,
+                        controller: controller,
                         physics: const FixedExtentScrollPhysics(),
                         itemExtent: 32,
                         onSelectedItemChanged: (selected) {
-                          setState(() {
-                            if (selected < 0 ||
-                                selected >= _conjugations.length) {
-                              _conjugationIndex = 0;
-                            } else {
-                              _conjugationIndex = selected;
+                          if (column.id == 'subject' || column.id == 'verb') {
+                            setState(() {
+                              if (selected < 0 ||
+                                  selected >= _conjugations.length) {
+                                _conjugationIndex = 0;
+                              } else {
+                                _conjugationIndex = selected;
+                              }
+                            });
+                            // Keep subject and verb aligned
+                            for (
+                              var i = 0;
+                              i < _columns.length &&
+                                  i < _wheelControllers.length;
+                              i++
+                            ) {
+                              if (_columns[i].id != 'subject' &&
+                                  _columns[i].id != 'verb') {
+                                continue;
+                              }
+                              final c = _wheelControllers[i];
+                              if (c.hasClients) {
+                                c.animateToItem(
+                                  _conjugationIndex,
+                                  duration: const Duration(milliseconds: 150),
+                                  curve: Curves.easeOut,
+                                );
+                              }
                             }
-                          });
-                          if (_verbWheelController!.hasClients) {
-                            _verbWheelController!.animateToItem(
-                              _conjugationIndex,
-                              duration: const Duration(milliseconds: 150),
-                              curve: Curves.easeOut,
-                            );
-                          }
-                        },
-                        childDelegate: ListWheelChildBuilderDelegate(
-                          builder: (context, itemIndex) {
-                            if (itemIndex < 0 ||
-                                itemIndex >= _conjugations.length) {
-                              return null;
-                            }
-                            final entry = _conjugations[itemIndex];
-                            return Center(
-                              child: Text(
-                                entry.subjectTarget,
-                                style: theme.textTheme.bodyMedium,
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          },
-                          childCount: _conjugations.length,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        'Verb',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
-                          ),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListWheelScrollView.useDelegate(
-                        controller: _verbWheelController!,
-                        physics: const FixedExtentScrollPhysics(),
-                        itemExtent: 32,
-                        onSelectedItemChanged: (selected) {
-                          setState(() {
-                            if (selected < 0 ||
-                                selected >= _conjugations.length) {
-                              _conjugationIndex = 0;
-                            } else {
-                              _conjugationIndex = selected;
-                            }
-                          });
-                          if (_pronounWheelController!.hasClients) {
-                            _pronounWheelController!.animateToItem(
-                              _conjugationIndex,
-                              duration: const Duration(milliseconds: 150),
-                              curve: Curves.easeOut,
-                            );
-                          }
-                        },
-                        childDelegate: ListWheelChildBuilderDelegate(
-                          builder: (context, itemIndex) {
-                            if (itemIndex < 0 ||
-                                itemIndex >= _conjugations.length) {
-                              return null;
-                            }
-                            final entry = _conjugations[itemIndex];
-                            return Center(
-                              child: Text(
-                                entry.verbTarget,
-                                style: theme.textTheme.bodyMedium,
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          },
-                          childCount: _conjugations.length,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (_columns.isNotEmpty)
-          SizedBox(
-            height: 200,
-            child: Row(
-              children: List.generate(_columns.length, (index) {
-                final column = _columns[index];
-                final controller = _wheelControllers[index];
-                return Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          column.name,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.7,
-                            ),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                        child: ListWheelScrollView.useDelegate(
-                          controller: controller,
-                          physics: const FixedExtentScrollPhysics(),
-                          itemExtent: 32,
-                          onSelectedItemChanged: (selected) {
-                            final isFrequency = column.id == 'adverb_frequency';
+                          } else {
                             setState(() {
                               if (_wheelIndices.length != _columns.length) {
                                 _wheelIndices = List<int>.filled(
@@ -497,80 +384,56 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
                                   0,
                                 );
                               }
-                              if (isFrequency) {
-                                _wheelIndices[index] = selected;
-                              } else {
-                                for (var i = 0; i < _columns.length; i++) {
-                                  if (_columns[i].id == 'adverb_frequency') {
-                                    continue;
-                                  }
-                                  final len = _columns[i].entries.length;
-                                  if (len == 0) continue;
-                                  var targetIndex = selected;
-                                  if (targetIndex < 0) {
-                                    targetIndex = 0;
-                                  } else if (targetIndex >= len) {
-                                    targetIndex = len - 1;
-                                  }
-                                  _wheelIndices[i] = targetIndex;
-                                }
-                              }
+                              _wheelIndices[index] = selected;
                             });
-                            if (!isFrequency) {
-                              for (
-                                var i = 0;
-                                i < _wheelControllers.length &&
-                                    i < _columns.length;
-                                i++
-                              ) {
-                                if (i == index) continue;
-                                if (_columns[i].id == 'adverb_frequency') {
-                                  continue;
-                                }
-                                final len = _columns[i].entries.length;
-                                if (len == 0) continue;
-                                var targetIndex = _wheelIndices[i];
-                                if (targetIndex < 0) {
-                                  targetIndex = 0;
-                                } else if (targetIndex >= len) {
-                                  targetIndex = len - 1;
-                                }
-                                final c = _wheelControllers[i];
-                                if (c.hasClients) {
-                                  c.animateToItem(
-                                    targetIndex,
-                                    duration: const Duration(milliseconds: 150),
-                                    curve: Curves.easeOut,
-                                  );
-                                }
-                              }
-                            }
-                          },
-                          childDelegate: ListWheelChildBuilderDelegate(
-                            builder: (context, itemIndex) {
+                          }
+                        },
+                        childDelegate: ListWheelChildBuilderDelegate(
+                          builder: (context, itemIndex) {
+                            if (column.id == 'subject' || column.id == 'verb') {
                               if (itemIndex < 0 ||
-                                  itemIndex >= column.entries.length) {
+                                  itemIndex >= _conjugations.length) {
                                 return null;
                               }
-                              final entry = column.entries[itemIndex];
+                              final entry = _conjugations[itemIndex];
+                              final text = column.id == 'subject'
+                                  ? entry.subjectTarget
+                                  : entry.verbTarget;
                               return Center(
                                 child: Text(
-                                  entry.target,
+                                  text,
                                   style: theme.textTheme.bodyMedium,
                                   textAlign: TextAlign.center,
                                 ),
                               );
-                            },
-                            childCount: column.entries.length,
-                          ),
+                            }
+
+                            if (itemIndex < 0 ||
+                                itemIndex >= column.entries.length) {
+                              return null;
+                            }
+                            final entry = column.entries[itemIndex];
+                            return Center(
+                              child: Text(
+                                entry.target,
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          },
+                          childCount:
+                              column.id == 'subject' || column.id == 'verb'
+                              ? _conjugations.length
+                              : column.entries.length,
                         ),
                       ),
-                    ],
-                  ),
-                );
-              }),
-            ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ),
+        ),
         const SizedBox(height: 16),
         _buildWheelSentencePreview(theme),
         const SizedBox(height: 8),
@@ -698,20 +561,18 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
     setState(() {
       _conjugationIndex = matchIndex;
     });
-    if (_pronounWheelController != null &&
-        _pronounWheelController!.hasClients) {
-      _pronounWheelController!.animateToItem(
-        _conjugationIndex,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      );
-    }
-    if (_verbWheelController != null && _verbWheelController!.hasClients) {
-      _verbWheelController!.animateToItem(
-        _conjugationIndex,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      );
+    for (var i = 0; i < _columns.length && i < _wheelControllers.length; i++) {
+      if (_columns[i].id != 'subject' && _columns[i].id != 'verb') {
+        continue;
+      }
+      final c = _wheelControllers[i];
+      if (c.hasClients) {
+        c.animateToItem(
+          _conjugationIndex,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
     }
   }
 
@@ -730,8 +591,20 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
       _selectedVerbKey = verbKey;
       _conjugations = conjugations;
       _conjugationIndex = 0;
-      _pronounWheelController?.jumpToItem(0);
-      _verbWheelController?.jumpToItem(0);
+      // Reset subject/verb wheels to first person
+      for (
+        var i = 0;
+        i < _columns.length && i < _wheelControllers.length;
+        i++
+      ) {
+        if (_columns[i].id != 'subject' && _columns[i].id != 'verb') {
+          continue;
+        }
+        final c = _wheelControllers[i];
+        if (c.hasClients) {
+          c.jumpToItem(0);
+        }
+      }
     });
   }
 
@@ -744,8 +617,19 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
       _selectedVerbKey = verbKey;
       _conjugations = conjugations;
       _conjugationIndex = 0;
-      _pronounWheelController?.jumpToItem(0);
-      _verbWheelController?.jumpToItem(0);
+      for (
+        var i = 0;
+        i < _columns.length && i < _wheelControllers.length;
+        i++
+      ) {
+        if (_columns[i].id != 'subject' && _columns[i].id != 'verb') {
+          continue;
+        }
+        final c = _wheelControllers[i];
+        if (c.hasClients) {
+          c.jumpToItem(0);
+        }
+      }
     });
   }
 
