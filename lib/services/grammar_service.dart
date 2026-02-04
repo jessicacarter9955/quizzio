@@ -4,8 +4,13 @@ import 'package:flutter/services.dart' show rootBundle;
 class GrammarSentence {
   final String sourceSentence;
   final String targetSentence;
+  final List<int>? indices;
 
-  GrammarSentence({required this.sourceSentence, required this.targetSentence});
+  GrammarSentence({
+    required this.sourceSentence,
+    required this.targetSentence,
+    this.indices,
+  });
 }
 
 class GrammarWheelEntry {
@@ -198,6 +203,7 @@ class GrammarService {
         GrammarSentence(
           sourceSentence: sourceParts.join(' '),
           targetSentence: targetParts.join(' '),
+          indices: List<int>.from(indices),
         ),
       );
 

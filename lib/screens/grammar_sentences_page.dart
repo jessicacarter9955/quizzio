@@ -25,6 +25,7 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   List<FixedExtentScrollController> _wheelControllers = [];
   int _comboIndex = 0;
   _GrammarViewMode _viewMode = _GrammarViewMode.wheels;
+  final List<GrammarSentence> _savedSentences = [];
 
   @override
   void initState() {
@@ -301,8 +302,54 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
         const SizedBox(height: 16),
         _buildWheelSentencePreview(theme),
         const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _currentWheelSentence == null
+                    ? null
+                    : _saveCurrentSentence,
+                icon: const Icon(Icons.bookmark_add_outlined),
+                label: const Text('Save sentence'),
+              ),
+              const SizedBox(width: 12),
+              if (_savedSentences.isNotEmpty)
+                Text(
+                  '${_savedSentences.length} saved',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         const Divider(height: 1),
-        Expanded(child: _buildListBody(theme)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_savedSentences.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    'Saved sentences',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+                _buildSavedList(theme),
+                const Divider(height: 1),
+              ],
+              Expanded(child: _buildListBody(theme)),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -351,6 +398,94 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
     return GrammarSentence(
       sourceSentence: sourceParts.join(' '),
       targetSentence: targetParts.join(' '),
+      indices: List<int>.generate(
+        _columns.length,
+        (i) => _comboIndex % _columns[i].entries.length,
+      ),
+    );
+  }
+
+  void _saveCurrentSentence() {
+    final sentence = _currentWheelSentence;
+    if (sentence == null) return;
+    final exists = _savedSentences.any(
+      (s) =>
+          s.sourceSentence == sentence.sourceSentence &&
+          s.targetSentence == sentence.targetSentence,
+    );
+    if (exists) return;
+    setState(() {
+      _savedSentences.add(sentence);
+    });
+  }
+
+  void _syncWheelsToSentence(GrammarSentence sentence) {
+    final indices = sentence.indices;
+    if (indices == null || indices.isEmpty) return;
+    _comboIndex = indices[0];
+    for (var i = 0; i < _wheelControllers.length && i < indices.length; i++) {
+      final controller = _wheelControllers[i];
+      final column = _columns[i];
+      if (column.entries.isEmpty) continue;
+      final targetIndex = indices[i].clamp(0, column.entries.length - 1);
+      if (controller.hasClients) {
+        controller.animateToItem(
+          targetIndex,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    }
+    setState(() {});
+  }
+
+  Widget _buildSavedList(ThemeData theme) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _savedSentences.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final sentence = _savedSentences[index];
+        return ListTile(
+          leading: Icon(Icons.bookmark, color: theme.colorScheme.primary),
+          title: Text(
+            sentence.targetSentence,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            sentence.sourceSentence,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              setState(() {
+                _savedSentences.removeAt(index);
+              });
+            },
+          ),
+          onTap: () {
+            final listIndex = _sentences.indexWhere(
+              (s) =>
+                  s.sourceSentence == sentence.sourceSentence &&
+                  s.targetSentence == sentence.targetSentence,
+            );
+            setState(() {
+              if (listIndex != -1) {
+                _currentIndex = listIndex;
+              }
+            });
+            if (_viewMode == _GrammarViewMode.wheels) {
+              _syncWheelsToSentence(sentence);
+            }
+          },
+        );
+      },
     );
   }
 
@@ -465,9 +600,13 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
           ),
           dense: true,
           onTap: () {
+            final sentence = _sentences[index];
             setState(() {
               _currentIndex = index;
             });
+            if (_viewMode == _GrammarViewMode.wheels) {
+              _syncWheelsToSentence(sentence);
+            }
           },
         );
       },
