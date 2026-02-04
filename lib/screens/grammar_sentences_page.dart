@@ -23,7 +23,7 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   String? _targetLanguageName;
   List<GrammarWheelColumn> _columns = [];
   List<FixedExtentScrollController> _wheelControllers = [];
-  int _comboIndex = 0;
+  List<int> _wheelIndices = [];
   _GrammarViewMode _viewMode = _GrammarViewMode.wheels;
   final List<GrammarSentence> _savedSentences = [];
 
@@ -52,7 +52,7 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
           wheelColumns.length,
           (_) => FixedExtentScrollController(),
         );
-        _comboIndex = 0;
+        _wheelIndices = List<int>.filled(wheelColumns.length, 0);
         _sentences = sentences;
         _currentIndex = 0;
         _sourceLanguageName =
@@ -256,21 +256,60 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
                         physics: const FixedExtentScrollPhysics(),
                         itemExtent: 32,
                         onSelectedItemChanged: (selected) {
+                          final isFrequency = column.id == 'adverb_frequency';
                           setState(() {
-                            _comboIndex = selected;
-                          });
-                          for (var i = 0; i < _wheelControllers.length; i++) {
-                            if (i == index) continue;
-                            final len = columns[i].entries.length;
-                            if (len == 0) continue;
-                            final targetIndex = _comboIndex % len;
-                            final c = _wheelControllers[i];
-                            if (c.hasClients) {
-                              c.animateToItem(
-                                targetIndex,
-                                duration: const Duration(milliseconds: 150),
-                                curve: Curves.easeOut,
+                            if (_wheelIndices.length != columns.length) {
+                              _wheelIndices = List<int>.filled(
+                                columns.length,
+                                0,
                               );
+                            }
+                            if (isFrequency) {
+                              _wheelIndices[index] = selected;
+                            } else {
+                              for (var i = 0; i < columns.length; i++) {
+                                if (columns[i].id == 'adverb_frequency') {
+                                  continue;
+                                }
+                                final len = columns[i].entries.length;
+                                if (len == 0) continue;
+                                var targetIndex = selected;
+                                if (targetIndex < 0) {
+                                  targetIndex = 0;
+                                } else if (targetIndex >= len) {
+                                  targetIndex = len - 1;
+                                }
+                                _wheelIndices[i] = targetIndex;
+                              }
+                            }
+                          });
+                          if (!isFrequency) {
+                            for (
+                              var i = 0;
+                              i < _wheelControllers.length &&
+                                  i < columns.length;
+                              i++
+                            ) {
+                              if (i == index) continue;
+                              if (columns[i].id == 'adverb_frequency') {
+                                continue;
+                              }
+                              final len = columns[i].entries.length;
+                              if (len == 0) continue;
+                              var targetIndex = _wheelIndices[i];
+                              if (targetIndex < 0) {
+                                targetIndex = 0;
+                              } else if (targetIndex >= len) {
+                                targetIndex = len - 1;
+                              }
+                              final c = _wheelControllers[i];
+                              if (c.hasClients) {
+                                c.animateToItem(
+                                  targetIndex,
+                                  duration: const Duration(milliseconds: 150),
+                                  curve: Curves.easeOut,
+                                );
+                              }
                             }
                           }
                         },
@@ -384,13 +423,24 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
 
   GrammarSentence? get _currentWheelSentence {
     if (_columns.isEmpty) return null;
+    if (_wheelIndices.length != _columns.length) {
+      _wheelIndices = List<int>.filled(_columns.length, 0);
+    }
     final sourceParts = <String>[];
     final targetParts = <String>[];
+    final indices = <int>[];
     for (var i = 0; i < _columns.length; i++) {
       final column = _columns[i];
       if (column.entries.isEmpty) continue;
-      final index = _comboIndex % column.entries.length;
+      var index = _wheelIndices[i];
+      if (index < 0 || index >= column.entries.length) {
+        index = index % column.entries.length;
+        if (index < 0) {
+          index += column.entries.length;
+        }
+      }
       final entry = column.entries[index];
+      indices.add(index);
       sourceParts.add(entry.source);
       targetParts.add(entry.target);
     }
@@ -398,10 +448,7 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
     return GrammarSentence(
       sourceSentence: sourceParts.join(' '),
       targetSentence: targetParts.join(' '),
-      indices: List<int>.generate(
-        _columns.length,
-        (i) => _comboIndex % _columns[i].entries.length,
-      ),
+      indices: indices,
     );
   }
 
@@ -422,18 +469,28 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   void _syncWheelsToSentence(GrammarSentence sentence) {
     final indices = sentence.indices;
     if (indices == null || indices.isEmpty) return;
-    _comboIndex = indices[0];
-    for (var i = 0; i < _wheelControllers.length && i < indices.length; i++) {
-      final controller = _wheelControllers[i];
+    if (_wheelIndices.length != _columns.length) {
+      _wheelIndices = List<int>.filled(_columns.length, 0);
+    }
+    for (var i = 0; i < _columns.length && i < indices.length; i++) {
       final column = _columns[i];
       if (column.entries.isEmpty) continue;
-      final targetIndex = indices[i].clamp(0, column.entries.length - 1);
-      if (controller.hasClients) {
-        controller.animateToItem(
-          targetIndex,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
+      var targetIndex = indices[i];
+      if (targetIndex < 0) {
+        targetIndex = 0;
+      } else if (targetIndex >= column.entries.length) {
+        targetIndex = column.entries.length - 1;
+      }
+      _wheelIndices[i] = targetIndex;
+      if (i < _wheelControllers.length) {
+        final controller = _wheelControllers[i];
+        if (controller.hasClients) {
+          controller.animateToItem(
+            targetIndex,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
       }
     }
     setState(() {});
