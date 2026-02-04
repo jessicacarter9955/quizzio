@@ -12,6 +12,126 @@
       "present": {
         "name": "Present",
         "verbs": {
+          "be": {
+            "source": "be",
+            "targetInfinitive": "être",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "am", "verbTarget": "suis" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "are", "verbTarget": "es" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "is", "verbTarget": "est" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "is", "verbTarget": "est" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "are", "verbTarget": "sommes" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "are", "verbTarget": "sont" }
+            ]
+          },
+          "have": {
+            "source": "have",
+            "targetInfinitive": "avoir",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "have", "verbTarget": "ai" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "have", "verbTarget": "as" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "has", "verbTarget": "a" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "has", "verbTarget": "a" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "have", "verbTarget": "avons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "have", "verbTarget": "ont" }
+            ]
+          },
+          "do": {
+            "source": "do",
+            "targetInfinitive": "faire",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "do", "verbTarget": "fais" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "do", "verbTarget": "fais" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "does", "verbTarget": "fait" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "does", "verbTarget": "fait" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "do", "verbTarget": "faisons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "do", "verbTarget": "font" }
+            ]
+          },
+          "say": {
+            "source": "say",
+            "targetInfinitive": "dire",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "say", "verbTarget": "dis" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "say", "verbTarget": "dis" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "says", "verbTarget": "dit" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "says", "verbTarget": "dit" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "say", "verbTarget": "disons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "say", "verbTarget": "disent" }
+            ]
+          },
+          "go": {
+            "source": "go",
+            "targetInfinitive": "aller",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "go", "verbTarget": "vais" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "go", "verbTarget": "vas" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "goes", "verbTarget": "va" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "goes", "verbTarget": "va" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "go", "verbTarget": "allons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "go", "verbTarget": "vont" }
+            ]
+          },
+          "get": {
+            "source": "get",
+            "targetInfinitive": "obtenir",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "get", "verbTarget": "obtiens" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "get", "verbTarget": "obtiens" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "gets", "verbTarget": "obtient" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "gets", "verbTarget": "obtient" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "get", "verbTarget": "obtenons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "get", "verbTarget": "obtiennent" }
+            ]
+          },
+          "make": {
+            "source": "make",
+            "targetInfinitive": "faire",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "make", "verbTarget": "fais" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "make", "verbTarget": "fais" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "makes", "verbTarget": "fait" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "makes", "verbTarget": "fait" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "make", "verbTarget": "faisons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "make", "verbTarget": "font" }
+            ]
+          },
+          "know": {
+            "source": "know",
+            "targetInfinitive": "savoir",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "know", "verbTarget": "sais" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "know", "verbTarget": "sais" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "knows", "verbTarget": "sait" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "knows", "verbTarget": "sait" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "know", "verbTarget": "savons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "know", "verbTarget": "savent" }
+            ]
+          },
+          "think": {
+            "source": "think",
+            "targetInfinitive": "penser",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "je", "verbSource": "think", "verbTarget": "pense" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "think", "verbTarget": "penses" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "thinks", "verbTarget": "pense" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "thinks", "verbTarget": "pense" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "think", "verbTarget": "pensons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "think", "verbTarget": "pensent" }
+            ]
+          },
+          "take": {
+            "source": "take",
+            "targetInfinitive": "prendre",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "I", "verbSource": "take", "verbTarget": "prends" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "take", "verbTarget": "prends" },
+              { "subjectSource": "he", "subjectTarget": "il", "verbSource": "takes", "verbTarget": "prend" },
+              { "subjectSource": "she", "subjectTarget": "elle", "verbSource": "takes", "verbTarget": "prend" },
+              { "subjectSource": "we", "subjectTarget": "nous", "verbSource": "take", "verbTarget": "prenons" },
+              { "subjectSource": "they", "subjectTarget": "ils", "verbSource": "take", "verbTarget": "prennent" }
+            ]
+          },
           "eat": {
             "source": "eat",
             "targetInfinitive": "manger",
@@ -147,6 +267,126 @@
       "present": {
         "name": "Presente",
         "verbs": {
+          "be": {
+            "source": "be",
+            "targetInfinitive": "essere",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "am", "verbTarget": "sono" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "are", "verbTarget": "sei" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "is", "verbTarget": "è" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "is", "verbTarget": "è" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "are", "verbTarget": "siamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "are", "verbTarget": "sono" }
+            ]
+          },
+          "have": {
+            "source": "have",
+            "targetInfinitive": "avere",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "have", "verbTarget": "ho" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "have", "verbTarget": "hai" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "has", "verbTarget": "ha" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "has", "verbTarget": "ha" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "have", "verbTarget": "abbiamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "have", "verbTarget": "hanno" }
+            ]
+          },
+          "do": {
+            "source": "do",
+            "targetInfinitive": "fare",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "do", "verbTarget": "faccio" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "do", "verbTarget": "fai" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "does", "verbTarget": "fa" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "does", "verbTarget": "fa" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "do", "verbTarget": "facciamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "do", "verbTarget": "fanno" }
+            ]
+          },
+          "say": {
+            "source": "say",
+            "targetInfinitive": "dire",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "say", "verbTarget": "dico" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "say", "verbTarget": "dici" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "says", "verbTarget": "dice" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "says", "verbTarget": "dice" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "say", "verbTarget": "diciamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "say", "verbTarget": "dicono" }
+            ]
+          },
+          "go": {
+            "source": "go",
+            "targetInfinitive": "andare",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "go", "verbTarget": "vado" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "go", "verbTarget": "vai" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "goes", "verbTarget": "va" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "goes", "verbTarget": "va" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "go", "verbTarget": "andiamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "go", "verbTarget": "vanno" }
+            ]
+          },
+          "get": {
+            "source": "get",
+            "targetInfinitive": "ottenere",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "get", "verbTarget": "ottengo" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "get", "verbTarget": "ottieni" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "gets", "verbTarget": "ottiene" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "gets", "verbTarget": "ottiene" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "get", "verbTarget": "otteniamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "get", "verbTarget": "ottengono" }
+            ]
+          },
+          "make": {
+            "source": "make",
+            "targetInfinitive": "fare",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "make", "verbTarget": "faccio" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "make", "verbTarget": "fai" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "makes", "verbTarget": "fa" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "makes", "verbTarget": "fa" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "make", "verbTarget": "facciamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "make", "verbTarget": "fanno" }
+            ]
+          },
+          "know": {
+            "source": "know",
+            "targetInfinitive": "sapere",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "know", "verbTarget": "so" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "know", "verbTarget": "sai" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "knows", "verbTarget": "sa" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "knows", "verbTarget": "sa" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "know", "verbTarget": "sappiamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "know", "verbTarget": "sanno" }
+            ]
+          },
+          "think": {
+            "source": "think",
+            "targetInfinitive": "pensare",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "think", "verbTarget": "penso" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "think", "verbTarget": "pensi" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "thinks", "verbTarget": "pensa" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "thinks", "verbTarget": "pensa" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "think", "verbTarget": "pensiamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "think", "verbTarget": "pensano" }
+            ]
+          },
+          "take": {
+            "source": "take",
+            "targetInfinitive": "prendere",
+            "persons": [
+              { "subjectSource": "I", "subjectTarget": "io", "verbSource": "take", "verbTarget": "prendo" },
+              { "subjectSource": "you", "subjectTarget": "tu", "verbSource": "take", "verbTarget": "prendi" },
+              { "subjectSource": "he", "subjectTarget": "lui", "verbSource": "takes", "verbTarget": "prende" },
+              { "subjectSource": "she", "subjectTarget": "lei", "verbSource": "takes", "verbTarget": "prende" },
+              { "subjectSource": "we", "subjectTarget": "noi", "verbSource": "take", "verbTarget": "prendiamo" },
+              { "subjectSource": "they", "subjectTarget": "loro", "verbSource": "take", "verbTarget": "prendono" }
+            ]
+          },
           "eat": {
             "source": "eat",
             "targetInfinitive": "mangiare",
@@ -282,6 +522,126 @@
       "present": {
         "name": "Presente",
         "verbs": {
+          "essere": {
+            "source": "essere",
+            "targetInfinitive": "be",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "sono", "verbTarget": "am" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "sei", "verbTarget": "are" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "è", "verbTarget": "is" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "è", "verbTarget": "is" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "siamo", "verbTarget": "are" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "sono", "verbTarget": "are" }
+            ]
+          },
+          "avere": {
+            "source": "avere",
+            "targetInfinitive": "have",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "ho", "verbTarget": "have" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "hai", "verbTarget": "have" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "ha", "verbTarget": "has" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "ha", "verbTarget": "has" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "abbiamo", "verbTarget": "have" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "hanno", "verbTarget": "have" }
+            ]
+          },
+          "fare": {
+            "source": "fare",
+            "targetInfinitive": "do",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "faccio", "verbTarget": "do" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "fai", "verbTarget": "do" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "fa", "verbTarget": "does" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "fa", "verbTarget": "does" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "facciamo", "verbTarget": "do" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "fanno", "verbTarget": "do" }
+            ]
+          },
+          "dire": {
+            "source": "dire",
+            "targetInfinitive": "say",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "dico", "verbTarget": "say" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "dici", "verbTarget": "say" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "dice", "verbTarget": "says" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "dice", "verbTarget": "says" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "diciamo", "verbTarget": "say" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "dicono", "verbTarget": "say" }
+            ]
+          },
+          "andare": {
+            "source": "andare",
+            "targetInfinitive": "go",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "vado", "verbTarget": "go" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "vai", "verbTarget": "go" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "va", "verbTarget": "goes" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "va", "verbTarget": "goes" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "andiamo", "verbTarget": "go" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "vanno", "verbTarget": "go" }
+            ]
+          },
+          "ottenere": {
+            "source": "ottenere",
+            "targetInfinitive": "get",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "ottengo", "verbTarget": "get" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "ottieni", "verbTarget": "get" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "ottiene", "verbTarget": "gets" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "ottiene", "verbTarget": "gets" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "otteniamo", "verbTarget": "get" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "ottengono", "verbTarget": "get" }
+            ]
+          },
+          "fare_make": {
+            "source": "fare",
+            "targetInfinitive": "make",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "faccio", "verbTarget": "make" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "fai", "verbTarget": "make" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "fa", "verbTarget": "makes" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "fa", "verbTarget": "makes" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "facciamo", "verbTarget": "make" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "fanno", "verbTarget": "make" }
+            ]
+          },
+          "sapere": {
+            "source": "sapere",
+            "targetInfinitive": "know",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "so", "verbTarget": "know" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "sai", "verbTarget": "know" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "sa", "verbTarget": "knows" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "sa", "verbTarget": "knows" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "sappiamo", "verbTarget": "know" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "sanno", "verbTarget": "know" }
+            ]
+          },
+          "pensare": {
+            "source": "pensare",
+            "targetInfinitive": "think",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "penso", "verbTarget": "think" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "pensi", "verbTarget": "think" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "pensa", "verbTarget": "thinks" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "pensa", "verbTarget": "thinks" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "pensiamo", "verbTarget": "think" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "pensano", "verbTarget": "think" }
+            ]
+          },
+          "prendere": {
+            "source": "prendere",
+            "targetInfinitive": "take",
+            "persons": [
+              { "subjectSource": "io", "subjectTarget": "I", "verbSource": "prendo", "verbTarget": "take" },
+              { "subjectSource": "tu", "subjectTarget": "you", "verbSource": "prendi", "verbTarget": "take" },
+              { "subjectSource": "lui", "subjectTarget": "he", "verbSource": "prende", "verbTarget": "takes" },
+              { "subjectSource": "lei", "subjectTarget": "she", "verbSource": "prende", "verbTarget": "takes" },
+              { "subjectSource": "noi", "subjectTarget": "we", "verbSource": "prendiamo", "verbTarget": "take" },
+              { "subjectSource": "loro", "subjectTarget": "they", "verbSource": "prendono", "verbTarget": "take" }
+            ]
+          },
           "mangiare": {
             "source": "mangiare",
             "targetInfinitive": "eat",
