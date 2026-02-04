@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wordweaver/models/language_pair.dart';
 import 'package:wordweaver/services/grammar_service.dart';
+import 'package:wordweaver/services/verb_conjugation_service.dart';
 
 class GrammarSentencesPage extends StatefulWidget {
   final LanguagePair languagePair;
@@ -15,17 +16,24 @@ enum _GrammarViewMode { wheels, card, list }
 
 class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   final GrammarService _grammarService = GrammarService();
+  final VerbConjugationService _verbService = VerbConjugationService();
   bool _loading = true;
   String? _error;
   List<GrammarSentence> _sentences = [];
   int _currentIndex = 0;
   String? _sourceLanguageName;
   String? _targetLanguageName;
-  List<GrammarWheelColumn> _columns = [];
-  List<FixedExtentScrollController> _wheelControllers = [];
-  List<int> _wheelIndices = [];
   _GrammarViewMode _viewMode = _GrammarViewMode.wheels;
   final List<GrammarSentence> _savedSentences = [];
+  List<String> _tenseIds = [];
+  Map<String, String> _tenseNames = {};
+  List<String> _verbKeys = [];
+  String? _selectedTenseId;
+  String? _selectedVerbKey;
+  List<ConjugationEntry> _conjugations = [];
+  FixedExtentScrollController? _pronounWheelController;
+  FixedExtentScrollController? _verbWheelController;
+  int _conjugationIndex = 0;
 
   @override
   void initState() {
@@ -38,21 +46,38 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
       await _grammarService.ensureLoaded();
       final key = widget.languagePair.key;
       final display = _grammarService.getLanguagePairDisplay(key);
-      final wheelColumns = await _grammarService.generateWheelColumnsForPair(
-        key,
-      );
       final sentences = await _grammarService.generateSentencesForPair(
         key,
         maxSentences: 200,
       );
+
+      await _verbService.ensureLoaded();
+      final tenseIds = _verbService.getAvailableTenses(key);
+      final tenseNames = <String, String>{};
+      for (final id in tenseIds) {
+        final name = _verbService.getTenseDisplayName(key, id) ?? id;
+        tenseNames[id] = name;
+      }
+      String? selectedTenseId;
+      if (tenseIds.isNotEmpty) {
+        selectedTenseId = tenseIds.first;
+      }
+      List<String> verbKeys = [];
+      String? selectedVerbKey;
+      List<ConjugationEntry> conjugations = [];
+      if (selectedTenseId != null) {
+        verbKeys = _verbService.getAvailableVerbs(key, selectedTenseId);
+        if (verbKeys.isNotEmpty) {
+          selectedVerbKey = verbKeys.first;
+          conjugations = _verbService.getConjugations(
+            key,
+            selectedTenseId,
+            selectedVerbKey,
+          );
+        }
+      }
       if (!mounted) return;
       setState(() {
-        _columns = wheelColumns;
-        _wheelControllers = List<FixedExtentScrollController>.generate(
-          wheelColumns.length,
-          (_) => FixedExtentScrollController(),
-        );
-        _wheelIndices = List<int>.filled(wheelColumns.length, 0);
         _sentences = sentences;
         _currentIndex = 0;
         _sourceLanguageName =
@@ -61,6 +86,15 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
         _targetLanguageName =
             display?['targetLanguage'] ??
             widget.languagePair.targetLanguage.name;
+        _tenseIds = tenseIds;
+        _tenseNames = tenseNames;
+        _verbKeys = verbKeys;
+        _selectedTenseId = selectedTenseId;
+        _selectedVerbKey = selectedVerbKey;
+        _conjugations = conjugations;
+        _conjugationIndex = 0;
+        _pronounWheelController = FixedExtentScrollController();
+        _verbWheelController = FixedExtentScrollController();
         _loading = false;
       });
     } catch (e) {
@@ -74,9 +108,8 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
 
   @override
   void dispose() {
-    for (final controller in _wheelControllers) {
-      controller.dispose();
-    }
+    _pronounWheelController?.dispose();
+    _verbWheelController?.dispose();
     super.dispose();
   }
 
@@ -214,34 +247,88 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   }
 
   Widget _buildWheelsBody(ThemeData theme) {
-    if (_columns.isEmpty) {
+    if (_tenseIds.isEmpty || _verbKeys.isEmpty || _conjugations.isEmpty) {
       return Center(
         child: Text(
-          'No wheel data available for this language pair.',
+          'No conjugation data available for this language pair.',
           style: theme.textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
       );
     }
 
-    final columns = _columns;
+    _pronounWheelController ??= FixedExtentScrollController(
+      initialItem: _conjugationIndex,
+    );
+    _verbWheelController ??= FixedExtentScrollController(
+      initialItem: _conjugationIndex,
+    );
+
+    final selectedTenseId = _selectedTenseId;
+    final selectedVerbKey = _selectedVerbKey;
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: selectedTenseId,
+                  decoration: const InputDecoration(
+                    labelText: 'Tense',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _tenseIds
+                      .map(
+                        (id) => DropdownMenuItem<String>(
+                          value: id,
+                          child: Text(_tenseNames[id] ?? id),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onTenseChanged(value);
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: selectedVerbKey,
+                  decoration: const InputDecoration(
+                    labelText: 'Verb',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _verbKeys
+                      .map(
+                        (v) =>
+                            DropdownMenuItem<String>(value: v, child: Text(v)),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    _onVerbChanged(value);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
         SizedBox(
           height: 200,
           child: Row(
-            children: List.generate(columns.length, (index) {
-              final column = columns[index];
-              final controller = _wheelControllers[index];
-              return Expanded(
+            children: [
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        column.name,
+                        'Subject',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.7,
@@ -252,90 +339,109 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
                     ),
                     Expanded(
                       child: ListWheelScrollView.useDelegate(
-                        controller: controller,
+                        controller: _pronounWheelController!,
                         physics: const FixedExtentScrollPhysics(),
                         itemExtent: 32,
                         onSelectedItemChanged: (selected) {
-                          final isFrequency = column.id == 'adverb_frequency';
                           setState(() {
-                            if (_wheelIndices.length != columns.length) {
-                              _wheelIndices = List<int>.filled(
-                                columns.length,
-                                0,
-                              );
-                            }
-                            if (isFrequency) {
-                              _wheelIndices[index] = selected;
+                            if (selected < 0 ||
+                                selected >= _conjugations.length) {
+                              _conjugationIndex = 0;
                             } else {
-                              for (var i = 0; i < columns.length; i++) {
-                                if (columns[i].id == 'adverb_frequency') {
-                                  continue;
-                                }
-                                final len = columns[i].entries.length;
-                                if (len == 0) continue;
-                                var targetIndex = selected;
-                                if (targetIndex < 0) {
-                                  targetIndex = 0;
-                                } else if (targetIndex >= len) {
-                                  targetIndex = len - 1;
-                                }
-                                _wheelIndices[i] = targetIndex;
-                              }
+                              _conjugationIndex = selected;
                             }
                           });
-                          if (!isFrequency) {
-                            for (
-                              var i = 0;
-                              i < _wheelControllers.length &&
-                                  i < columns.length;
-                              i++
-                            ) {
-                              if (i == index) continue;
-                              if (columns[i].id == 'adverb_frequency') {
-                                continue;
-                              }
-                              final len = columns[i].entries.length;
-                              if (len == 0) continue;
-                              var targetIndex = _wheelIndices[i];
-                              if (targetIndex < 0) {
-                                targetIndex = 0;
-                              } else if (targetIndex >= len) {
-                                targetIndex = len - 1;
-                              }
-                              final c = _wheelControllers[i];
-                              if (c.hasClients) {
-                                c.animateToItem(
-                                  targetIndex,
-                                  duration: const Duration(milliseconds: 150),
-                                  curve: Curves.easeOut,
-                                );
-                              }
-                            }
+                          if (_verbWheelController!.hasClients) {
+                            _verbWheelController!.animateToItem(
+                              _conjugationIndex,
+                              duration: const Duration(milliseconds: 150),
+                              curve: Curves.easeOut,
+                            );
                           }
                         },
                         childDelegate: ListWheelChildBuilderDelegate(
                           builder: (context, itemIndex) {
                             if (itemIndex < 0 ||
-                                itemIndex >= column.entries.length) {
+                                itemIndex >= _conjugations.length) {
                               return null;
                             }
-                            final entry = column.entries[itemIndex];
+                            final entry = _conjugations[itemIndex];
                             return Center(
                               child: Text(
-                                entry.target,
+                                entry.subjectTarget,
                                 style: theme.textTheme.bodyMedium,
                                 textAlign: TextAlign.center,
                               ),
                             );
                           },
-                          childCount: column.entries.length,
+                          childCount: _conjugations.length,
                         ),
                       ),
                     ),
                   ],
                 ),
-              );
-            }),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        'Verb',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: ListWheelScrollView.useDelegate(
+                        controller: _verbWheelController!,
+                        physics: const FixedExtentScrollPhysics(),
+                        itemExtent: 32,
+                        onSelectedItemChanged: (selected) {
+                          setState(() {
+                            if (selected < 0 ||
+                                selected >= _conjugations.length) {
+                              _conjugationIndex = 0;
+                            } else {
+                              _conjugationIndex = selected;
+                            }
+                          });
+                          if (_pronounWheelController!.hasClients) {
+                            _pronounWheelController!.animateToItem(
+                              _conjugationIndex,
+                              duration: const Duration(milliseconds: 150),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        },
+                        childDelegate: ListWheelChildBuilderDelegate(
+                          builder: (context, itemIndex) {
+                            if (itemIndex < 0 ||
+                                itemIndex >= _conjugations.length) {
+                              return null;
+                            }
+                            final entry = _conjugations[itemIndex];
+                            return Center(
+                              child: Text(
+                                entry.verbTarget,
+                                style: theme.textTheme.bodyMedium,
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          },
+                          childCount: _conjugations.length,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
@@ -422,33 +528,17 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   }
 
   GrammarSentence? get _currentWheelSentence {
-    if (_columns.isEmpty) return null;
-    if (_wheelIndices.length != _columns.length) {
-      _wheelIndices = List<int>.filled(_columns.length, 0);
+    if (_conjugations.isEmpty) return null;
+    if (_conjugationIndex < 0 || _conjugationIndex >= _conjugations.length) {
+      return null;
     }
-    final sourceParts = <String>[];
-    final targetParts = <String>[];
-    final indices = <int>[];
-    for (var i = 0; i < _columns.length; i++) {
-      final column = _columns[i];
-      if (column.entries.isEmpty) continue;
-      var index = _wheelIndices[i];
-      if (index < 0 || index >= column.entries.length) {
-        index = index % column.entries.length;
-        if (index < 0) {
-          index += column.entries.length;
-        }
-      }
-      final entry = column.entries[index];
-      indices.add(index);
-      sourceParts.add(entry.source);
-      targetParts.add(entry.target);
-    }
-    if (sourceParts.isEmpty || targetParts.isEmpty) return null;
+    final entry = _conjugations[_conjugationIndex];
+    final sourceSentence = '${entry.subjectSource} ${entry.verbSource}';
+    final targetSentence = '${entry.subjectTarget} ${entry.verbTarget}';
     return GrammarSentence(
-      sourceSentence: sourceParts.join(' '),
-      targetSentence: targetParts.join(' '),
-      indices: indices,
+      sourceSentence: sourceSentence,
+      targetSentence: targetSentence,
+      indices: [_conjugationIndex],
     );
   }
 
@@ -467,33 +557,69 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   }
 
   void _syncWheelsToSentence(GrammarSentence sentence) {
-    final indices = sentence.indices;
-    if (indices == null || indices.isEmpty) return;
-    if (_wheelIndices.length != _columns.length) {
-      _wheelIndices = List<int>.filled(_columns.length, 0);
+    if (_conjugations.isEmpty) return;
+    final targetSource = sentence.sourceSentence.trim();
+    final targetTarget = sentence.targetSentence.trim();
+    final matchIndex = _conjugations.indexWhere((entry) {
+      final s = '${entry.subjectSource} ${entry.verbSource}'.trim();
+      final t = '${entry.subjectTarget} ${entry.verbTarget}'.trim();
+      return s == targetSource && t == targetTarget;
+    });
+    if (matchIndex == -1) {
+      return;
     }
-    for (var i = 0; i < _columns.length && i < indices.length; i++) {
-      final column = _columns[i];
-      if (column.entries.isEmpty) continue;
-      var targetIndex = indices[i];
-      if (targetIndex < 0) {
-        targetIndex = 0;
-      } else if (targetIndex >= column.entries.length) {
-        targetIndex = column.entries.length - 1;
-      }
-      _wheelIndices[i] = targetIndex;
-      if (i < _wheelControllers.length) {
-        final controller = _wheelControllers[i];
-        if (controller.hasClients) {
-          controller.animateToItem(
-            targetIndex,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-        }
-      }
+    setState(() {
+      _conjugationIndex = matchIndex;
+    });
+    if (_pronounWheelController != null &&
+        _pronounWheelController!.hasClients) {
+      _pronounWheelController!.animateToItem(
+        _conjugationIndex,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
     }
-    setState(() {});
+    if (_verbWheelController != null && _verbWheelController!.hasClients) {
+      _verbWheelController!.animateToItem(
+        _conjugationIndex,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _onTenseChanged(String tenseId) {
+    final key = widget.languagePair.key;
+    final verbs = _verbService.getAvailableVerbs(key, tenseId);
+    String? verbKey;
+    List<ConjugationEntry> conjugations = [];
+    if (verbs.isNotEmpty) {
+      verbKey = verbs.first;
+      conjugations = _verbService.getConjugations(key, tenseId, verbKey);
+    }
+    setState(() {
+      _selectedTenseId = tenseId;
+      _verbKeys = verbs;
+      _selectedVerbKey = verbKey;
+      _conjugations = conjugations;
+      _conjugationIndex = 0;
+      _pronounWheelController?.jumpToItem(0);
+      _verbWheelController?.jumpToItem(0);
+    });
+  }
+
+  void _onVerbChanged(String verbKey) {
+    final key = widget.languagePair.key;
+    final tenseId = _selectedTenseId;
+    if (tenseId == null) return;
+    final conjugations = _verbService.getConjugations(key, tenseId, verbKey);
+    setState(() {
+      _selectedVerbKey = verbKey;
+      _conjugations = conjugations;
+      _conjugationIndex = 0;
+      _pronounWheelController?.jumpToItem(0);
+      _verbWheelController?.jumpToItem(0);
+    });
   }
 
   Widget _buildSavedList(ThemeData theme) {
