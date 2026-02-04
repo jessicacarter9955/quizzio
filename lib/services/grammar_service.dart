@@ -8,6 +8,25 @@ class GrammarSentence {
   GrammarSentence({required this.sourceSentence, required this.targetSentence});
 }
 
+class GrammarWheelEntry {
+  final String source;
+  final String target;
+
+  const GrammarWheelEntry({required this.source, required this.target});
+}
+
+class GrammarWheelColumn {
+  final String id;
+  final String name;
+  final List<GrammarWheelEntry> entries;
+
+  const GrammarWheelColumn({
+    required this.id,
+    required this.name,
+    required this.entries,
+  });
+}
+
 class GrammarService {
   static final GrammarService _instance = GrammarService._internal();
   factory GrammarService() => _instance;
@@ -47,6 +66,67 @@ class GrammarService {
     final targetLanguage = match['targetLanguage'] as String?;
     if (sourceLanguage == null || targetLanguage == null) return null;
     return {'sourceLanguage': sourceLanguage, 'targetLanguage': targetLanguage};
+  }
+
+  Future<List<GrammarWheelColumn>> generateWheelColumnsForPair(
+    String languagePairKey,
+  ) async {
+    await ensureLoaded();
+
+    final languagePairs = _languagePairs.cast<Map<String, dynamic>>();
+    final pair = languagePairs.firstWhere(
+      (p) => p['key'] == languagePairKey,
+      orElse: () => {},
+    );
+    if (pair.isEmpty) return [];
+
+    final syntaxProfileId = pair['syntaxProfile'] as String?;
+    if (syntaxProfileId == null) return [];
+
+    final profile = _syntaxProfiles[syntaxProfileId];
+    if (profile is! List) return [];
+    final topicIds = profile.map((e) => e.toString()).toList(growable: false);
+
+    final topicMap = <String, Map<String, dynamic>>{};
+    for (final raw in _topics.cast<Map<String, dynamic>>()) {
+      final id = raw['id'] as String?;
+      if (id != null) {
+        topicMap[id] = raw;
+      }
+    }
+
+    final columns = <GrammarWheelColumn>[];
+
+    for (final topicId in topicIds) {
+      final topic = topicMap[topicId];
+      if (topic == null) {
+        continue;
+      }
+      final words = topic['words'];
+      if (words is! List) {
+        continue;
+      }
+      final entries = <GrammarWheelEntry>[];
+      for (final w in words) {
+        if (w is Map<String, dynamic> &&
+            w['languagePairKey'] == languagePairKey) {
+          final source = w['source']?.toString();
+          final target = w['target']?.toString();
+          if (source != null && target != null) {
+            entries.add(GrammarWheelEntry(source: source, target: target));
+          }
+        }
+      }
+      if (entries.isEmpty) {
+        continue;
+      }
+      final name = topic['name']?.toString() ?? topicId;
+      columns.add(
+        GrammarWheelColumn(id: topicId, name: name, entries: entries),
+      );
+    }
+
+    return columns;
   }
 
   Future<List<GrammarSentence>> generateSentencesForPair(
