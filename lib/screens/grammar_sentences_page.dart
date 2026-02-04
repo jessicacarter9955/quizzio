@@ -23,6 +23,9 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   int _currentIndex = 0;
   String? _sourceLanguageName;
   String? _targetLanguageName;
+  List<GrammarWheelColumn> _columns = [];
+  List<FixedExtentScrollController> _wheelControllers = [];
+  List<int> _wheelIndices = [];
   _GrammarViewMode _viewMode = _GrammarViewMode.wheels;
   final List<GrammarSentence> _savedSentences = [];
   List<String> _tenseIds = [];
@@ -46,6 +49,9 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
       await _grammarService.ensureLoaded();
       final key = widget.languagePair.key;
       final display = _grammarService.getLanguagePairDisplay(key);
+      final wheelColumns = await _grammarService.generateWheelColumnsForPair(
+        key,
+      );
       final sentences = await _grammarService.generateSentencesForPair(
         key,
         maxSentences: 200,
@@ -78,6 +84,12 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
       }
       if (!mounted) return;
       setState(() {
+        _columns = wheelColumns;
+        _wheelControllers = List<FixedExtentScrollController>.generate(
+          wheelColumns.length,
+          (_) => FixedExtentScrollController(),
+        );
+        _wheelIndices = List<int>.filled(wheelColumns.length, 0);
         _sentences = sentences;
         _currentIndex = 0;
         _sourceLanguageName =
@@ -108,6 +120,9 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
 
   @override
   void dispose() {
+    for (final controller in _wheelControllers) {
+      controller.dispose();
+    }
     _pronounWheelController?.dispose();
     _verbWheelController?.dispose();
     super.dispose();
@@ -444,6 +459,118 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        if (_columns.isNotEmpty)
+          SizedBox(
+            height: 200,
+            child: Row(
+              children: List.generate(_columns.length, (index) {
+                final column = _columns[index];
+                final controller = _wheelControllers[index];
+                return Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          column.name,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListWheelScrollView.useDelegate(
+                          controller: controller,
+                          physics: const FixedExtentScrollPhysics(),
+                          itemExtent: 32,
+                          onSelectedItemChanged: (selected) {
+                            final isFrequency = column.id == 'adverb_frequency';
+                            setState(() {
+                              if (_wheelIndices.length != _columns.length) {
+                                _wheelIndices = List<int>.filled(
+                                  _columns.length,
+                                  0,
+                                );
+                              }
+                              if (isFrequency) {
+                                _wheelIndices[index] = selected;
+                              } else {
+                                for (var i = 0; i < _columns.length; i++) {
+                                  if (_columns[i].id == 'adverb_frequency') {
+                                    continue;
+                                  }
+                                  final len = _columns[i].entries.length;
+                                  if (len == 0) continue;
+                                  var targetIndex = selected;
+                                  if (targetIndex < 0) {
+                                    targetIndex = 0;
+                                  } else if (targetIndex >= len) {
+                                    targetIndex = len - 1;
+                                  }
+                                  _wheelIndices[i] = targetIndex;
+                                }
+                              }
+                            });
+                            if (!isFrequency) {
+                              for (
+                                var i = 0;
+                                i < _wheelControllers.length &&
+                                    i < _columns.length;
+                                i++
+                              ) {
+                                if (i == index) continue;
+                                if (_columns[i].id == 'adverb_frequency') {
+                                  continue;
+                                }
+                                final len = _columns[i].entries.length;
+                                if (len == 0) continue;
+                                var targetIndex = _wheelIndices[i];
+                                if (targetIndex < 0) {
+                                  targetIndex = 0;
+                                } else if (targetIndex >= len) {
+                                  targetIndex = len - 1;
+                                }
+                                final c = _wheelControllers[i];
+                                if (c.hasClients) {
+                                  c.animateToItem(
+                                    targetIndex,
+                                    duration: const Duration(milliseconds: 150),
+                                    curve: Curves.easeOut,
+                                  );
+                                }
+                              }
+                            }
+                          },
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            builder: (context, itemIndex) {
+                              if (itemIndex < 0 ||
+                                  itemIndex >= column.entries.length) {
+                                return null;
+                              }
+                              final entry = column.entries[itemIndex];
+                              return Center(
+                                child: Text(
+                                  entry.target,
+                                  style: theme.textTheme.bodyMedium,
+                                  textAlign: TextAlign.center,
+                                ),
+                              );
+                            },
+                            childCount: column.entries.length,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
         const SizedBox(height: 16),
         _buildWheelSentencePreview(theme),
         const SizedBox(height: 8),
