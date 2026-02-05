@@ -3,6 +3,7 @@ import 'package:wordweaver/models/language_pair.dart';
 import 'package:wordweaver/screens/language_setup_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/services/grammar_service.dart';
+import 'package:wordweaver/services/saved_words_service.dart';
 import 'package:wordweaver/services/verb_conjugation_service.dart';
 
 class GrammarSentencesPage extends StatefulWidget {
@@ -19,6 +20,7 @@ enum _GrammarViewMode { wheels, card, list }
 class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   final GrammarService _grammarService = GrammarService();
   final VerbConjugationService _verbService = VerbConjugationService();
+  final SavedWordsService _savedWordsService = SavedWordsService();
   bool _loading = true;
   String? _error;
   List<GrammarSentence> _sentences = [];
@@ -29,7 +31,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   List<FixedExtentScrollController> _wheelControllers = [];
   List<int> _wheelIndices = [];
   _GrammarViewMode _viewMode = _GrammarViewMode.wheels;
-  final List<GrammarSentence> _savedSentences = [];
   List<String> _tenseIds = [];
   Map<String, String> _tenseNames = {};
   List<String> _verbKeys = [];
@@ -386,12 +387,15 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Container(
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: SizedBox(
-              height: 220,
+              height: 260,
               child: Row(
                 children: List.generate(_columns.length, (index) {
                   final column = _columns[index];
@@ -416,7 +420,7 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
                           child: ListWheelScrollView.useDelegate(
                             controller: controller,
                             physics: const FixedExtentScrollPhysics(),
-                            itemExtent: 32,
+                            itemExtent: 40,
                             onSelectedItemChanged: (selected) {
                               if (column.id == 'subject' ||
                                   column.id == 'verb') {
@@ -512,8 +516,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildWheelSentencePreview(theme),
-        const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -525,72 +527,11 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
                 icon: const Icon(Icons.bookmark_add_outlined),
                 label: const Text('Save sentence'),
               ),
-              const SizedBox(width: 12),
-              if (_savedSentences.isNotEmpty)
-                Text(
-                  '${_savedSentences.length} saved',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        const Divider(height: 1),
-        Expanded(
-          child: _savedSentences.isEmpty
-              ? const SizedBox.shrink()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Text(
-                        'Saved sentences',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(child: _buildSavedList(theme)),
-                  ],
-                ),
-        ),
+        const SizedBox(height: 16),
       ],
-    );
-  }
-
-  Widget _buildWheelSentencePreview(ThemeData theme) {
-    final sentence = _currentWheelSentence;
-    if (sentence == null) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            sentence.targetSentence,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            sentence.sourceSentence,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -612,15 +553,12 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
   void _saveCurrentSentence() {
     final sentence = _currentWheelSentence;
     if (sentence == null) return;
-    final exists = _savedSentences.any(
-      (s) =>
-          s.sourceSentence == sentence.sourceSentence &&
-          s.targetSentence == sentence.targetSentence,
+    _savedWordsService.addWord(
+      sourceWord: sentence.sourceSentence,
+      targetWord: sentence.targetSentence,
+      languagePairKey: widget.languagePair.key,
+      topic: 'grammar_sentence',
     );
-    if (exists) return;
-    setState(() {
-      _savedSentences.add(sentence);
-    });
   }
 
   void _syncWheelsToSentence(GrammarSentence sentence) {
@@ -708,54 +646,6 @@ class _GrammarSentencesPageState extends State<GrammarSentencesPage> {
         }
       }
     });
-  }
-
-  Widget _buildSavedList(ThemeData theme) {
-    return ListView.separated(
-      itemCount: _savedSentences.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final sentence = _savedSentences[index];
-        return ListTile(
-          leading: Icon(Icons.bookmark, color: theme.colorScheme.primary),
-          title: Text(
-            sentence.targetSentence,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          subtitle: Text(
-            sentence.sourceSentence,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () {
-              setState(() {
-                _savedSentences.removeAt(index);
-              });
-            },
-          ),
-          onTap: () {
-            final listIndex = _sentences.indexWhere(
-              (s) =>
-                  s.sourceSentence == sentence.sourceSentence &&
-                  s.targetSentence == sentence.targetSentence,
-            );
-            setState(() {
-              if (listIndex != -1) {
-                _currentIndex = listIndex;
-              }
-            });
-            if (_viewMode == _GrammarViewMode.wheels) {
-              _syncWheelsToSentence(sentence);
-            }
-          },
-        );
-      },
-    );
   }
 
   Widget _buildCardBody(ThemeData theme) {
