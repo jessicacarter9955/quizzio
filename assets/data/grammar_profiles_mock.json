@@ -17,6 +17,30 @@
       "sourceLanguage": "Italian",
       "targetLanguage": "English",
       "syntaxProfile": "english_basic"
+    },
+    {
+      "key": "en_es",
+      "sourceLanguage": "English",
+      "targetLanguage": "Spanish",
+      "syntaxProfile": "romance_basic"
+    },
+    {
+      "key": "en_pt",
+      "sourceLanguage": "English",
+      "targetLanguage": "Portuguese",
+      "syntaxProfile": "romance_basic"
+    },
+    {
+      "key": "en_ru",
+      "sourceLanguage": "English",
+      "targetLanguage": "Russian",
+      "syntaxProfile": "romance_basic"
+    },
+    {
+      "key": "en_de",
+      "sourceLanguage": "English",
+      "targetLanguage": "German",
+      "syntaxProfile": "english_basic"
     }
   ],
   "syntaxProfiles": {
@@ -59,7 +83,35 @@
         { "languagePairKey": "it_en", "source": "lui", "target": "he" },
         { "languagePairKey": "it_en", "source": "lei", "target": "she" },
         { "languagePairKey": "it_en", "source": "noi", "target": "we" },
-        { "languagePairKey": "it_en", "source": "loro", "target": "they" }
+        { "languagePairKey": "it_en", "source": "loro", "target": "they" },
+
+        { "languagePairKey": "en_es", "source": "I", "target": "yo" },
+        { "languagePairKey": "en_es", "source": "you", "target": "tú" },
+        { "languagePairKey": "en_es", "source": "he", "target": "él" },
+        { "languagePairKey": "en_es", "source": "she", "target": "ella" },
+        { "languagePairKey": "en_es", "source": "we", "target": "nosotros" },
+        { "languagePairKey": "en_es", "source": "they", "target": "ellos" },
+
+        { "languagePairKey": "en_pt", "source": "I", "target": "eu" },
+        { "languagePairKey": "en_pt", "source": "you", "target": "você" },
+        { "languagePairKey": "en_pt", "source": "he", "target": "ele" },
+        { "languagePairKey": "en_pt", "source": "she", "target": "ela" },
+        { "languagePairKey": "en_pt", "source": "we", "target": "nós" },
+        { "languagePairKey": "en_pt", "source": "they", "target": "eles" },
+
+        { "languagePairKey": "en_ru", "source": "I", "target": "ya", "nativeTarget": "я" },
+        { "languagePairKey": "en_ru", "source": "you", "target": "ty", "nativeTarget": "ты" },
+        { "languagePairKey": "en_ru", "source": "he", "target": "on", "nativeTarget": "он" },
+        { "languagePairKey": "en_ru", "source": "she", "target": "ona", "nativeTarget": "она" },
+        { "languagePairKey": "en_ru", "source": "we", "target": "my", "nativeTarget": "мы" },
+        { "languagePairKey": "en_ru", "source": "they", "target": "oni", "nativeTarget": "они" },
+
+        { "languagePairKey": "en_de", "source": "I", "target": "ich" },
+        { "languagePairKey": "en_de", "source": "you", "target": "du" },
+        { "languagePairKey": "en_de", "source": "he", "target": "er" },
+        { "languagePairKey": "en_de", "source": "she", "target": "sie" },
+        { "languagePairKey": "en_de", "source": "we", "target": "wir" },
+        { "languagePairKey": "en_de", "source": "they", "target": "sie" }
       ]
     },
     {
@@ -85,7 +137,35 @@
         { "languagePairKey": "it_en", "source": "spesso", "target": "often" },
         { "languagePairKey": "it_en", "source": "qualche volta", "target": "sometimes" },
         { "languagePairKey": "it_en", "source": "raramente", "target": "rarely" },
-        { "languagePairKey": "it_en", "source": "mai", "target": "never" }
+        { "languagePairKey": "it_en", "source": "mai", "target": "never" },
+
+        { "languagePairKey": "en_es", "source": "always", "target": "siempre" },
+        { "languagePairKey": "en_es", "source": "usually", "target": "normalmente" },
+        { "languagePairKey": "en_es", "source": "often", "target": "a menudo" },
+        { "languagePairKey": "en_es", "source": "sometimes", "target": "a veces" },
+        { "languagePairKey": "en_es", "source": "rarely", "target": "raramente" },
+        { "languagePairKey": "en_es", "source": "never", "target": "nunca" },
+
+        { "languagePairKey": "en_pt", "source": "always", "target": "sempre" },
+        { "languagePairKey": "en_pt", "source": "usually", "target": "geralmente" },
+        { "languagePairKey": "en_pt", "source": "often", "target": "frequentemente" },
+        { "languagePairKey": "en_pt", "source": "sometimes", "target": "às vezes" },
+        { "languagePairKey": "en_pt", "source": "rarely", "target": "raramente" },
+        { "languagePairKey": "en_pt", "source": "never", "target": "nunca" },
+
+        { "languagePairKey": "en_ru", "source": "always", "target": "vsegda", "nativeTarget": "всегда" },
+        { "languagePairKey": "en_ru", "source": "usually", "target": "obychno", "nativeTarget": "обычно" },
+        { "languagePairKey": "en_ru", "source": "often", "target": "chasto", "nativeTarget": "часто" },
+        { "languagePairKey": "en_ru", "source": "sometimes", "target": "inogda", "nativeTarget": "иногда" },
+        { "languagePairKey": "en_ru", "source": "rarely", "target": "redko", "nativeTarget": "редко" },
+        { "languagePairKey": "en_ru", "source": "never", "target": "nikogda", "nativeTarget": "никогда" },
+
+        { "languagePairKey": "en_de", "source": "always", "target": "immer" },
+        { "languagePairKey": "en_de", "source": "usually", "target": "normalerweise" },
+        { "languagePairKey": "en_de", "source": "often", "target": "oft" },
+        { "languagePairKey": "en_de", "source": "sometimes", "target": "manchmal" },
+        { "languagePairKey": "en_de", "source": "rarely", "target": "selten" },
+        { "languagePairKey": "en_de", "source": "never", "target": "nie" }
       ]
     },
     {
@@ -102,7 +182,23 @@
 
         { "languagePairKey": "it_en", "source": "mangio", "target": "eat" },
         { "languagePairKey": "it_en", "source": "bevo", "target": "drink" },
-        { "languagePairKey": "it_en", "source": "vedo", "target": "see" }
+        { "languagePairKey": "it_en", "source": "vedo", "target": "see" },
+
+        { "languagePairKey": "en_es", "source": "eat", "target": "como" },
+        { "languagePairKey": "en_es", "source": "drink", "target": "bebo" },
+        { "languagePairKey": "en_es", "source": "see", "target": "veo" },
+
+        { "languagePairKey": "en_pt", "source": "eat", "target": "como" },
+        { "languagePairKey": "en_pt", "source": "drink", "target": "bebo" },
+        { "languagePairKey": "en_pt", "source": "see", "target": "vejo" },
+
+        { "languagePairKey": "en_ru", "source": "eat", "target": "em", "nativeTarget": "ем" },
+        { "languagePairKey": "en_ru", "source": "drink", "target": "pyu", "nativeTarget": "пью" },
+        { "languagePairKey": "en_ru", "source": "see", "target": "vizhu", "nativeTarget": "вижу" },
+
+        { "languagePairKey": "en_de", "source": "eat", "target": "esse" },
+        { "languagePairKey": "en_de", "source": "drink", "target": "trinke" },
+        { "languagePairKey": "en_de", "source": "see", "target": "sehe" }
       ]
     },
     {
@@ -119,7 +215,23 @@
 
         { "languagePairKey": "it_en", "source": "grande", "target": "big" },
         { "languagePairKey": "it_en", "source": "piccolo", "target": "small" },
-        { "languagePairKey": "it_en", "source": "nuovo", "target": "new" }
+        { "languagePairKey": "it_en", "source": "nuovo", "target": "new" },
+
+        { "languagePairKey": "en_es", "source": "big", "target": "grande" },
+        { "languagePairKey": "en_es", "source": "small", "target": "pequeño" },
+        { "languagePairKey": "en_es", "source": "new", "target": "nuevo" },
+
+        { "languagePairKey": "en_pt", "source": "big", "target": "grande" },
+        { "languagePairKey": "en_pt", "source": "small", "target": "pequeno" },
+        { "languagePairKey": "en_pt", "source": "new", "target": "novo" },
+
+        { "languagePairKey": "en_ru", "source": "big", "target": "bolshoy", "nativeTarget": "большой" },
+        { "languagePairKey": "en_ru", "source": "small", "target": "malenkiy", "nativeTarget": "маленький" },
+        { "languagePairKey": "en_ru", "source": "new", "target": "novyy", "nativeTarget": "новый" },
+
+        { "languagePairKey": "en_de", "source": "big", "target": "groß" },
+        { "languagePairKey": "en_de", "source": "small", "target": "klein" },
+        { "languagePairKey": "en_de", "source": "new", "target": "neu" }
       ]
     },
     {
@@ -187,8 +299,92 @@
         { "languagePairKey": "it_en", "source": "lo studente", "target": "the student" },
         { "languagePairKey": "it_en", "source": "l'amico", "target": "the friend" },
         { "languagePairKey": "it_en", "source": "la famiglia", "target": "the family" },
-        { "languagePairKey": "it_en", "source": "il lavoro", "target": "the job" }
+        { "languagePairKey": "it_en", "source": "il lavoro", "target": "the job" },
+
+        { "languagePairKey": "en_es", "source": "the house", "target": "la casa" },
+        { "languagePairKey": "en_es", "source": "the book", "target": "el libro" },
+        { "languagePairKey": "en_es", "source": "the car", "target": "el coche" },
+        { "languagePairKey": "en_es", "source": "the table", "target": "la mesa" },
+        { "languagePairKey": "en_es", "source": "the chair", "target": "la silla" },
+        { "languagePairKey": "en_es", "source": "the dog", "target": "el perro" },
+        { "languagePairKey": "en_es", "source": "the cat", "target": "el gato" },
+        { "languagePairKey": "en_es", "source": "the phone", "target": "el teléfono" },
+        { "languagePairKey": "en_es", "source": "the computer", "target": "el ordenador" },
+        { "languagePairKey": "en_es", "source": "the city", "target": "la ciudad" },
+        { "languagePairKey": "en_es", "source": "the room", "target": "la habitación" },
+        { "languagePairKey": "en_es", "source": "the door", "target": "la puerta" },
+        { "languagePairKey": "en_es", "source": "the window", "target": "la ventana" },
+        { "languagePairKey": "en_es", "source": "the street", "target": "la calle" },
+        { "languagePairKey": "en_es", "source": "the school", "target": "la escuela" },
+        { "languagePairKey": "en_es", "source": "the teacher", "target": "el profesor" },
+        { "languagePairKey": "en_es", "source": "the student", "target": "el estudiante" },
+        { "languagePairKey": "en_es", "source": "the friend", "target": "el amigo" },
+        { "languagePairKey": "en_es", "source": "the family", "target": "la familia" },
+        { "languagePairKey": "en_es", "source": "the job", "target": "el trabajo" },
+
+        { "languagePairKey": "en_pt", "source": "the house", "target": "a casa" },
+        { "languagePairKey": "en_pt", "source": "the book", "target": "o livro" },
+        { "languagePairKey": "en_pt", "source": "the car", "target": "o carro" },
+        { "languagePairKey": "en_pt", "source": "the table", "target": "a mesa" },
+        { "languagePairKey": "en_pt", "source": "the chair", "target": "a cadeira" },
+        { "languagePairKey": "en_pt", "source": "the dog", "target": "o cachorro" },
+        { "languagePairKey": "en_pt", "source": "the cat", "target": "o gato" },
+        { "languagePairKey": "en_pt", "source": "the phone", "target": "o telefone" },
+        { "languagePairKey": "en_pt", "source": "the computer", "target": "o computador" },
+        { "languagePairKey": "en_pt", "source": "the city", "target": "a cidade" },
+        { "languagePairKey": "en_pt", "source": "the room", "target": "o quarto" },
+        { "languagePairKey": "en_pt", "source": "the door", "target": "a porta" },
+        { "languagePairKey": "en_pt", "source": "the window", "target": "a janela" },
+        { "languagePairKey": "en_pt", "source": "the street", "target": "a rua" },
+        { "languagePairKey": "en_pt", "source": "the school", "target": "a escola" },
+        { "languagePairKey": "en_pt", "source": "the teacher", "target": "o professor" },
+        { "languagePairKey": "en_pt", "source": "the student", "target": "o estudante" },
+        { "languagePairKey": "en_pt", "source": "the friend", "target": "o amigo" },
+        { "languagePairKey": "en_pt", "source": "the family", "target": "a família" },
+        { "languagePairKey": "en_pt", "source": "the job", "target": "o trabalho" },
+
+        { "languagePairKey": "en_ru", "source": "the house", "target": "dom", "nativeTarget": "дом" },
+        { "languagePairKey": "en_ru", "source": "the book", "target": "kniga", "nativeTarget": "книга" },
+        { "languagePairKey": "en_ru", "source": "the car", "target": "mashina", "nativeTarget": "машина" },
+        { "languagePairKey": "en_ru", "source": "the table", "target": "stol", "nativeTarget": "стол" },
+        { "languagePairKey": "en_ru", "source": "the chair", "target": "stul", "nativeTarget": "стул" },
+        { "languagePairKey": "en_ru", "source": "the dog", "target": "sobaka", "nativeTarget": "собака" },
+        { "languagePairKey": "en_ru", "source": "the cat", "target": "kot", "nativeTarget": "кот" },
+        { "languagePairKey": "en_ru", "source": "the phone", "target": "telefon", "nativeTarget": "телефон" },
+        { "languagePairKey": "en_ru", "source": "the computer", "target": "kompyuter", "nativeTarget": "компьютер" },
+        { "languagePairKey": "en_ru", "source": "the city", "target": "gorod", "nativeTarget": "город" },
+        { "languagePairKey": "en_ru", "source": "the room", "target": "komnata", "nativeTarget": "комната" },
+        { "languagePairKey": "en_ru", "source": "the door", "target": "dver'", "nativeTarget": "дверь" },
+        { "languagePairKey": "en_ru", "source": "the window", "target": "okno", "nativeTarget": "окно" },
+        { "languagePairKey": "en_ru", "source": "the street", "target": "ulitsa", "nativeTarget": "улица" },
+        { "languagePairKey": "en_ru", "source": "the school", "target": "shkola", "nativeTarget": "школа" },
+        { "languagePairKey": "en_ru", "source": "the teacher", "target": "uchitel'", "nativeTarget": "учитель" },
+        { "languagePairKey": "en_ru", "source": "the student", "target": "student", "nativeTarget": "студент" },
+        { "languagePairKey": "en_ru", "source": "the friend", "target": "drug", "nativeTarget": "друг" },
+        { "languagePairKey": "en_ru", "source": "the family", "target": "sem'ya", "nativeTarget": "семья" },
+        { "languagePairKey": "en_ru", "source": "the job", "target": "rabota", "nativeTarget": "работа" },
+
+        { "languagePairKey": "en_de", "source": "the house", "target": "das Haus" },
+        { "languagePairKey": "en_de", "source": "the book", "target": "das Buch" },
+        { "languagePairKey": "en_de", "source": "the car", "target": "das Auto" },
+        { "languagePairKey": "en_de", "source": "the table", "target": "der Tisch" },
+        { "languagePairKey": "en_de", "source": "the chair", "target": "der Stuhl" },
+        { "languagePairKey": "en_de", "source": "the dog", "target": "der Hund" },
+        { "languagePairKey": "en_de", "source": "the cat", "target": "die Katze" },
+        { "languagePairKey": "en_de", "source": "the phone", "target": "das Telefon" },
+        { "languagePairKey": "en_de", "source": "the computer", "target": "der Computer" },
+        { "languagePairKey": "en_de", "source": "the city", "target": "die Stadt" },
+        { "languagePairKey": "en_de", "source": "the room", "target": "das Zimmer" },
+        { "languagePairKey": "en_de", "source": "the door", "target": "die Tür" },
+        { "languagePairKey": "en_de", "source": "the window", "target": "das Fenster" },
+        { "languagePairKey": "en_de", "source": "the street", "target": "die Straße" },
+        { "languagePairKey": "en_de", "source": "the school", "target": "die Schule" },
+        { "languagePairKey": "en_de", "source": "the teacher", "target": "der Lehrer" },
+        { "languagePairKey": "en_de", "source": "the student", "target": "der Student" },
+        { "languagePairKey": "en_de", "source": "the friend", "target": "der Freund" },
+        { "languagePairKey": "en_de", "source": "the family", "target": "die Familie" },
+        { "languagePairKey": "en_de", "source": "the job", "target": "der Job" }
       ]
-    }
+    },
   ]
 }

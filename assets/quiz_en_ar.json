@@ -1,0 +1,59 @@
+{
+  "quizId": "vocab_en_ar_1",
+  "sourceLanguage": "English",
+  "targetLanguage": "Arabic",
+  "questions": [
+    {
+      "id": 1,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your name?",
+      "question": "How do you say 'What is your name?' in Arabic?",
+      "correctAnswer": "ما اسمك؟",
+      "options": [
+        "ما اسمك؟",
+        "كم عمرك؟",
+        "من أين أنت؟",
+        "أين تسكن؟"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "multiple_choice",
+      "sourceEnglish": "How old are you?",
+      "question": "How do you say 'How old are you?' in Arabic?",
+      "correctAnswer": "كم عمرك؟",
+      "options": [
+        "كم عمرك؟",
+        "ما اسمك؟",
+        "من أين أنت؟",
+        "أين تسكن؟"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where are you from?",
+      "question": "How do you say 'Where are you from?' in Arabic?",
+      "correctAnswer": "من أين أنت؟",
+      "options": [
+        "من أين أنت؟",
+        "ما اسمك؟",
+        "كم عمرك؟",
+        "أين تسكن؟"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where do you live?",
+      "question": "How do you say 'Where do you live?' in Arabic?",
+      "correctAnswer": "أين تسكن؟",
+      "options": [
+        "أين تسكن؟",
+        "من أين أنت؟",
+        "ما اسمك؟",
+        "كم عمرك؟"
+      ]
+    }
+  ]
+}

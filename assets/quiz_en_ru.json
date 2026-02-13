@@ -1,0 +1,176 @@
+{
+  "quizId": "vocab_en_ru_1",
+  "sourceLanguage": "English",
+  "targetLanguage": "Russian",
+  "questions": [
+    {
+      "id": 1,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your name?",
+      "question": "How do you say 'What is your name?' in Russian?",
+      "correctAnswer": "Как тебя зовут?",
+      "options": [
+        "Как тебя зовут?",
+        "Сколько тебе лет?",
+        "Откуда ты?",
+        "Где ты живёшь?"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "multiple_choice",
+      "sourceEnglish": "How old are you?",
+      "question": "How do you say 'How old are you?' in Russian?",
+      "correctAnswer": "Сколько тебе лет?",
+      "options": [
+        "Сколько тебе лет?",
+        "Как тебя зовут?",
+        "Где ты живёшь?",
+        "Чем ты занимаешься?"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where are you from?",
+      "question": "How do you say 'Where are you from?' in Russian?",
+      "correctAnswer": "Откуда ты?",
+      "options": [
+        "Откуда ты?",
+        "Где ты живёшь?",
+        "У тебя большая семья?",
+        "Где ты родился?"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where do you live?",
+      "question": "How do you say 'Where do you live?' in Russian?",
+      "correctAnswer": "Где ты живёшь?",
+      "options": [
+        "Где ты живёшь?",
+        "Откуда ты?",
+        "Чем ты занимаешься?",
+        "Что ты обычно делаешь на выходных?"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do for a living?",
+      "question": "How do you say 'What do you do for a living?' in Russian?",
+      "correctAnswer": "Чем ты занимаешься?",
+      "options": [
+        "Чем ты занимаешься?",
+        "У тебя есть братья или сёстры?",
+        "На каких языках ты говоришь?",
+        "Какое у тебя хобби?"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have brothers or sisters?",
+      "question": "How do you say 'Do you have brothers or sisters?' in Russian?",
+      "correctAnswer": "У тебя есть братья или сёстры?",
+      "options": [
+        "У тебя есть братья или сёстры?",
+        "У тебя большая семья?",
+        "На каких языках ты говоришь?",
+        "Ты любишь путешествовать?"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "multiple_choice",
+      "sourceEnglish": "What languages do you speak?",
+      "question": "How do you say 'What languages do you speak?' in Russian?",
+      "correctAnswer": "На каких языках ты говоришь?",
+      "options": [
+        "На каких языках ты говоришь?",
+        "Чем ты занимаешься?",
+        "Что тебе нравится делать в свободное время?",
+        "Что ты обычно делаешь на выходных?"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you like doing in your free time?",
+      "question": "How do you say 'What do you like doing in your free time?' in Russian?",
+      "correctAnswer": "Что тебе нравится делать в свободное время?",
+      "options": [
+        "Что тебе нравится делать в свободное время?",
+        "Какое у тебя хобби?",
+        "Что ты обычно делаешь на выходных?",
+        "Ты любишь путешествовать?"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have a big family?",
+      "question": "How do you say 'Do you have a big family?' in Russian?",
+      "correctAnswer": "У тебя большая семья?",
+      "options": [
+        "У тебя большая семья?",
+        "У тебя есть братья или сёстры?",
+        "Где ты родился?",
+        "Где ты живёшь?"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where were you born?",
+      "question": "How do you say 'Where were you born?' in Russian?",
+      "correctAnswer": "Где ты родился?",
+      "options": [
+        "Где ты родился?",
+        "Откуда ты?",
+        "Где ты живёшь?",
+        "Чем ты занимаешься?"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your hobby?",
+      "question": "How do you say 'What is your hobby?' in Russian?",
+      "correctAnswer": "Какое у тебя хобби?",
+      "options": [
+        "Какое у тебя хобби?",
+        "Что тебе нравится делать в свободное время?",
+        "Чем ты занимаешься?",
+        "На каких языках ты говоришь?"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you usually do at the weekend?",
+      "question": "How do you say 'What do you usually do at the weekend?' in Russian?",
+      "correctAnswer": "Что ты обычно делаешь на выходных?",
+      "options": [
+        "Что ты обычно делаешь на выходных?",
+        "Что тебе нравится делать в свободное время?",
+        "Ты любишь путешествовать?",
+        "Где ты живёшь?"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like travelling?",
+      "question": "How do you say 'Do you like travelling?' in Russian?",
+      "correctAnswer": "Ты любишь путешествовать?",
+      "options": [
+        "Ты любишь путешествовать?",
+        "Что тебе нравится делать в свободное время?",
+        "У тебя большая семья?",
+        "Какое у тебя хобби?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,527 @@
+{
+  "quizId": "vocab_en_it_1",
+  "sourceLanguage": "English",
+  "targetLanguage": "Italian",
+  "questions": [
+    {
+      "id": 1,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your name?",
+      "question": "How do you say 'What is your name?' in Italian?",
+      "correctAnswer": "Come ti chiami?",
+      "options": [
+        "Come ti chiami?",
+        "Quanti anni hai?",
+        "Di dove sei?",
+        "Dove abiti?"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "multiple_choice",
+      "sourceEnglish": "How old are you?",
+      "question": "How do you say 'How old are you?' in Italian?",
+      "correctAnswer": "Quanti anni hai?",
+      "options": [
+        "Quanti anni hai?",
+        "Come ti chiami?",
+        "Dove abiti?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where are you from?",
+      "question": "How do you say 'Where are you from?' in Italian?",
+      "correctAnswer": "Di dove sei?",
+      "options": [
+        "Di dove sei?",
+        "Dove abiti?",
+        "Hai una famiglia grande?",
+        "Dove sei nato?"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where do you live?",
+      "question": "How do you say 'Where do you live?' in Italian?",
+      "correctAnswer": "Dove abiti?",
+      "options": [
+        "Dove abiti?",
+        "Di dove sei?",
+        "Che lavoro fai?",
+        "Cosa fai di solito durante il fine settimana?"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do for a living?",
+      "question": "How do you say 'What do you do for a living?' in Italian?",
+      "correctAnswer": "Che lavoro fai?",
+      "options": [
+        "Che lavoro fai?",
+        "Hai fratelli o sorelle?",
+        "Che lingue parli?",
+        "Qual è il tuo hobby?"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have brothers or sisters?",
+      "question": "How do you say 'Do you have brothers or sisters?' in Italian?",
+      "correctAnswer": "Hai fratelli o sorelle?",
+      "options": [
+        "Hai fratelli o sorelle?",
+        "Hai una famiglia grande?",
+        "Che lingue parli?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "multiple_choice",
+      "sourceEnglish": "What languages do you speak?",
+      "question": "How do you say 'What languages do you speak?' in Italian?",
+      "correctAnswer": "Che lingue parli?",
+      "options": [
+        "Che lingue parli?",
+        "Che lavoro fai?",
+        "Cosa ti piace fare nel tempo libero?",
+        "Cosa fai di solito durante il fine settimana?"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you like doing in your free time?",
+      "question": "How do you say 'What do you like doing in your free time?' in Italian?",
+      "correctAnswer": "Cosa ti piace fare nel tempo libero?",
+      "options": [
+        "Cosa ti piace fare nel tempo libero?",
+        "Qual è il tuo hobby?",
+        "Cosa fai di solito durante il fine settimana?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have a big family?",
+      "question": "How do you say 'Do you have a big family?' in Italian?",
+      "correctAnswer": "Hai una famiglia grande?",
+      "options": [
+        "Hai una famiglia grande?",
+        "Hai fratelli o sorelle?",
+        "Dove sei nato?",
+        "Dove abiti?"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where were you born?",
+      "question": "How do you say 'Where were you born?' in Italian?",
+      "correctAnswer": "Dove sei nato?",
+      "options": [
+        "Dove sei nato?",
+        "Di dove sei?",
+        "Dove abiti?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your hobby?",
+      "question": "How do you say 'What is your hobby?' in Italian?",
+      "correctAnswer": "Qual è il tuo hobby?",
+      "options": [
+        "Qual è il tuo hobby?",
+        "Cosa ti piace fare nel tempo libero?",
+        "Che lavoro fai?",
+        "Che lingue parli?"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you usually do at the weekend?",
+      "question": "How do you say 'What do you usually do at the weekend?' in Italian?",
+      "correctAnswer": "Cosa fai di solito durante il fine settimana?",
+      "options": [
+        "Cosa fai di solito durante il fine settimana?",
+        "Cosa ti piace fare nel tempo libero?",
+        "Ti piace viaggiare?",
+        "Dove abiti?"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like travelling?",
+      "question": "How do you say 'Do you like travelling?' in Italian?",
+      "correctAnswer": "Ti piace viaggiare?",
+      "options": [
+        "Ti piace viaggiare?",
+        "Cosa ti piace fare nel tempo libero?",
+        "Hai una famiglia grande?",
+        "Qual è il tuo hobby?"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you married?",
+      "question": "How do you say 'Are you married?' in Italian?",
+      "correctAnswer": "Sei sposato/a?",
+      "options": [
+        "Sei sposato/a?",
+        "Hai fratelli o sorelle?",
+        "Hai una famiglia grande?",
+        "Dove abiti?"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have children?",
+      "question": "How do you say 'Do you have children?' in Italian?",
+      "correctAnswer": "Hai figli?",
+      "options": [
+        "Hai figli?",
+        "Hai fratelli o sorelle?",
+        "Dove sei nato?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite food?",
+      "question": "How do you say 'What is your favorite food?' in Italian?",
+      "correctAnswer": "Qual è il tuo cibo preferito?",
+      "options": [
+        "Qual è il tuo cibo preferito?",
+        "Qual è il tuo hobby?",
+        "Che lavoro fai?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite music?",
+      "question": "How do you say 'What is your favorite music?' in Italian?",
+      "correctAnswer": "Qual è la tua musica preferita?",
+      "options": [
+        "Qual è la tua musica preferita?",
+        "Qual è il tuo hobby?",
+        "Che lingue parli?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like sports?",
+      "question": "How do you say 'Do you like sports?' in Italian?",
+      "correctAnswer": "Ti piacciono gli sport?",
+      "options": [
+        "Ti piacciono gli sport?",
+        "Ti piace viaggiare?",
+        "Hai una famiglia grande?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 19,
+      "type": "multiple_choice",
+      "sourceEnglish": "What sport do you practice?",
+      "question": "How do you say 'What sport do you practice?' in Italian?",
+      "correctAnswer": "Che sport pratichi?",
+      "options": [
+        "Che sport pratichi?",
+        "Che lavoro fai?",
+        "Qual è il tuo hobby?",
+        "Ti piacciono gli sport?"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you work or study?",
+      "question": "How do you say 'Do you work or study?' in Italian?",
+      "correctAnswer": "Lavori o studi?",
+      "options": [
+        "Lavori o studi?",
+        "Che lavoro fai?",
+        "Dove abiti?",
+        "Che lingue parli?"
+      ]
+    },
+    {
+      "id": 21,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you study?",
+      "question": "How do you say 'What do you study?' in Italian?",
+      "correctAnswer": "Cosa studi?",
+      "options": [
+        "Cosa studi?",
+        "Che lavoro fai?",
+        "Dove sei nato?",
+        "Qual è il tuo hobby?"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you wake up?",
+      "question": "How do you say 'What time do you wake up?' in Italian?",
+      "correctAnswer": "A che ora ti svegli?",
+      "options": [
+        "A che ora ti svegli?",
+        "A che ora lavori?",
+        "Cosa fai oggi?",
+        "Dove abiti?"
+      ]
+    },
+    {
+      "id": 23,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you work?",
+      "question": "How do you say 'What time do you work?' in Italian?",
+      "correctAnswer": "A che ora lavori?",
+      "options": [
+        "A che ora lavori?",
+        "A che ora ti svegli?",
+        "Che lavoro fai?",
+        "Cosa fai oggi?"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do today?",
+      "question": "How do you say 'What do you do today?' in Italian?",
+      "correctAnswer": "Cosa fai oggi?",
+      "options": [
+        "Cosa fai oggi?",
+        "Cosa fai di solito durante il fine settimana?",
+        "Che lavoro fai?",
+        "Dove abiti?"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like coffee?",
+      "question": "How do you say 'Do you like coffee?' in Italian?",
+      "correctAnswer": "Ti piace il caffè?",
+      "options": [
+        "Ti piace il caffè?",
+        "Ti piace viaggiare?",
+        "Qual è il tuo hobby?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 26,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you prefer tea or coffee?",
+      "question": "How do you say 'Do you prefer tea or coffee?' in Italian?",
+      "correctAnswer": "Preferisci il tè o il caffè?",
+      "options": [
+        "Preferisci il tè o il caffè?",
+        "Ti piace il caffè?",
+        "Che cosa bevi?",
+        "Qual è il tuo hobby?"
+      ]
+    },
+    {
+      "id": 27,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite city?",
+      "question": "How do you say 'What is your favorite city?' in Italian?",
+      "correctAnswer": "Qual è la tua città preferita?",
+      "options": [
+        "Qual è la tua città preferita?",
+        "Dove abiti?",
+        "Dove sei nato?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like reading?",
+      "question": "How do you say 'Do you like reading?' in Italian?",
+      "correctAnswer": "Ti piace leggere?",
+      "options": [
+        "Ti piace leggere?",
+        "Ti piace viaggiare?",
+        "Qual è il tuo hobby?",
+        "Che lingue parli?"
+      ]
+    },
+    {
+      "id": 29,
+      "type": "multiple_choice",
+      "sourceEnglish": "What book are you reading?",
+      "question": "How do you say 'What book are you reading?' in Italian?",
+      "correctAnswer": "Che libro stai leggendo?",
+      "options": [
+        "Che libro stai leggendo?",
+        "Ti piace leggere?",
+        "Qual è il tuo hobby?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like movies?",
+      "question": "How do you say 'Do you like movies?' in Italian?",
+      "correctAnswer": "Ti piacciono i film?",
+      "options": [
+        "Ti piacciono i film?",
+        "Ti piace leggere?",
+        "Qual è il tuo hobby?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 31,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite movie?",
+      "question": "How do you say 'What is your favorite movie?' in Italian?",
+      "correctAnswer": "Qual è il tuo film preferito?",
+      "options": [
+        "Qual è il tuo film preferito?",
+        "Ti piacciono i film?",
+        "Qual è il tuo hobby?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like living here?",
+      "question": "How do you say 'Do you like living here?' in Italian?",
+      "correctAnswer": "Ti piace vivere qui?",
+      "options": [
+        "Ti piace vivere qui?",
+        "Dove abiti?",
+        "Ti piace viaggiare?",
+        "Che lavoro fai?"
+      ]
+    },
+    {
+      "id": 33,
+      "type": "multiple_choice",
+      "sourceEnglish": "How long have you lived here?",
+      "question": "How do you say 'How long have you lived here?' in Italian?",
+      "correctAnswer": "Da quanto tempo vivi qui?",
+      "options": [
+        "Da quanto tempo vivi qui?",
+        "Dove abiti?",
+        "Da dove sei?",
+        "Dove sei nato?"
+      ]
+    },
+    {
+      "id": 34,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have pets?",
+      "question": "How do you say 'Do you have pets?' in Italian?",
+      "correctAnswer": "Hai animali domestici?",
+      "options": [
+        "Hai animali domestici?",
+        "Hai figli?",
+        "Hai fratelli o sorelle?",
+        "Ti piacciono gli sport?"
+      ]
+    },
+    {
+      "id": 35,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite color?",
+      "question": "How do you say 'What is your favorite color?' in Italian?",
+      "correctAnswer": "Qual è il tuo colore preferito?",
+      "options": [
+        "Qual è il tuo colore preferito?",
+        "Qual è il tuo hobby?",
+        "Che lavoro fai?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 36,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you a morning person?",
+      "question": "How do you say 'Are you a morning person?' in Italian?",
+      "correctAnswer": "Sei una persona mattiniera?",
+      "options": [
+        "Sei una persona mattiniera?",
+        "A che ora ti svegli?",
+        "Cosa fai oggi?",
+        "Ti piace vivere qui?"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like cooking?",
+      "question": "How do you say 'Do you like cooking?' in Italian?",
+      "correctAnswer": "Ti piace cucinare?",
+      "options": [
+        "Ti piace cucinare?",
+        "Qual è il tuo cibo preferito?",
+        "Che lavoro fai?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 38,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite dish?",
+      "question": "How do you say 'What is your favorite dish?' in Italian?",
+      "correctAnswer": "Qual è il tuo piatto preferito?",
+      "options": [
+        "Qual è il tuo piatto preferito?",
+        "Qual è il tuo cibo preferito?",
+        "Ti piace cucinare?",
+        "Qual è il tuo hobby?"
+      ]
+    },
+    {
+      "id": 39,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like learning languages?",
+      "question": "How do you say 'Do you like learning languages?' in Italian?",
+      "correctAnswer": "Ti piace imparare le lingue?",
+      "options": [
+        "Ti piace imparare le lingue?",
+        "Che lingue parli?",
+        "Ti piace leggere?",
+        "Ti piace viaggiare?"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "multiple_choice",
+      "sourceEnglish": "Why are you learning Italian?",
+      "question": "How do you say 'Why are you learning Italian?' in Italian?",
+      "correctAnswer": "Perché stai imparando l’italiano?",
+      "options": [
+        "Perché stai imparando l’italiano?",
+        "Che lingue parli?",
+        "Ti piace viaggiare?",
+        "Da dove sei?"
+      ]
+    }
+  ]
+}
