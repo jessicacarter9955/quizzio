@@ -1,0 +1,67 @@
+name: Cleanup Old Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/cleanup-artifacts.yml'
+
+jobs:
+  delete-old-artifacts:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Delete artifacts from previous days
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Today in UTC (YYYY-MM-DD)
+            const today = new Date().toISOString().slice(0, 10);
+
+            let page = 1;
+            const per_page = 100;
+            let deletedCount = 0;
+
+            while (true) {
+              const { data } = await github.rest.actions.listArtifactsForRepo({
+                owner,
+                repo,
+                per_page,
+                page,
+              });
+
+              if (!data.artifacts || data.artifacts.length === 0) {
+                core.info('No more artifacts to process.');
+                break;
+              }
+
+              for (const artifact of data.artifacts) {
+                const created = artifact.created_at.slice(0, 10); // YYYY-MM-DD
+
+                if (created < today) {
+                  core.info(`Deleting artifact ${artifact.name} (id=${artifact.id}, created_at=${artifact.created_at})`);
+                  await github.rest.actions.deleteArtifact({
+                    owner,
+                    repo,
+                    artifact_id: artifact.id,
+                  });
+                  deletedCount++;
+                } else {
+                  core.info(`Keeping artifact ${artifact.name} (id=${artifact.id}, created_at=${artifact.created_at})`);
+                }
+              }
+
+              if (!data.artifacts || data.artifacts.length < per_page) {
+                break;
+              }
+
+              page++;
+            }
+
+            core.info(`Deleted ${deletedCount} artifact(s) from previous days.`);
