@@ -1,0 +1,50 @@
+name: Quiz Lab APK (isolated builder)
+on:
+  push:
+    branches: [quiz-lab-apk-builder]
+    paths:
+      - 'quiz-lab-payload.zip'
+      - '.github/workflows/quiz-lab-apk.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Unpack Quiz Lab
+        run: |
+          mkdir -p quiz_lab_src
+          unzip -q quiz-lab-payload.zip -d quiz_lab_src
+          test -f quiz_lab_src/Quiz-Lab-Flutter/lib/main.dart
+      - name: Create Android platform
+        run: |
+          flutter create --org dev.quizlab --project-name quiz_app --platforms=android quiz_lab_build
+          rm -rf quiz_lab_build/lib quiz_lab_build/test
+          cp -R quiz_lab_src/Quiz-Lab-Flutter/{lib,test,assets} quiz_lab_build/
+          cp quiz_lab_src/Quiz-Lab-Flutter/pubspec.yaml quiz_lab_build/pubspec.yaml
+          bash quiz_lab_src/Quiz-Lab-Flutter/scripts/prepare_android_manifest.sh quiz_lab_build
+      - name: Resolve dependencies
+        working-directory: quiz_lab_build
+        run: flutter pub get
+      - name: Test
+        working-directory: quiz_lab_build
+        run: flutter test
+      - name: Build APK
+        working-directory: quiz_lab_build
+        run: flutter build apk --debug
+      - name: Save APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Quiz-Lab-debug-apk
+          if-no-files-found: warn
+          path: quiz_lab_build/build/app/outputs/flutter-apk/app-debug.apk
