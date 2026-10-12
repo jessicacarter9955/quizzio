@@ -1,4 +1,4 @@
-name: Quiz Lab APK (isolated builder)
+name: Quiz Lab Android RELEASE (isolated builder)
 on:
   push:
     branches: [quiz-lab-apk-builder]
@@ -7,7 +7,7 @@ on:
       - '.github/workflows/quiz-lab-apk.yml'
   workflow_dispatch:
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,7 +25,7 @@ jobs:
           mkdir -p quiz_lab_src
           unzip -q quiz-lab-payload.zip -d quiz_lab_src
           test -f quiz_lab_src/Quiz-Lab-Flutter/lib/main.dart
-      - name: Create Android platform
+      - name: Generate native Android project
         run: |
           flutter create --org dev.quizlab --project-name quiz_app --platforms=android quiz_lab_build
           rm -rf quiz_lab_build/lib quiz_lab_build/test
@@ -35,16 +35,37 @@ jobs:
       - name: Resolve dependencies
         working-directory: quiz_lab_build
         run: flutter pub get
-      - name: Test
+      - name: Run Dart tests
         working-directory: quiz_lab_build
         run: flutter test
-      - name: Build APK
+      - name: Build ARM64 RELEASE (OnePlus 8)
         working-directory: quiz_lab_build
-        run: flutter build apk --debug
-      - name: Save APK
+        run: |
+          flutter build apk --release --target-platform android-arm64 --tree-shake-icons
+          mkdir -p ../apk_outputs
+          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-ARM64-Release.apk
+      - name: Build universal RELEASE (fallback)
+        working-directory: quiz_lab_build
+        run: |
+          flutter build apk --release --target-platform android-arm,android-arm64,android-x64 --tree-shake-icons
+          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Universal-Release.apk
+      - name: Verify APK packages and signatures
+        run: |
+          set -e
+          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          test -n "$APK_SIGNER"
+          for apk in apk_outputs/*.apk; do
+            test -s "$apk"
+            unzip -tq "$apk" >/dev/null
+            "$APK_SIGNER" verify --verbose "$apk"
+            ls -lh "$apk"
+          done
+          file apk_outputs/*.apk
+      - name: Save both RELEASE APKs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-Lab-debug-apk
+          name: Quiz-Lab-Release-APKs
           if-no-files-found: warn
-          path: quiz_lab_build/build/app/outputs/flutter-apk/app-debug.apk
+          path: apk_outputs/*.apk
+          retention-days: 30
