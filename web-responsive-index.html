@@ -119,4 +119,35 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .study-summary{flex-wrap:wrap;border:1px solid #ebe3d5;border-radius:14px;background:#fffdfa;padding:14px;gap:8px;font-size:12px;font-weight:720}
 .study-summary .text-button{margin-left:auto}.home-selection{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding:12px 3px;border-top:1px solid #e9e2d6;font-size:12px;color:#746d61}
 @media (min-width:900px){.web-responsive .study-foot{position:sticky;bottom:14px;max-width:650px;margin-left:auto;margin-right:auto}.web-responsive .study-progress{max-width:800px}.web-responsive .bottom{grid-template-columns:none}}
+
+/* v7: tiny, native settings switches, focusable in-place answer slots */
+.preferences-box{margin:16px 0 4px;border:1px solid #ebe6db;background:#fffef9;border-radius:18px;padding:4px 15px}
+.pref-toggle{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:68px;padding:12px 2px;cursor:pointer}
+.pref-toggle+.pref-toggle{border-top:1px solid #ede9e1}
+.pref-toggle strong{display:block;font-size:13px;line-height:1.4;color:#29241c}
+.pref-toggle small{display:block;font-size:11px;color:#968a79;margin-top:3px}
+.pref-toggle input{appearance:none;-webkit-appearance:none;position:relative;display:block;width:45px;height:27px;border-radius:99px;background:#e4dfd6;flex:none;transition:background .16s}
+.pref-toggle input:checked{background:#edbd45}
+.pref-toggle input:after{content:"";position:absolute;width:21px;height:21px;top:3px;left:3px;background:white;border-radius:50%;box-shadow:0 1px 3px #0002;transition:transform .16s}
+.pref-toggle input:checked:after{transform:translateX(18px)}
+.pref-toggle input:focus-visible{outline:3px solid #e2ac28;outline-offset:2px}
+.typing-slots-label{display:flex;position:relative;min-height:72px;width:100%;cursor:text;margin:0 0 8px;border:1px solid #e4ddd0;border-radius:17px;background:#fffefa;padding:17px 12px;align-items:center;justify-content:center;overflow:hidden}
+.typing-slots-label:focus-within{border-color:#d6a936;box-shadow:0 0 0 3px #f7dfa25a}
+.typing-slots{display:flex;align-items:flex-end;align-content:center;justify-content:center;flex-wrap:wrap;gap:5px 2px;max-width:100%;pointer-events:none;transition:all .1s}
+.letter-slot{box-sizing:border-box;display:inline-flex;min-width:19px;height:32px;justify-content:center;align-items:center;border-bottom:2px solid #bdb3a3;border-radius:3px 3px 0 0;font-size:19px;font-weight:700;line-height:1;color:#221e16;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;text-transform:none;padding:0 1px}
+.letter-slot.filled{border-bottom-color:#25211c}
+.letter-slot.hinted{color:#aa8742;background:#fff5d7}
+.typing-slots-label:focus-within .letter-slot.current{background:#fff0c3;border-bottom-color:#e3ac21}
+.slot-separator{min-width:9px;height:32px;display:inline-flex;align-items:center;justify-content:center;padding:0 1px;color:#a39b8c;font-size:16px}
+.typing-slots.length-matched .letter-slot.filled{background:#e8f3e6;border-bottom-color:#529e65}
+.typing-slots.length-exceeded .letter-slot.filled{border-bottom-color:#e17d69}
+#typingAnswer{position:absolute;z-index:2;inset:0;height:100%;width:100%;border:none;background:transparent;color:transparent;caret-color:transparent;opacity:.025;font-size:16px;outline:none;cursor:text}
+.slot-count{display:block;color:#998f80;font-size:11px;text-align:center;margin:6px 0 22px;min-height:17px}
+.slot-count.matched{color:#39865c;font-weight:750}
+.slot-count.exceeded{color:#bf6355;font-weight:750}
+.study-foot{top:70px;bottom:auto;z-index:8;margin:3px -5px 10px;padding:9px 5px 13px;background:linear-gradient(0deg,#fffcf6 88%,#fffcf6eb)}
+.study-foot .study-foot-count{padding-bottom:4px}
+@media(min-width:760px){.letter-slot{min-width:25px;height:38px;font-size:24px}.typing-slots-label{min-height:90px}.slot-separator{height:38px}}
+@media(min-width:900px){.web-responsive .study-foot{max-width:none;top:10px;bottom:auto;margin-left:0;margin-right:0}}
+
 </style></head><body class="web-responsive"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script src="data.js"></script><script src="app.js"></script></body></html>
