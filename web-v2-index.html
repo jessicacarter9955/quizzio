@@ -106,4 +106,17 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 @media(min-width:900px) and (max-width:1070px){.web-responsive .app{grid-template-columns:185px 1fr}.web-responsive .category-grid,.web-responsive .category-stats-grid{grid-template-columns:1fr}.web-responsive .content{padding:38px 27px}}
 @media(min-width:760px) and (max-width:899px){.web-responsive .app-shell{padding:28px}.web-responsive .app{max-width:690px;min-height:720px}.web-responsive .content{padding:38px 40px 55px}.web-responsive .quick-topics{grid-template-columns:repeat(3,1fr)}}
 
+
+/* V6: topics belong to the language-to-quiz flow (no Library tab). */
+.bottom{grid-template-columns:repeat(3,minmax(0,1fr))}
+.study-progress{display:flex;align-items:center;gap:8px;margin:6px 0 20px}
+.study-step{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e9e4d9;border-radius:12px;background:#fffdfa;padding:10px 4px;font-size:11px;font-weight:760;color:#8b8170;min-height:43px}
+.study-step span{border-radius:50%;height:20px;width:20px;background:#f1efe9;display:grid;place-items:center;font-size:11px;flex:none}
+.study-step.current{background:#fff0bc;border-color:#ebd28f;color:#221d14}.study-step.current span{background:#ffda70;color:#16120b}.study-step.done{color:#67583e}
+.study-foot{position:sticky;bottom:64px;z-index:7;padding:13px 0 max(9px,env(safe-area-inset-bottom));background:linear-gradient(0deg,#fffcf6 76%,#fffcf600)}
+.study-foot>.primary{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.study-foot-count{padding:0 4px 11px;font-size:12px;font-weight:750;color:#595147}
+.study-summary{flex-wrap:wrap;border:1px solid #ebe3d5;border-radius:14px;background:#fffdfa;padding:14px;gap:8px;font-size:12px;font-weight:720}
+.study-summary .text-button{margin-left:auto}.home-selection{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding:12px 3px;border-top:1px solid #e9e2d6;font-size:12px;color:#746d61}
+@media (min-width:900px){.web-responsive .study-foot{position:sticky;bottom:14px;max-width:650px;margin-left:auto;margin-right:auto}.web-responsive .study-progress{max-width:800px}.web-responsive .bottom{grid-template-columns:none}}
 </style></head><body class="mobile-only"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script src="data.js"></script><script src="app.js"></script></body></html>
