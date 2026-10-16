@@ -5,7 +5,7 @@ const KEY='quizlab.mobile.preview.v3';const DATA_KEY='quizlab.mobile.custom.v1';
 const safeParse=(s,def)=>{try{return JSON.parse(s)||def}catch{return def}};
 const initial={tab:'home',src:'en',dst:'es',instruction:'en',kind:'word',gameMode:'choice',quizLimit:10,showArticles:false,requireAccents:false,similarity:{},typingHistory:[],reviewMode:'automatic',showMastered:false,excluded:[],progress:{},attempts:[],selectedOnly:true};
 const state={...initial,...safeParse(localStorage.getItem(KEY),{})};if(!['word','phrase'].includes(state.kind))state.kind='word';if(state.kind==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(state.src===state.dst)state.dst=Object.keys(LANGUAGE_NAMES).find(k=>k!==state.src);
-const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false};
+const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,topicBrowser:'topics',patternMode:'prefix',patternLanguage:'dst',patternCategory:'All',patternSub:'All',patternOnlySelected:true,patternFocus:'',patternSearch:'',patternExpanded:'',patternShowAll:'',patternPools:new Map()};
 const terms=[...(window.QUIZLAB_DATA||[]),...safeParse(localStorage.getItem(DATA_KEY),[])];
 const ids=new Set(terms.map(t=>t.id));
 const langNames=LANGUAGE_NAMES;const byId=new Map(terms.map(t=>[t.id,t]));
@@ -86,6 +86,77 @@ function topicsView(){
   }html+='</div>'}html+='</div>'}
  return html+'</div>'+(cats.length?'':'<div class="listempty">No matching terms.</div>');
 }
+// Pattern Explorer analyzes the lexical item (without an initial article), not the saved display choice.
+// It does not change selected checkboxes or progress IDs. Accents are folded ONLY for grouping.
+function patternLexeme(t){
+ const lang=ui.patternLanguage==='src'?state.src:state.dst;
+ const raw=String(t.t[lang]||'').trim();
+ return raw.replace(ARTICLES[lang]||/^$/u,'').trim();
+}
+function patternNormalized(value){return String(value||'').normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase().trim()}
+function patternLetters(t){return patternNormalized(patternLexeme(t)).replace(/[^\p{L}\p{N}]/gu,'')}
+function patternWordCount(t){return (patternNormalized(patternLexeme(t)).match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)||[]).length}
+function patternReset(){ui.patternFocus='';ui.patternSearch='';ui.patternExpanded='';ui.patternShowAll='';ui.patternPools=new Map()}
+function patternPool(){
+ let pool=terms.filter(eligible);
+ if(ui.patternOnlySelected)pool=pool.filter(selected);
+ if(ui.patternCategory!=='All')pool=pool.filter(t=>t.c===ui.patternCategory);
+ if(ui.patternSub!=='All')pool=pool.filter(t=>t.s===ui.patternSub);
+ return pool;
+}
+function patternView(){
+ const eligibleAll=terms.filter(eligible), allCats=unique(eligibleAll.map(t=>t.c)).sort();
+ if(ui.patternCategory!=='All'&&!allCats.includes(ui.patternCategory)){ui.patternCategory='All';ui.patternSub='All'}
+ const subs=unique(eligibleAll.filter(t=>ui.patternCategory==='All'||t.c===ui.patternCategory).map(t=>t.s)).sort();
+ if(ui.patternSub!=='All'&&!subs.includes(ui.patternSub))ui.patternSub='All';
+ const pool=patternPool(), mode=ui.patternMode, nested=mode==='prefix'||mode==='suffix';
+ const unit=(t)=>patternLetters(t);
+ const normalizedQuery=patternNormalized(ui.patternSearch).replace(/^[-\s]+|[-\s]+$/g,'').replace(/[^\p{L}\p{N}]/gu,'');
+ let relevant=pool;
+ if(nested){
+  if(ui.patternFocus)relevant=relevant.filter(t=>mode==='prefix'?unit(t).startsWith(ui.patternFocus):unit(t).endsWith(ui.patternFocus));
+  if(normalizedQuery)relevant=relevant.filter(t=>mode==='prefix'?unit(t).startsWith(normalizedQuery):unit(t).endsWith(normalizedQuery));
+ }
+ let html=`<div class="pattern-filters">
+  <div class="two"><label><span class="form-label">Category</span><select class="field" data-pattern-setting="category"><option value="All">All categories</option>${allCats.map(c=>`<option value="${attr(c)}" ${ui.patternCategory===c?'selected':''}>${encode(c)}</option>`).join('')}</select></label>
+  <label><span class="form-label">Subcategory</span><select class="field" data-pattern-setting="sub"><option value="All">All subcategories</option>${subs.map(c=>`<option value="${attr(c)}" ${ui.patternSub===c?'selected':''}>${encode(c)}</option>`).join('')}</select></label></div>
+  <div class="row spread pattern-select-row"><label class="row pattern-check"><input class="checkbox" type="checkbox" data-pattern-setting="selected" ${ui.patternOnlySelected?'checked':''}>Selected topics only</label><label class="row"><span class="small">Analyze</span><select aria-label="Language analyzed" class="field pattern-lang" data-pattern-setting="lang"><option value="dst" ${ui.patternLanguage==='dst'?'selected':''}>${encode(langNames[state.dst])}</option><option value="src" ${ui.patternLanguage==='src'?'selected':''}>${encode(langNames[state.src])}</option></select></label></div>
+  <div class="pattern-modes" role="group" aria-label="Grouping method">${[['prefix','Starts with'],['suffix','Ends with'],['length','Letters'],['words','Word count']].map(([k,l])=>`<button class="pill ${mode===k?'active':''}" data-pattern-mode="${k}">${l}</button>`).join('')}</div>`;
+ if(nested){
+  html+=`<div class="pattern-query"><label><span class="form-label">${mode==='prefix'?'Starts with (e.g. ab)':'Ends with (e.g. ente)'}</span><input type="search" class="field" id="patternSearch" value="${attr(ui.patternSearch)}" placeholder="${mode==='prefix'?'Type a prefix':'Type a suffix'}" autocomplete="off" spellcheck="false"></label>${ui.patternFocus?`<button class="ghost" data-pattern-back="1" aria-label="Go back one letter">← ${encode(mode==='suffix'?'-'+ui.patternFocus:ui.patternFocus)}</button>`:''}</div>`;
+ }
+ const groupMap=new Map();
+ if(nested&&normalizedQuery){
+  groupMap.set(normalizedQuery,relevant);
+ }else if(nested){
+  const depth=Array.from(ui.patternFocus).length+1;
+  for(const t of relevant){const word=unit(t);if(!word)continue;const letters=Array.from(word);let key;
+   if(letters.length<depth)key=word;else key=mode==='prefix'?letters.slice(0,depth).join(''):letters.slice(-depth).join('');
+   if(!groupMap.has(key))groupMap.set(key,[]);groupMap.get(key).push(t);
+  }
+ }else{
+  for(const t of relevant){const k=String(mode==='length'?Array.from(unit(t)).length:patternWordCount(t));if(!groupMap.has(k))groupMap.set(k,[]);groupMap.get(k).push(t)}
+ }
+ const groups=[...groupMap.entries()].filter(([,arr])=>arr.length).sort((a,b)=>nested?a[0].localeCompare(b[0]):Number(a[0])-Number(b[0]));
+ ui.patternPools=new Map(groups.map(([g,arr],i)=>[String(i),arr]));
+ html+=`</div><div class="row spread pattern-results-label"><strong>${relevant.length} matching ${state.kind==='phrase'?'phrases':'words'}</strong><span class="small">${groups.length} groups</span></div>`;
+ if(nested&&ui.patternFocus)html+=`<button class="text-button pattern-path" data-pattern-back="1">← ${encode(ui.patternFocus)} · Back to previous letters</button>`;
+ if(!groups.length)return html+'<div class="listempty">No matching items. Try another category, language, or pattern.</div>';
+ html+='<div class="pattern-groups">';
+ for(let i=0;i<groups.length;i++){
+  const [g,list]=groups[i],id=String(i),open=ui.patternExpanded===id;
+  const label=mode==='suffix'?'-'+g:mode==='prefix'?g:mode==='length'?`${g} ${g==='1'?'letter':'letters'}`:`${g} ${g==='1'?'word':'words'}`;
+  const canDrill=nested&&!normalizedQuery&&list.some(t=>Array.from(unit(t)).length>Array.from(g).length);
+  const preview=list.slice(0,open?(ui.patternShowAll===id?list.length:60):3);
+  html+=`<article class="pattern-group"><div class="pattern-group-head"><button class="pattern-group-name" data-pattern-expand="${id}" aria-expanded="${open}" aria-label="Show words for ${attr(label)}"><strong>${encode(label)}</strong><span>${list.length} ${state.kind==='phrase'?'phrases':'words'}</span><span class="pattern-arrow">${open?'−':'+'}</span></button><button class="pattern-play" data-pattern-play="${id}" aria-label="Start quiz for ${attr(label)}">Play ↗</button></div>`;
+  if(open){html+='<div class="pattern-words">';for(const t of preview){html+=`<div class="pattern-word"><span>${encode(patternLexeme(t))}</span><span>${encode(shown(t,ui.patternLanguage==='src'?state.dst:state.src))}</span></div>`}if(list.length>60&&ui.patternShowAll!==id)html+=`<button class="pattern-deeper" data-pattern-all="${id}">Show all ${list.length} words ↓</button>`;
+  if(canDrill)html+=`<button class="pattern-deeper" data-pattern-drill="${attr(g)}">${mode==='prefix'?'Next letter →':'Previous letter →'}</button>`;
+  html+='</div>';}else html+=`<div class="pattern-preview">${preview.map(t=>encode(patternLexeme(t))).join(' · ')}</div>`;
+  html+='</article>';
+ }
+ html+='</div><div class="small pattern-hint">Tap a group to see translations, drill down letter by letter, or Play to quiz only that group. A pattern quiz does not change category checkboxes.</div>';
+ return html;
+}
 function setupHeader(){
  const steps=[['Languages',1],['Topics',2]];
  return `<div class="study-progress" aria-label="Study setup steps">${steps.map(([label,num])=>`<button class="study-step ${ui.setupStep===num?'current':''} ${ui.setupStep>num?'done':''}" data-step="${num}"><span>${num}</span>${label}</button>`).join('')}</div>`;
@@ -99,7 +170,8 @@ function settingsView(){
  return `${setupHeader()}<div class="section">Game mode</div><div class="game-modes minimal-modes">${[['choice','▦','Quiz'],['typing','⌨','Write'],['color','◉','Similarity']].filter(([m])=>state.kind==='word'||m!=='color').map(([m,i,label])=>`<button class="game-card ${state.gameMode===m?'active':''}" data-game="${m}"><span class="game-icon">${i}</span><strong>${label}</strong></button>`).join('')}</div>
  <div class="section">Questions</div><div class="pillset">${[5,10,15,20,30,50].map(n=>`<button class="pill ${state.quizLimit===n?'active':''}" data-limit="${n}">${n}</button>`).join('')}</div>
  <div class="study-foot"><div class="row spread study-foot-count"><span>${count} ${state.kind==='word'?'words':'phrases'} selected</span><button class="text-button" data-step="1">← Languages</button></div><button class="primary full" data-action="start" ${count===0?'disabled':''}>Start ${state.gameMode==='choice'?'quiz':state.gameMode==='typing'?'writing':'similarity'} <span>→</span></button></div>
- ${topicsView()}
+ <div class="pattern-tabs" role="group" aria-label="Browse vocabulary"><button class="${ui.topicBrowser==='topics'?'on':''}" data-topic-browser="topics">Categories</button><button class="${ui.topicBrowser==='patterns'?'on':''}" data-topic-browser="patterns">Patterns</button></div>
+ ${ui.topicBrowser==='patterns'?patternView():topicsView()}
  <details class="advanced-details"><summary>More options</summary>
  <div class="section">Review · Quiz only</div><div class="seg"><button data-mode="automatic" class="${state.reviewMode==='automatic'?'on':''}">Automatic</button><button data-mode="anki" class="${state.reviewMode==='anki'?'on':''}">Anki</button></div>
  <div class="row spread" style="margin:18px 0"><span class="small">Include mastered terms</span><input class="checkbox" type="checkbox" data-setting-check="showMastered" ${state.showMastered?'checked':''}></div>
@@ -125,14 +197,14 @@ function statsView(){
 }
 function howManyOptions(t,pool){const right=shown(t,state.dst),a=pool.filter(x=>x.id!==t.id&&shown(x,state.dst)!==right).sort((x,y)=>Number(x.c!==t.c)-Number(y.c!==t.c));const opts=[right];let candidates=shuffle(a);candidates.sort((x,y)=>Number(x.c!==t.c)-Number(y.c!==t.c));for(const c of candidates){if(opts.length>=4)break;const v=shown(c,state.dst);if(v&&!opts.includes(v))opts.push(v)}return shuffle(opts)}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function startGame(){if(!totalActive().length){ui.setupStep=2;setTab('settings');return;}const candidates=totalActive().filter(t=>state.gameMode==='color'||state.showMastered||!prog(t).mastered);const picks=shuffle([...candidates].sort(orderPriority).slice(0,Math.max(100,state.quizLimit*5))).slice(0,state.quizLimit);ui.session={items:picks,index:0,correct:0,wrong:0,skipped:0,mode:state.gameMode,kind:state.kind};ui.question=null;ui.qIndex=0;newQuestion();setTab('quiz')}
+function startGame(explicitPool=null){const source=Array.isArray(explicitPool)?explicitPool:totalActive();if(!source.length){ui.setupStep=2;setTab('settings');return;}const candidates=source.filter(t=>Array.isArray(explicitPool)||state.gameMode==='color'||state.showMastered||!prog(t).mastered);const picks=shuffle([...candidates].sort(orderPriority).slice(0,Math.max(100,state.quizLimit*5))).slice(0,state.quizLimit);ui.session={items:picks,index:0,correct:0,wrong:0,skipped:0,mode:state.gameMode,kind:state.kind,originIds:Array.isArray(explicitPool)?source.map(t=>t.id):null};ui.question=null;ui.qIndex=0;newQuestion();setTab('quiz')}
 function newQuestion(){if(!ui.session){ui.question=null;return}const sess=ui.session;if(sess.index>=sess.items.length){ui.question=null;return}const candidate=sess.items[sess.index];ui.question=candidate;ui.options=howManyOptions(candidate,terms.filter(eligible));ui.revealed=false;ui.answer=-1;ui.typedHint=false;ui.typedRevealed=false;ui.typedEntry='';ui.typedSubmitted=false;ui.qIndex=sess.index+1}
 function advance(){if(!ui.session)return;ui.session.index++;newQuestion();render()}
 function normalized(s){return matchingForm(s)}
 function markTyping(correct,shown,entry){if(ui.typedSubmitted)return;const t=ui.question;state.typingHistory.push({id:t.id,src:state.src,dst:state.dst,kind:t.k,correct,shown,typed:entry||'',at:new Date().toISOString()});if(state.typingHistory.length>30000)state.typingHistory=state.typingHistory.slice(-30000);ui.typedSubmitted=true;ui.typedRevealed=shown;if(correct)ui.session.correct++;else if(shown)ui.session.skipped++;else ui.session.wrong++;persist();render()}
 function similarityKey(t){return `${t.id}:${state.src}>${state.dst}`}
 function setSimilarity(val){state.similarity[similarityKey(ui.question)]=val;ui.session.correct++;persist();advance()}
-function gameSummary(){const s=ui.session;return `<div class="game-stage"><div class="page-heading"><h1 class="h1">Done!</h1></div><div class="card emphasis center-finish"><div class="big-number">${s.items.length}</div><span>items completed</span></div><div class="kpis"><div class="kpi"><strong>${s.correct}</strong><span>${s.mode==='color'?'Rated':'Correct'}</span></div><div class="kpi"><strong>${s.skipped+s.wrong}</strong><span>${s.mode==='color'?'Skipped':'Wrong / skipped'}</span></div></div><button class="primary full" data-action="start">Play again →</button><button class="secondary full" style="margin-top:10px" data-nav="home">Home</button></div>`}
+function gameSummary(){const s=ui.session;return `<div class="game-stage"><div class="page-heading"><h1 class="h1">Done!</h1></div><div class="card emphasis center-finish"><div class="big-number">${s.items.length}</div><span>items completed</span></div><div class="kpis"><div class="kpi"><strong>${s.correct}</strong><span>${s.mode==='color'?'Rated':'Correct'}</span></div><div class="kpi"><strong>${s.skipped+s.wrong}</strong><span>${s.mode==='color'?'Skipped':'Wrong / skipped'}</span></div></div><button class="primary full" data-action="repeat">Play again →</button><button class="secondary full" style="margin-top:10px" data-nav="home">Home</button></div>`}
 function renderLetterSlots(answer,entry,hint=false){
  const graphemes=splitGraphemes(answer),typed=typedLetters(entry);
  let pos=0,html='';const count=graphemes.filter(x=>/[\p{L}\p{N}]/u.test(x)).length;
@@ -186,14 +258,22 @@ function navBar(){nav.innerHTML=[['home','⌂','Home'],['settings','◎','Study'
 function render(){navBar();view.closest('.app').classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'stats':view.innerHTML=statsView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;}
 function goStep(n){ui.setupStep=Math.min(2,Math.max(1,Number(n)));setTab('settings')}
 function setTab(v){state.tab=v;persist();render();view.closest('.app').scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
-function setSetting(name,value){state[name]=value;if(name==='kind'&&value==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(name==='gameMode'&&value==='color')state.kind='word';ui.session=null;ui.question=null;persist();render()}
+function setSetting(name,value){if(['src','dst','kind'].includes(name))patternReset();state[name]=value;if(name==='kind'&&value==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(name==='gameMode'&&value==='color')state.kind='word';ui.session=null;ui.question=null;persist();render()}
 function exportProgress(){const output=JSON.stringify({version:3,app:'Quiz Lab browser',exportedAt:new Date().toISOString(),progress:state.progress,attempts:state.attempts,excluded:state.excluded,typingHistory:state.typingHistory,similarity:state.similarity},null,2);const url=URL.createObjectURL(new Blob([output],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='quizlab-browser-progress.json';a.click();URL.revokeObjectURL(url)}
 function onFile(f){if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);let a=[];if(Array.isArray(data.terms)){a=data.terms.map((t,i)=>{const path=(t.topic||'General / General').split(' / ');return {id:'user:'+ (data.id||'pack') + ':'+t.id,c:t.category||path[0],s:t.subtopic||path[1]||'General',k:t.kind||'word',t:Object.fromEntries(Object.entries(t.translations||{}).map(([k,v])=>[k.toLowerCase(),String(v)]))}})}else if(Array.isArray(data.entries)){a=data.entries.map((t,i)=>({id:'user:'+t.id,c:t.category||'General',s:t.subtopic||'General',k:t.type||'word',t:Object.fromEntries(Object.entries(t.words||{}).map(([k,v])=>[k.toLowerCase(),String(v)]))}))}else throw Error('Expected a JSON object containing terms[] or entries[].');a=a.filter(t=>t.id&&Object.keys(t.t).length>=2);let added=0;for(const t of a){if(!ids.has(t.id)){terms.push(t);ids.add(t.id);added++}}byId.clear();for(const t of terms)byId.set(t.id,t);localStorage.setItem(DATA_KEY,JSON.stringify(terms.slice(window.QUIZLAB_DATA.length)));ui.importStatus=`Imported ${added} new vocabulary items (${a.length} valid records).`;ui.question=null;setTab('settings')}catch(e){ui.importStatus='Import error: '+e.message;render()}};reader.readAsText(f,'utf-8')}
 nav.addEventListener('click',e=>{const b=e.target.closest('[data-nav]');if(b){if(b.dataset.nav==='settings')ui.setupStep=1;setTab(b.dataset.nav)}});
-view.addEventListener('click',e=>{const b=e.target.closest('button,[data-toggle-cat],[data-toggle-sub]');if(!b)return;const d=b.dataset;if(d.nav){if(d.nav==='settings')ui.setupStep=1;return setTab(d.nav)}if(d.step)return goStep(d.step);if(d.kind)return setSetting('kind',d.kind);if(d.mode)return setSetting('reviewMode',d.mode);if(d.quickmode){state.gameMode=d.quickmode;if(d.quickmode==='color')state.kind='word';persist();return goStep(1)}if(d.game)return setSetting('gameMode',d.game);if(d.limit)return setSetting('quizLimit',Number(d.limit));if(d.color)return setSimilarity(d.color);if(d.toggleCat!==undefined)return toggleGroup('cat',d.toggleCat);if(d.toggleSub!==undefined)return toggleGroup('sub',d.toggleSub);if(d.option!==undefined){if(ui.revealed)return;ui.answer=Number(d.option);ui.revealed=true;if(state.reviewMode==='automatic'){const good=ui.options[ui.answer]===shown(ui.question,state.dst);record(ui.question,good,good?'good':'again');ui.session[good?'correct':'wrong']++}render();return}if(d.rate){const good=ui.options[ui.answer]===shown(ui.question,state.dst)&&d.rate!=='again';record(ui.question,good,d.rate);ui.session[good?'correct':'wrong']++;advance();return}if(d.action==='start')return startGame();if(d.action==='next')return advance();if(d.action==='hint'){ui.typedHint=true;render();document.getElementById('typingAnswer')?.focus();return}if(d.action==='reveal')return markTyping(false,true,'');if(d.action==='all-select'||d.action==='all-clear'){const q=ui.wordFilter.trim().toLowerCase(),a=terms.filter(t=>eligible(t)&&(!q||[t.c,t.s,shown(t,state.src),shown(t,state.dst)].join(' ').toLowerCase().includes(q)));return toggleSelection(a,d.action==='all-select')}if(d.action==='export')return exportProgress();if(d.action==='reset'){if(confirm('Delete all browser quiz progress? Vocabulary content will remain.')){state.progress={};state.attempts=[];state.typingHistory=[];state.similarity={};persist();render()}}});
+view.addEventListener('click',e=>{const b=e.target.closest('button,[data-toggle-cat],[data-toggle-sub]');if(!b)return;const d=b.dataset;if(d.nav){if(d.nav==='settings')ui.setupStep=1;return setTab(d.nav)}if(d.step)return goStep(d.step);if(d.kind)return setSetting('kind',d.kind);if(d.mode)return setSetting('reviewMode',d.mode);if(d.quickmode){state.gameMode=d.quickmode;if(d.quickmode==='color')state.kind='word';persist();return goStep(1)}if(d.game)return setSetting('gameMode',d.game);if(d.limit)return setSetting('quizLimit',Number(d.limit));if(d.color)return setSimilarity(d.color);if(d.toggleCat!==undefined)return toggleGroup('cat',d.toggleCat);if(d.toggleSub!==undefined)return toggleGroup('sub',d.toggleSub);if(d.option!==undefined){if(ui.revealed)return;ui.answer=Number(d.option);ui.revealed=true;if(state.reviewMode==='automatic'){const good=ui.options[ui.answer]===shown(ui.question,state.dst);record(ui.question,good,good?'good':'again');ui.session[good?'correct':'wrong']++}render();return}if(d.rate){const good=ui.options[ui.answer]===shown(ui.question,state.dst)&&d.rate!=='again';record(ui.question,good,d.rate);ui.session[good?'correct':'wrong']++;advance();return}if(d.topicBrowser){ui.topicBrowser=d.topicBrowser;patternReset();return render()}
+ if(d.patternMode){ui.patternMode=d.patternMode;patternReset();return render()}
+ if(d.patternBack!==undefined){ui.patternFocus=ui.patternFocus.slice(0,-1);ui.patternExpanded='';return render()}
+ if(d.patternExpand!==undefined){ui.patternExpanded=ui.patternExpanded===d.patternExpand?'':d.patternExpand;ui.patternShowAll='';return render()}
+ if(d.patternAll!==undefined){ui.patternShowAll=d.patternAll;return render()}
+ if(d.patternDrill!==undefined){ui.patternFocus=d.patternDrill;ui.patternExpanded='';ui.patternSearch='';return render()}
+ if(d.patternPlay!==undefined){const pool=ui.patternPools.get(d.patternPlay);if(pool?.length)return startGame(pool);return}
+ if(d.action==='repeat')return startGame(ui.session?.originIds?.map(id=>byId.get(id)).filter(Boolean)||null);
+ if(d.action==='start')return startGame();if(d.action==='next')return advance();if(d.action==='hint'){ui.typedHint=true;render();document.getElementById('typingAnswer')?.focus();return}if(d.action==='reveal')return markTyping(false,true,'');if(d.action==='all-select'||d.action==='all-clear'){const q=ui.wordFilter.trim().toLowerCase(),a=terms.filter(t=>eligible(t)&&(!q||[t.c,t.s,shown(t,state.src),shown(t,state.dst)].join(' ').toLowerCase().includes(q)));return toggleSelection(a,d.action==='all-select')}if(d.action==='export')return exportProgress();if(d.action==='reset'){if(confirm('Delete all browser quiz progress? Vocabulary content will remain.')){state.progress={};state.attempts=[];state.typingHistory=[];state.similarity={};persist();render()}}});
 view.addEventListener('submit',e=>{if(e.target.id!=='typingForm')return;e.preventDefault();if(ui.typedSubmitted||!ui.question)return;const input=document.getElementById('typingAnswer').value;ui.typedEntry=input;markTyping(typingMatches(input,ui.question),false,input)});
-view.addEventListener('change',e=>{const d=e.target.dataset;if(d.setting){if(d.setting==='src'&&e.target.value===state.dst)state.dst=Object.keys(langNames).find(k=>k!==e.target.value);return setSetting(d.setting,e.target.value)}if(d.settingCheck)return setSetting(d.settingCheck,e.target.checked);if(d.catSelect!==undefined)return toggleSelection(terms.filter(t=>eligible(t)&&t.c===d.catSelect),e.target.checked);if(d.subSelect!==undefined){const [cat,sub]=d.subSelect.split('|');return toggleSelection(terms.filter(t=>eligible(t)&&t.c===cat&&t.s===sub),e.target.checked)}if(d.wordSelect!==undefined){const t=byId.get(d.wordSelect);if(t)return toggleSelection([t],e.target.checked)}if(e.target.id==='importJson')return onFile(e.target.files?.[0]);});
-view.addEventListener('input',e=>{if(e.target.id==='typingAnswer'){ui.typedEntry=e.target.value;updateTypingSlots();return}if(e.target.id==='vocabSearch'){const a=e.target.selectionStart;ui.wordFilter=e.target.value;render();const n=document.getElementById('vocabSearch');n.focus();n.setSelectionRange(a,a)}});
+view.addEventListener('change',e=>{const d=e.target.dataset;if(d.patternSetting){if(d.patternSetting==='category'){ui.patternCategory=e.target.value;ui.patternSub='All'}else if(d.patternSetting==='sub')ui.patternSub=e.target.value;else if(d.patternSetting==='lang')ui.patternLanguage=e.target.value;else if(d.patternSetting==='selected')ui.patternOnlySelected=e.target.checked;patternReset();return render()}if(d.setting){if(d.setting==='src'&&e.target.value===state.dst)state.dst=Object.keys(langNames).find(k=>k!==e.target.value);return setSetting(d.setting,e.target.value)}if(d.settingCheck)return setSetting(d.settingCheck,e.target.checked);if(d.catSelect!==undefined)return toggleSelection(terms.filter(t=>eligible(t)&&t.c===d.catSelect),e.target.checked);if(d.subSelect!==undefined){const [cat,sub]=d.subSelect.split('|');return toggleSelection(terms.filter(t=>eligible(t)&&t.c===cat&&t.s===sub),e.target.checked)}if(d.wordSelect!==undefined){const t=byId.get(d.wordSelect);if(t)return toggleSelection([t],e.target.checked)}if(e.target.id==='importJson')return onFile(e.target.files?.[0]);});
+view.addEventListener('input',e=>{if(e.target.id==='typingAnswer'){ui.typedEntry=e.target.value;updateTypingSlots();return}if(e.target.id==='patternSearch'){const a=e.target.selectionStart;ui.patternSearch=e.target.value;ui.patternFocus='';ui.patternExpanded='';render();const n=document.getElementById('patternSearch');if(n){n.focus();n.setSelectionRange(a,a)}return}if(e.target.id==='vocabSearch'){const a=e.target.selectionStart;ui.wordFilter=e.target.value;render();const n=document.getElementById('vocabSearch');n.focus();n.setSelectionRange(a,a)}});
 document.getElementById('topInfo')?.addEventListener('click',()=>{alert(`Quiz Lab mobile web preview\n${terms.length} learning items (1,804 original + 67 reference)\nStorage: your browser only\nCloud: not connected\nBuild: 2026-10-13`)});
 render();
 })();
