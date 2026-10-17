@@ -240,4 +240,19 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 @media(max-width:345px){.branch-workspace{grid-template-columns:minmax(0,1fr) minmax(96px,.83fr);gap:5px}.branch-graph{padding:6px}.branch-graph-nodes{margin-left:5px;padding-left:9px}.branch-node::before{left:-11px;width:10px}.branch-node-letter{display:none}}
 @media(min-width:900px){.web-responsive .branch-workspace{grid-template-columns:minmax(0,1.8fr) minmax(260px,.8fr);gap:20px}.web-responsive .branch-focused{max-width:1120px}.web-responsive .branch-table-rows{padding:7px 16px}.web-responsive .branch-graph{padding:18px}.web-responsive .branch-node{padding:12px}.web-responsive .branch-node strong{font-size:13px}}
 
+
+/* v15 · focused graph: show alphabetic word lists below every immediate child */
+.branch-graph-nodes{gap:10px}
+.branch-node-card{position:relative;min-width:0;background:#fff;border:1px solid #e9dfcd;border-radius:11px;overflow:visible}
+.branch-node-card::before{content:'';position:absolute;left:-15px;top:19px;width:14px;border-top:2px solid #e0bd73}
+.branch-node-card>.branch-node{border:0;border-radius:10px 10px 0 0;background:#fff8e8}
+.branch-node-card>.branch-node::before{display:none}
+.branch-node-card>.branch-node:hover,.branch-node-card>.branch-node:focus-visible{background:#ffebba}
+.branch-node-words{list-style:none;margin:0;padding:5px 9px 9px;display:flex;flex-direction:column;gap:0;max-height:235px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d3b884 transparent}
+.branch-node-word{font-size:11px;color:#625746;line-height:1.38;overflow-wrap:anywhere;padding:5px 0;border-bottom:1px solid #f1eadf}
+.branch-node-word:last-child{border:0}
+@media(max-width:600px){.branch-graph-nodes{gap:8px}.branch-node-card::before{left:-15px}.branch-node-words{padding:4px 6px 7px;max-height:245px}.branch-node-word{font-size:10px;line-height:1.35;padding:4px 0}}
+@media(max-width:345px){.branch-node-card::before{left:-11px;width:10px}.branch-node-words{padding:4px}.branch-node-word{font-size:10px}}
+@media(min-width:900px){.web-responsive .branch-node-word{font-size:12px}.web-responsive .branch-node-words{max-height:300px}}
+
 </style></head><body class="mobile-only"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script src="data.js"></script><script src="app.js"></script></body></html>

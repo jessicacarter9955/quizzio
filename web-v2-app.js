@@ -131,11 +131,21 @@ function patternNextLevel(members,current,mode){
   if(!children.has(child))children.set(child,[]);
   children.get(child).push(t);
  }
+ // The focused graph always runs A–Z, regardless of the main-group recurrence sort.
  const compare=(a,b)=>a[0]===PATTERN_END?1:b[0]===PATTERN_END?-1:a[0].localeCompare(b[0],ui.patternSource,{sensitivity:'base'});
- return [...children].sort((a,b)=>state.patternSort==='most'?b[1].length-a[1].length||compare(a,b):state.patternSort==='least'?a[1].length-b[1].length||compare(a,b):compare(a,b));
+ return [...children].sort(compare);
 }
+function alphabeticPatternKey(t){
+ // Ignore accents and sentence punctuation for lexical order: ¿Cómo before ¿Con and Creo before ¿Cuál.
+ return patternNormalized(patternLexeme(t)).replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+}
+function comparePatternAlphabetically(a,b){
+ return alphabeticPatternKey(a).localeCompare(alphabeticPatternKey(b),ui.patternSource,{sensitivity:'base'})||
+   patternNormalized(String(a.t[ui.patternTarget]||'')).localeCompare(patternNormalized(String(b.t[ui.patternTarget]||'')),ui.patternTarget,{sensitivity:'base'})||String(a.id).localeCompare(String(b.id));
+}
+function alphabeticPatternItems(items){return [...items].sort(comparePatternAlphabetically)}
 function patternBranchRows(members){
- const rows=members.map(t=>`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode((t.patternLocations||[`${t.c} / ${t.s}`]).join(' · '))}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`);
+ const rows=alphabeticPatternItems(members).map(t=>`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode((t.patternLocations||[`${t.c} / ${t.s}`]).join(' · '))}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`);
  return rows;
 }
 // Focused drill-down: exactly ONE list on the left and ONE next-letter tree on the right.
@@ -170,7 +180,10 @@ function patternBranchView(root,members,mode){
   html+='<div class="branch-graph-nodes">';
   for(const [child,subset] of children){
    const letter=child===PATTERN_END?'■':mode==='prefix'?Array.from(child).at(-1):Array.from(child)[0];
-   html+=`<button class="branch-node" data-pattern-branch-choice="${attr(child)}" aria-label="Show ${attr(displayLabel(child))}, ${subset.length} ${kind}"><span class="branch-node-letter">${encode(letter)}</span><strong>${encode(displayLabel(child))}</strong><span class="branch-node-count">${subset.length}</span><span class="branch-node-arrow" aria-hidden="true">›</span></button>`;
+   // Show the immediate next-letter group AND all its actual words/phrases by default.
+   // The list is height-limited on large branches but scrollable, never hidden behind another click.
+   const names=alphabeticPatternItems(subset).map(t=>`<li class="branch-node-word" title="${attr(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}">${encode(patternLexeme(t))}</li>`).join('');
+   html+=`<div class="branch-node-card"><button class="branch-node" data-pattern-branch-choice="${attr(child)}" aria-label="Focus ${attr(displayLabel(child))}, ${subset.length} ${kind}"><span class="branch-node-letter">${encode(letter)}</span><strong>${encode(displayLabel(child))}</strong><span class="branch-node-count">${subset.length}</span><span class="branch-node-arrow" aria-hidden="true">›</span></button><ul class="branch-node-words" aria-label="${attr(displayLabel(child))}: ${subset.length} alphabetical ${kind}">${names}</ul></div>`;
   }
   html+='</div>';
  }else html+='<div class="branch-terminal">No more letters to split</div>';
@@ -209,7 +222,7 @@ function patternView(){
  // Keep alphabetical/numerical tie-breaking stable so the same pattern is easy to locate.
  const baseCompare=(a,b)=>nested?a[0].localeCompare(b[0],ui.patternSource,{sensitivity:'base'}):Number(a[0])-Number(b[0]);
  // Rows within every group are alphabetic in the analyzed language, regardless of how groups are sorted.
- for(const members of groupMap.values())members.sort((a,b)=>patternLexeme(a).localeCompare(patternLexeme(b),ui.patternSource,{sensitivity:'base'})||String(a.id).localeCompare(String(b.id)));
+ for(const members of groupMap.values())members.sort(comparePatternAlphabetically);
  const groups=[...groupMap.entries()].filter(([,arr])=>arr.length).sort((a,b)=>
   state.patternSort==='most'?b[1].length-a[1].length||baseCompare(a,b):
   state.patternSort==='least'?a[1].length-b[1].length||baseCompare(a,b):baseCompare(a,b));
