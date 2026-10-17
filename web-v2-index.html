@@ -108,7 +108,7 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 
 
 /* V6: topics belong to the language-to-quiz flow (no Library tab). */
-.bottom{grid-template-columns:repeat(3,minmax(0,1fr))}
+.bottom{grid-template-columns:repeat(4,minmax(0,1fr))}
 .study-progress{display:flex;align-items:center;gap:8px;margin:6px 0 20px}
 .study-step{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e9e4d9;border-radius:12px;background:#fffdfa;padding:10px 4px;font-size:11px;font-weight:760;color:#8b8170;min-height:43px}
 .study-step span{border-radius:50%;height:20px;width:20px;background:#f1efe9;display:grid;place-items:center;font-size:11px;flex:none}
@@ -185,4 +185,15 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .pattern-hint{margin:0 2px 20px;color:#84796a}
 @media(min-width:900px){.web-responsive .pattern-groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.web-responsive .pattern-filters{padding:20px}.web-responsive .pattern-group-head{min-height:60px}}
 
+
+/* Independent, global language-wide Patterns screen. */
+.pattern-kind{margin:13px 0 6px;display:flex;gap:7px}
+.pattern-corpus-info{font-size:11px;color:#777064;margin:8px 0 17px}
+.pattern-words .pattern-word strong{font-size:13px;display:block;font-weight:700;color:#28251f}
+.pattern-word small{display:block;font-size:10px;color:#968a79;margin-top:3px}
+.pattern-game-settings{background:white;border-radius:17px;border:1px solid #eee7dc;padding:12px 16px;margin:17px 0 30px}
+.pattern-game-settings .section{margin:7px 0 10px;font-size:12px}
+.pattern-game-settings .pillset{margin-bottom:10px}
+.home-pattern-link{border:none;background:none;color:#6b5525;font-size:12px;text-decoration:underline;text-underline-offset:3px;padding:12px 8px 15px;width:100%;cursor:pointer}
+@media(min-width:900px){.web-responsive .pattern-filters{max-width:860px}.web-responsive .pattern-game-settings{max-width:860px}}
 </style></head><body class="mobile-only"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script src="data.js"></script><script src="app.js"></script></body></html>
