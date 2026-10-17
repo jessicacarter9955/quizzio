@@ -88,17 +88,36 @@ function topicsView(){
 }
 // Patterns is an independent language-wide browser, never limited by Study topic selection.
 // Strip initial articles for analyzing patterns, regardless of the Study display setting.
-function patternLexeme(t){
- const lang=ui.patternSource;
- return String(t.t[lang]||'').trim().replace(ARTICLES[lang]||/^$/u,'').trim();
+function patternLexemeForLang(t,lang){
+ const value=String(t.t[lang]||'').trim();
+ // A phrase remains a phrase: only isolated vocabulary entries lose their articles.
+ return t.k==='phrase'?value:value.replace(ARTICLES[lang]||/^$/u,'').trim();
 }
+function patternLexeme(t){return patternLexemeForLang(t,ui.patternSource)}
+// Deduplicate a *translation pair*, not just a spelling: homographs with
+// different meanings stay distinct. Accents remain significant for identity.
+function patternIdentity(value){return String(value||'').normalize('NFC').toLocaleLowerCase().replace(/\s+/gu,' ').trim()}
+
 function patternNormalized(value){return String(value||'').normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase().trim()}
 function patternLetters(t){return patternNormalized(patternLexeme(t)).replace(/[^\p{L}\p{N}]/gu,'')}
 function patternWordCount(t){return (patternNormalized(patternLexeme(t)).match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)||[]).length}
 function patternReset(){ui.patternFocus='';ui.patternSearch='';ui.patternCollapsed.clear();ui.patternShowAll='';ui.patternPools=new Map()}
 function patternPool(){
- return terms.filter(t=>Boolean(t.t[ui.patternSource]?.trim()&&t.t[ui.patternTarget]?.trim()&&ui.patternSource!==ui.patternTarget)&&
+ const pool=terms.filter(t=>Boolean(t.t[ui.patternSource]?.trim()&&t.t[ui.patternTarget]?.trim()&&ui.patternSource!==ui.patternTarget)&&
  (ui.patternKind==='phrase'?t.k==='phrase':t.k!=='phrase'));
+ const seen=new Map();
+ for(const t of pool){
+  const source=patternIdentity(patternLexemeForLang(t,ui.patternSource));
+  const target=patternIdentity(patternLexemeForLang(t,ui.patternTarget));
+  const dedupKey=JSON.stringify([ui.patternKind,source,target]);
+  const location=`${t.c} / ${t.s}`;
+  if(!seen.has(dedupKey))seen.set(dedupKey,{...t,patternLocations:[location]});
+  else{
+   const existing=seen.get(dedupKey);
+   if(!existing.patternLocations.includes(location))existing.patternLocations.push(location);
+  }
+ }
+ return [...seen.values()];
 }
 function patternView(){
  const pool=patternPool(),mode=ui.patternMode,nested=mode==='prefix'||mode==='suffix';
@@ -147,7 +166,7 @@ function patternView(){
   const canDrill=nested&&!normalizedQuery&&list.some(t=>Array.from(patternLetters(t)).length>Array.from(g).length);
   const preview=list.slice(0,open?(ui.patternShowAll===g?list.length:60):3);
   html+=`<article class="pattern-group"><div class="pattern-group-head"><button class="pattern-group-name" data-pattern-expand="${attr(g)}" aria-expanded="${open}" aria-label="Show words for ${attr(label)}"><strong>${encode(label)}</strong><span>${list.length} ${ui.patternKind==='phrase'?'phrases':'words'}</span><span class="pattern-arrow">${open?'−':'+'}</span></button><button class="pattern-play" data-pattern-play="${id}" aria-label="Start quiz for ${attr(label)}">Play ↗</button></div>`;
-  if(open){html+='<div class="pattern-words">';for(const t of preview){html+=`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode(t.c)} / ${encode(t.s)}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`}if(list.length>60&&ui.patternShowAll!==g)html+=`<button class="pattern-deeper" data-pattern-all="${attr(g)}">Show all ${list.length} ${ui.patternKind==='phrase'?'phrases':'words'} ↓</button>`;
+  if(open){html+='<div class="pattern-words">';for(const t of preview){html+=`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode((t.patternLocations||[`${t.c} / ${t.s}`]).join(' · '))}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`}if(list.length>60&&ui.patternShowAll!==g)html+=`<button class="pattern-deeper" data-pattern-all="${attr(g)}">Show all ${list.length} ${ui.patternKind==='phrase'?'phrases':'words'} ↓</button>`;
    if(canDrill)html+=`<button class="pattern-deeper" data-pattern-drill="${attr(g)}">${mode==='prefix'?'Next letter →':'Previous letter →'}</button>`;
    html+='</div>';
   }else html+=`<div class="pattern-preview">${preview.map(t=>encode(patternLexeme(t))).join(' · ')}</div>`;
