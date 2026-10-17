@@ -5,7 +5,7 @@ const KEY='quizlab.mobile.preview.v3';const DATA_KEY='quizlab.mobile.custom.v1';
 const safeParse=(s,def)=>{try{return JSON.parse(s)||def}catch{return def}};
 const initial={tab:'home',src:'en',dst:'es',instruction:'en',kind:'word',gameMode:'choice',quizLimit:10,showArticles:false,requireAccents:false,similarity:{},typingHistory:[],reviewMode:'automatic',showMastered:false,excluded:[],progress:{},attempts:[],selectedOnly:true,patternSort:'alphabetical',patternSortDefaultVersion:11};
 const stored=safeParse(localStorage.getItem(KEY),{});const state={...initial,...stored};if(!['word','phrase'].includes(state.kind))state.kind='word';if(state.kind==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(stored.patternSortDefaultVersion!==11){state.patternSort='alphabetical';state.patternSortDefaultVersion=11;}if(!['most','least','alphabetical'].includes(state.patternSort))state.patternSort='alphabetical';if(state.src===state.dst)state.dst=Object.keys(LANGUAGE_NAMES).find(k=>k!==state.src);
-const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,patternMode:'prefix',patternSource:state.src,patternTarget:state.dst,patternKind:'word',patternFromNav:false,patternStudyBefore:null,patternFocus:'',patternSearch:'',patternCollapsed:new Set(),patternShowAll:'',patternPools:new Map()};
+const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,patternMode:'prefix',patternSource:state.src,patternTarget:state.dst,patternKind:'word',patternFromNav:false,patternStudyBefore:null,patternFocus:'',patternSearch:'',patternCollapsed:new Set(),patternShowAll:'',patternPools:new Map(),patternBranchRoot:null,patternBranchTrail:[],patternBranchShowAll:new Set(),patternBranchPools:new Map()};
 const terms=[...(window.QUIZLAB_DATA||[]),...safeParse(localStorage.getItem(DATA_KEY),[])];
 const ids=new Set(terms.map(t=>t.id));
 const langNames=LANGUAGE_NAMES;const byId=new Map(terms.map(t=>[t.id,t]));
@@ -101,7 +101,7 @@ function patternIdentity(value){return String(value||'').normalize('NFC').toLoca
 function patternNormalized(value){return String(value||'').normalize('NFD').replace(/\p{M}/gu,'').toLocaleLowerCase().trim()}
 function patternLetters(t){return patternNormalized(patternLexeme(t)).replace(/[^\p{L}\p{N}]/gu,'')}
 function patternWordCount(t){return (patternNormalized(patternLexeme(t)).match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)||[]).length}
-function patternReset(){ui.patternFocus='';ui.patternSearch='';ui.patternCollapsed.clear();ui.patternShowAll='';ui.patternPools=new Map()}
+function patternReset(){ui.patternFocus='';ui.patternSearch='';ui.patternCollapsed.clear();ui.patternShowAll='';ui.patternPools=new Map();ui.patternBranchRoot=null;ui.patternBranchTrail=[];ui.patternBranchShowAll.clear();ui.patternBranchPools=new Map()}
 function patternPool(){
  const pool=terms.filter(t=>Boolean(t.t[ui.patternSource]?.trim()&&t.t[ui.patternTarget]?.trim()&&ui.patternSource!==ui.patternTarget)&&
  (ui.patternKind==='phrase'?t.k==='phrase':t.k!=='phrase'));
@@ -118,6 +118,59 @@ function patternPool(){
   }
  }
  return [...seen.values()];
+}
+// An inline prefix/suffix trie. One selected branch table per depth keeps the
+// interface compact, while every sibling node displays a distinct count.
+const PATTERN_END='__pattern_end__';
+function patternNextLevel(members,current,mode){
+ const children=new Map(),len=Array.from(current).length;
+ for(const t of members){
+  const chars=Array.from(patternLetters(t));
+  const next=mode==='prefix'?chars[len]:chars[chars.length-len-1];
+  const child=!next?PATTERN_END:(mode==='prefix'?current+next:next+current);
+  if(!children.has(child))children.set(child,[]);
+  children.get(child).push(t);
+ }
+ const compare=(a,b)=>a[0]===PATTERN_END?1:b[0]===PATTERN_END?-1:a[0].localeCompare(b[0],ui.patternSource,{sensitivity:'base'});
+ return [...children].sort((a,b)=>state.patternSort==='most'?b[1].length-a[1].length||compare(a,b):state.patternSort==='least'?a[1].length-b[1].length||compare(a,b):compare(a,b));
+}
+function patternBranchRows(members){
+ const rows=members.map(t=>`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode((t.patternLocations||[`${t.c} / ${t.s}`]).join(' · '))}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`);
+ return rows;
+}
+function patternBranchView(root,members,mode){
+ const kind=ui.patternKind==='phrase'?'phrases':'words';
+ let path=root,items=members,depth=0,html=`<div class="branch-panel" aria-label="Interactive letter branching for ${attr(root)}">`;
+ html+=`<div class="branch-top"><span class="branch-key">${encode(mode==='suffix'?'-'+root:root+'…')}</span><span>${members.length} ${kind}</span><button class="branch-close" data-pattern-split="${attr(root)}">Show full list</button></div>`;
+ while(depth<40){
+  const children=patternNextLevel(items,path,mode);
+  // A leaf group cannot be split into more than its own exact spelling.
+  if(!children.length||(children.length===1&&children[0][0]===PATTERN_END))break;
+  const nextLabel=mode==='prefix'?'Next letter':'Previous letter';
+  html+=`<div class="branch-level"><div class="branch-caption"><span class="branch-vertical"></span>${encode(path)} → ${nextLabel.toLowerCase()} <small>${children.length} groups</small></div><div class="branch-options">`;
+  for(const [child,group] of children){
+   const label=child===PATTERN_END?'Ends here':mode==='suffix'?'-'+child:child+'…';
+   const active=ui.patternBranchTrail[depth]===child;
+   html+=`<button class="branch-node ${active?'active':''}" data-pattern-branch-choice="${attr(child)}" data-pattern-branch-depth="${depth}" aria-pressed="${active}"><strong>${encode(label)}</strong><span>${group.length}</span></button>`;
+  }
+  html+='</div></div>';
+  const choice=ui.patternBranchTrail[depth];
+  const chosen=children.find(([key])=>key===choice);
+  if(!chosen)break;
+  const [name,childItems]=chosen,tableId=`${root}|${depth}|${name}`,label=name===PATTERN_END?'Exact match':mode==='suffix'?'-'+name:name+'…';
+  ui.patternBranchPools.set(tableId,childItems);
+  const rows=patternBranchRows(childItems),sameSet=children.length===1&&childItems.length===items.length;
+  const limit=ui.patternBranchShowAll.has(tableId)?rows.length:16;
+  html+=`<section class="branch-table"><div class="branch-table-head"><span><strong>${encode(label)}</strong><small>${childItems.length} ${kind}</small></span><button class="pattern-play" data-pattern-branch-play="${attr(tableId)}" aria-label="Quiz ${attr(label)}">Play ↗</button></div>`;
+  // No duplicate tables for a one-child step (e.g. cu → cua): show the next split instead.
+  if(sameSet)html+=`<div class="branch-shared">All ${childItems.length} ${kind} share this next letter. Continue below.</div>`;
+  else{html+=`<div class="branch-table-rows">${rows.slice(0,limit).join('')}</div>`;if(rows.length>limit)html+=`<button class="branch-more" data-pattern-branch-all="${attr(tableId)}">Show all ${rows.length} ↓</button>`;}
+  html+='</section>';
+  if(name===PATTERN_END)break;
+  path=name;items=childItems;depth++;
+ }
+ html+='</div>';
+ return html;
 }
 function patternView(){
  const pool=patternPool(),mode=ui.patternMode,nested=mode==='prefix'||mode==='suffix';
@@ -155,7 +208,7 @@ function patternView(){
  const groups=[...groupMap.entries()].filter(([,arr])=>arr.length).sort((a,b)=>
   state.patternSort==='most'?b[1].length-a[1].length||baseCompare(a,b):
   state.patternSort==='least'?a[1].length-b[1].length||baseCompare(a,b):baseCompare(a,b));
- ui.patternPools=new Map(groups.map(([,arr],i)=>[String(i),arr]));
+ ui.patternPools=new Map(groups.map(([,arr],i)=>[String(i),arr]));ui.patternBranchPools=new Map();
  html+=`</div><div class="pattern-game-settings"><div class="section">Quiz mode</div><div class="pillset">${[['choice','Quiz'],['typing','Write'],['color','Similarity']].filter(([key])=>ui.patternKind==='word'||key!=='color').map(([key,name])=>`<button class="pill ${state.gameMode===key?'active':''}" data-pattern-game="${key}">${name}</button>`).join('')}</div><div class="section">Questions per quiz</div><div class="pillset">${[5,10,15,20,30,50].map(n=>`<button class="pill ${state.quizLimit===n?'active':''}" data-pattern-limit="${n}">${n}</button>`).join('')}</div></div><div class="pattern-results-header"><div class="pattern-results-label"><strong>${relevant.length} matching ${ui.patternKind==='phrase'?'phrases':'words'}</strong><span class="small">${groups.length} groups</span></div><label class="pattern-sort-label"><span class="form-label">Sort pattern groups</span><select class="field pattern-sort-select" aria-label="Sort pattern groups by occurrences" data-pattern-sort="1"><option value="most" ${state.patternSort==='most'?'selected':''}>Most recurring ↓</option><option value="least" ${state.patternSort==='least'?'selected':''}>Least recurring ↑</option><option value="alphabetical" ${state.patternSort==='alphabetical'?'selected':''}>A–Z / Number ↑</option></select></label></div>`;
  if(nested&&ui.patternFocus)html+=`<button class="text-button pattern-path" data-pattern-back="1">← ${encode(ui.patternFocus)} · Back one letter</button>`;
  if(!groups.length)return html+'<div class="listempty">No matches for this language pair. Try another translation language or pattern.</div>';
@@ -163,11 +216,12 @@ function patternView(){
  for(let i=0;i<groups.length;i++){
   const [g,list]=groups[i],id=String(i),open=!ui.patternCollapsed.has(g);
   const label=mode==='suffix'?'-'+g:mode==='prefix'?g:mode==='length'?`${g} ${g==='1'?'letter':'letters'}`:`${g} ${g==='1'?'word':'words'}`;
-  const canDrill=nested&&!normalizedQuery&&list.some(t=>Array.from(patternLetters(t)).length>Array.from(g).length);
+  const canDrill=nested&&list.some(t=>Array.from(patternLetters(t)).length>Array.from(g).length);
   const preview=list.slice(0,open?(ui.patternShowAll===g?list.length:60):3);
-  html+=`<article class="pattern-group"><div class="pattern-group-head"><button class="pattern-group-name" data-pattern-expand="${attr(g)}" aria-expanded="${open}" aria-label="Show words for ${attr(label)}"><strong>${encode(label)}</strong><span>${list.length} ${ui.patternKind==='phrase'?'phrases':'words'}</span><span class="pattern-arrow">${open?'−':'+'}</span></button><button class="pattern-play" data-pattern-play="${id}" aria-label="Start quiz for ${attr(label)}">Play ↗</button></div>`;
-  if(open){html+='<div class="pattern-words">';for(const t of preview){html+=`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode((t.patternLocations||[`${t.c} / ${t.s}`]).join(' · '))}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`}if(list.length>60&&ui.patternShowAll!==g)html+=`<button class="pattern-deeper" data-pattern-all="${attr(g)}">Show all ${list.length} ${ui.patternKind==='phrase'?'phrases':'words'} ↓</button>`;
-   if(canDrill)html+=`<button class="pattern-deeper" data-pattern-drill="${attr(g)}">${mode==='prefix'?'Next letter →':'Previous letter →'}</button>`;
+  const branchActive=ui.patternBranchRoot===g;
+  html+=`<article class="pattern-group"><div class="pattern-group-head"><button class="pattern-group-name" data-pattern-expand="${attr(g)}" aria-expanded="${open}" aria-label="Show words for ${attr(label)}"><strong>${encode(label)}</strong><span>${list.length} ${ui.patternKind==='phrase'?'phrases':'words'}</span><span class="pattern-arrow">${open?'−':'+'}</span></button>${canDrill?`<button class="pattern-split ${branchActive?'active':''}" data-pattern-split="${attr(g)}" aria-label="Branch ${attr(label)} by next letter" aria-expanded="${branchActive&&open}">↳ Split</button>`:''}<button class="pattern-play" data-pattern-play="${id}" aria-label="Start quiz for ${attr(label)}">Play ↗</button></div>`;
+  if(open&&branchActive&&canDrill){html+=patternBranchView(g,list,mode)}
+  else if(open){html+='<div class="pattern-words">';for(const t of preview){html+=`<div class="pattern-word"><span><strong>${encode(patternLexeme(t))}</strong><small>${encode((t.patternLocations||[`${t.c} / ${t.s}`]).join(' · '))}</small></span><span>${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></div>`}if(list.length>60&&ui.patternShowAll!==g)html+=`<button class="pattern-deeper" data-pattern-all="${attr(g)}">Show all ${list.length} ${ui.patternKind==='phrase'?'phrases':'words'} ↓</button>`;
    html+='</div>';
   }else html+=`<div class="pattern-preview">${preview.map(t=>encode(patternLexeme(t))).join(' · ')}</div>`;
   html+='</article>';
@@ -286,13 +340,17 @@ view.addEventListener('click',e=>{const b=e.target.closest('button,[data-toggle-
  if(d.patternBack!==undefined){ui.patternFocus=ui.patternFocus.slice(0,-1);ui.patternCollapsed.clear();return render()}
  if(d.patternExpand!==undefined){ui.patternCollapsed.has(d.patternExpand)?ui.patternCollapsed.delete(d.patternExpand):ui.patternCollapsed.add(d.patternExpand);return render()}
  if(d.patternAll!==undefined){ui.patternShowAll=d.patternAll;return render()}
- if(d.patternDrill!==undefined){ui.patternFocus=d.patternDrill;ui.patternCollapsed.clear();ui.patternSearch='';return render()}
+ if(d.patternSplit!==undefined){const root=d.patternSplit;ui.patternBranchRoot=ui.patternBranchRoot===root?null:root;ui.patternBranchTrail=[];ui.patternBranchShowAll.clear();ui.patternCollapsed.delete(root);return render()}
+ if(d.patternBranchChoice!==undefined){const level=Number(d.patternBranchDepth);if(Number.isInteger(level)&&level>=0){ui.patternBranchTrail=[...ui.patternBranchTrail.slice(0,level),d.patternBranchChoice];return render()}return}
+ if(d.patternBranchAll!==undefined){ui.patternBranchShowAll.add(d.patternBranchAll);return render()}
+ if(d.patternBranchPlay!==undefined){const pool=ui.patternBranchPools.get(d.patternBranchPlay);if(pool?.length){ui.patternStudyBefore={src:state.src,dst:state.dst,kind:state.kind};state.src=ui.patternSource;state.dst=ui.patternTarget;state.kind=ui.patternKind;persist();return startGame(pool,true)}return}
+ if(d.patternDrill!==undefined){ui.patternFocus=d.patternDrill;ui.patternCollapsed.clear();ui.patternSearch='';ui.patternBranchRoot=null;ui.patternBranchTrail=[];return render()}
  if(d.patternPlay!==undefined){const pool=ui.patternPools.get(d.patternPlay);if(pool?.length){ui.patternStudyBefore={src:state.src,dst:state.dst,kind:state.kind};state.src=ui.patternSource;state.dst=ui.patternTarget;state.kind=ui.patternKind;persist();return startGame(pool,true)}return}
  if(d.action==='repeat')return startGame(ui.session?.originIds?.map(id=>byId.get(id)).filter(Boolean)||null,ui.patternFromNav);
  if(d.action==='start')return startGame();if(d.action==='next')return advance();if(d.action==='hint'){ui.typedHint=true;render();document.getElementById('typingAnswer')?.focus();return}if(d.action==='reveal')return markTyping(false,true,'');if(d.action==='all-select'||d.action==='all-clear'){const q=ui.wordFilter.trim().toLowerCase(),a=terms.filter(t=>eligible(t)&&(!q||[t.c,t.s,shown(t,state.src),shown(t,state.dst)].join(' ').toLowerCase().includes(q)));return toggleSelection(a,d.action==='all-select')}if(d.action==='export')return exportProgress();if(d.action==='reset'){if(confirm('Delete all browser quiz progress? Vocabulary content will remain.')){state.progress={};state.attempts=[];state.typingHistory=[];state.similarity={};persist();render()}}});
 view.addEventListener('submit',e=>{if(e.target.id!=='typingForm')return;e.preventDefault();if(ui.typedSubmitted||!ui.question)return;const input=document.getElementById('typingAnswer').value;ui.typedEntry=input;markTyping(typingMatches(input,ui.question),false,input)});
 view.addEventListener('change',e=>{const d=e.target.dataset;if(d.patternSort){state.patternSort=e.target.value;ui.patternShowAll='';persist();return render()}if(d.patternSetting){if(d.patternSetting==='source'){ui.patternSource=e.target.value;if(ui.patternTarget===ui.patternSource)ui.patternTarget=Object.keys(langNames).find(k=>k!==ui.patternSource)}else if(d.patternSetting==='target'&&e.target.value!==ui.patternSource)ui.patternTarget=e.target.value;patternReset();return render()}if(d.setting){if(d.setting==='src'&&e.target.value===state.dst)state.dst=Object.keys(langNames).find(k=>k!==e.target.value);return setSetting(d.setting,e.target.value)}if(d.settingCheck)return setSetting(d.settingCheck,e.target.checked);if(d.catSelect!==undefined)return toggleSelection(terms.filter(t=>eligible(t)&&t.c===d.catSelect),e.target.checked);if(d.subSelect!==undefined){const [cat,sub]=d.subSelect.split('|');return toggleSelection(terms.filter(t=>eligible(t)&&t.c===cat&&t.s===sub),e.target.checked)}if(d.wordSelect!==undefined){const t=byId.get(d.wordSelect);if(t)return toggleSelection([t],e.target.checked)}if(e.target.id==='importJson')return onFile(e.target.files?.[0]);});
-view.addEventListener('input',e=>{if(e.target.id==='typingAnswer'){ui.typedEntry=e.target.value;updateTypingSlots();return}if(e.target.id==='patternSearch'){const a=e.target.selectionStart;ui.patternSearch=e.target.value;ui.patternFocus='';ui.patternCollapsed.clear();render();const n=document.getElementById('patternSearch');if(n){n.focus();n.setSelectionRange(a,a)}return}if(e.target.id==='vocabSearch'){const a=e.target.selectionStart;ui.wordFilter=e.target.value;render();const n=document.getElementById('vocabSearch');n.focus();n.setSelectionRange(a,a)}});
+view.addEventListener('input',e=>{if(e.target.id==='typingAnswer'){ui.typedEntry=e.target.value;updateTypingSlots();return}if(e.target.id==='patternSearch'){const a=e.target.selectionStart;ui.patternSearch=e.target.value;ui.patternFocus='';ui.patternCollapsed.clear();ui.patternBranchRoot=null;ui.patternBranchTrail=[];render();const n=document.getElementById('patternSearch');if(n){n.focus();n.setSelectionRange(a,a)}return}if(e.target.id==='vocabSearch'){const a=e.target.selectionStart;ui.wordFilter=e.target.value;render();const n=document.getElementById('vocabSearch');n.focus();n.setSelectionRange(a,a)}});
 document.getElementById('topInfo')?.addEventListener('click',()=>{alert(`Quiz Lab mobile web preview\n${terms.length} learning items (1,804 original + 67 reference)\nStorage: your browser only\nCloud: not connected\nBuild: 2026-10-13`)});
 render();
 })();
