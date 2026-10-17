@@ -180,9 +180,9 @@ function patternBranchView(root,members,mode){
   html+='<div class="branch-graph-nodes">';
   for(const [child,subset] of children){
    const letter=child===PATTERN_END?'■':mode==='prefix'?Array.from(child).at(-1):Array.from(child)[0];
-   // Show the immediate next-letter group AND all its actual words/phrases by default.
-   // The list is height-limited on large branches but scrollable, never hidden behind another click.
-   const names=alphabeticPatternItems(subset).map(t=>`<li class="branch-node-word" title="${attr(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}">${encode(patternLexeme(t))}</li>`).join('');
+   // Show both analyzed-language entries and selected target-language translations
+   // directly under each next-letter branch. Same pairing and sorting as the left table.
+   const names=alphabeticPatternItems(subset).map(t=>`<li class="branch-node-word"><span class="branch-node-source">${encode(patternLexeme(t))}</span><span class="branch-node-target">${encode(shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k))}</span></li>`).join('');
    html+=`<div class="branch-node-card"><button class="branch-node" data-pattern-branch-choice="${attr(child)}" aria-label="Focus ${attr(displayLabel(child))}, ${subset.length} ${kind}"><span class="branch-node-letter">${encode(letter)}</span><strong>${encode(displayLabel(child))}</strong><span class="branch-node-count">${subset.length}</span><span class="branch-node-arrow" aria-hidden="true">›</span></button><ul class="branch-node-words" aria-label="${attr(displayLabel(child))}: ${subset.length} alphabetical ${kind}">${names}</ul></div>`;
   }
   html+='</div>';

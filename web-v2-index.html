@@ -255,4 +255,11 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 @media(max-width:345px){.branch-node-card::before{left:-11px;width:10px}.branch-node-words{padding:4px}.branch-node-word{font-size:10px}}
 @media(min-width:900px){.web-responsive .branch-node-word{font-size:12px}.web-responsive .branch-node-words{max-height:300px}}
 
+
+/* v16 · each next-letter branch uses the same source → target pair as the main table */
+.branch-node-word{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:8px;align-items:start}
+.branch-node-source{min-width:0;overflow-wrap:anywhere;color:#2d2922;font-weight:700}
+.branch-node-target{min-width:0;overflow-wrap:anywhere;color:#726456;text-align:right}
+@media(max-width:700px){.branch-node-word{display:flex;flex-direction:column;gap:2px}.branch-node-target{text-align:left;color:#81715e;font-size:10px}}
+@media(min-width:900px){.web-responsive .branch-workspace{grid-template-columns:minmax(0,1.3fr) minmax(355px,1fr)}.web-responsive .branch-node-words{max-height:360px}}
 </style></head><body class="mobile-only"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script src="data.js"></script><script src="app.js"></script></body></html>
