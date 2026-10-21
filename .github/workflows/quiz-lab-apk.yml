@@ -4,6 +4,7 @@ on:
     branches: [quiz-lab-apk-builder]
     paths:
       - 'release-payload-v18/**'
+      - 'flutter-overrides/v18/**'
       - '.github/workflows/quiz-lab-apk.yml'
   workflow_dispatch:
 
@@ -31,6 +32,7 @@ jobs:
           unzip -q quiz-lab-payload-v18.zip -d quiz_lab_src
           test -f quiz_lab_src/Quiz-Lab-Flutter/lib/ui/pattern_screen.dart
           test -f quiz_lab_src/Quiz-Lab-Flutter/test/pattern_index_test.dart
+          cp flutter-overrides/v18/stats_screen.dart quiz_lab_src/Quiz-Lab-Flutter/lib/ui/stats_screen.dart
       - name: Generate native Android project exactly as proven working releases
         run: |
           flutter create --org dev.quizlab --project-name quiz_app --platforms=android quiz_lab_build
@@ -42,6 +44,9 @@ jobs:
       - name: Resolve dependencies
         working-directory: quiz_lab_build
         run: flutter pub get
+      - name: Analyze all app Dart files (catch UI syntax before Gradle)
+        working-directory: quiz_lab_build
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
       - name: Dart and Flutter tests
         working-directory: quiz_lab_build
         run: flutter test
