@@ -1,9 +1,9 @@
-name: Quiz Lab Patterns Copy ARM64 RELEASE
+name: Quiz Lab Yellow Language Quiz ARM64 RELEASE
 on:
   push:
     branches: [quiz-lab-apk-builder]
     paths:
-      - 'release-payload-v18/**'
+      - 'release-payload-v19/**'
       - 'flutter-overrides/v18/**'
       - '.github/workflows/quiz-lab-apk.yml'
   workflow_dispatch:
@@ -26,10 +26,10 @@ jobs:
       - name: Reassemble verified Flutter source
         run: |
           set -euo pipefail
-          cat release-payload-v18/part*.b64 | base64 --decode > quiz-lab-payload-v18.zip
-          echo 'd313395c42c97db616bf675f672948f7cb3314be7d009be9d99bad6cc3a9fc3a  quiz-lab-payload-v18.zip' | sha256sum -c -
+          cat release-payload-v19/part*.b64 | base64 --decode > quiz-lab-payload-v19.zip
+          echo 'efbe546ef39adc1330cf7b588a50fc642e668683585da6842890b9e034632eb9  quiz-lab-payload-v19.zip' | sha256sum -c -
           mkdir -p quiz_lab_src
-          unzip -q quiz-lab-payload-v18.zip -d quiz_lab_src
+          unzip -q quiz-lab-payload-v19.zip -d quiz_lab_src
           test -f quiz_lab_src/Quiz-Lab-Flutter/lib/ui/pattern_screen.dart
           test -f quiz_lab_src/Quiz-Lab-Flutter/test/pattern_index_test.dart
           cp flutter-overrides/v18/stats_screen.dart quiz_lab_src/Quiz-Lab-Flutter/lib/ui/stats_screen.dart
@@ -55,11 +55,11 @@ jobs:
         run: |
           flutter build apk --release --target-platform android-arm64 --tree-shake-icons
           mkdir -p ../apk_outputs
-          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Patterns-Copy-ARM64-Release-v18.apk
+          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19.apk
       - name: Verify RELEASE APK integrity and signature
         run: |
           set -euo pipefail
-          APK=apk_outputs/Quiz-Lab-Patterns-Copy-ARM64-Release-v18.apk
+          APK=apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19.apk
           test -s "$APK"
           unzip -tq "$APK" > /dev/null
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
@@ -72,7 +72,7 @@ jobs:
       - name: Publish signed RELEASE APK
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-Lab-Patterns-Copy-ARM64-Release-v18
-          path: apk_outputs/Quiz-Lab-Patterns-Copy-ARM64-Release-v18.apk
+          name: Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19
+          path: apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19.apk
           if-no-files-found: error
           retention-days: 30
