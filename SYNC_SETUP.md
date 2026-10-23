@@ -12,10 +12,11 @@ A GitHub Release asset persists until a maintainer deliberately deletes the asse
 
 ## Web links and hosting
 
-- https://quizlab-mobile-games.onrender.com
-- https://quizlab-responsive-web.onrender.com
+- Current deployed web: https://quizlab-language-sync.humbleroot256.chatgpt.site (version 1 deployed 23 Oct 2026, owner-only access; do not use an ephemeral preview URL)
+- Old Render mobile: https://quizlab-mobile-games.onrender.com (currently suspended)
+- Old Render responsive: https://quizlab-responsive-web.onrender.com (currently suspended)
 
-On 23 Oct 2026 the public HTTP checks returned `503` and header `x-render-routing: suspend-by-user` for both. These are suspended, not expired. Reactivation must occur on the correct Render workspace, and a successful deploy must be followed by HTTP/UI verification. A stable URL is not a guarantee of uptime, particularly for a manually suspended service.
+Render's authenticated service metadata confirms `suspenders: ["billing"]` for both services. Restoring those same old URLs requires resolving billing on that Render workspace. A redeploy alone cannot remove this account-level suspension. The new independent Quiz Lab Site has a durable URL while the owner retains the Site and hosting remains active, but owner-only access may require signing in. Its quiz/play/patterns/stats UI was checked in a live local browser preview before publishing. The initial production deployment succeeded; cross-device Supabase login remains untested until project provisioning.
 
 ## Supabase requirements
 
@@ -54,7 +55,8 @@ A dedicated Supabase project is required; do not use a service-role key in clien
 - [ ] Supabase project created and schema applied
 - [ ] GitHub Actions Supabase secrets configured
 - [ ] Web public runtime config present in deployment
-- [ ] Both Render web services resumed and return HTTP 200
+- [x] Alternative owner-only Site deployed successfully and local browser quiz answered
+- [ ] Render billing resolved and both legacy services return HTTP 200 (only if legacy URLs are still wanted)
 - [ ] One account used on both clients
 - [ ] Offline mobile quiz attempts become visible on web
 - [ ] Offline web attempts become visible on mobile after reopening/syncing
