@@ -35,7 +35,7 @@ function matchingForm(value){
 function typingMatches(entry,t){return matchingForm(entry)===matchingForm(shown(t,state.dst))}
 const dateKey=d=>{const x=new Date(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};
 const utcDay=d=>{const x=new Date(d);return Date.UTC(x.getFullYear(),x.getMonth(),x.getDate())/864e5};
-function persist(){localStorage.setItem(KEY,JSON.stringify({...state,tab:'home'}))}
+function persist(){localStorage.setItem(KEY,JSON.stringify({...state,tab:'home'}));window.dispatchEvent(new Event('quizlab:changed'))}
 function excluded(){return new Set(state.excluded)}
 function eligible(t){return Boolean(t.t[state.src]?.trim()&&t.t[state.dst]?.trim()&&state.src!==state.dst)&&((state.kind==='word'?t.k!=='phrase':t.k==='phrase'))}
 function selected(t){return !state.excluded.includes(t.id)}
@@ -393,7 +393,7 @@ function quizView(){
 }
 function record(t,correct,rating){const x=prog(t),p={...x};let now=new Date();let start=p.start?new Date(p.start):new Date(now.getFullYear(),now.getMonth(),now.getDate());let w=Math.floor((utcDay(now)-utcDay(start))/7);if(p.mastered&&!correct){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;p.mastered=false;w=0}const missed=(w<0||w>2||(w>=1&&p.w1<3)||(w>=2&&p.w2<2));if(!p.mastered&&missed){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;w=0}p.start=start.toISOString();if(correct&&!p.mastered){if(w===0)p.w1++;else if(w===1)p.w2++;else if(w===2)p.w3++;p.mastered=p.w1>=3&&p.w2>=2&&p.w3>=1}p.c+=(correct?1:0);p.w+=(!correct?1:0);p.streak=correct?0:p.streak+1;let next=null;if(!p.mastered){const min=(!correct||rating==='again')?5:rating==='hard'?360:rating==='easy'?4320:1440;next=new Date(now.getTime()+min*60000);const count=[p.w1,p.w2,p.w3][w],quota=[3,2,1][w];const endWindow=new Date(start.getFullYear(),start.getMonth(),start.getDate()+(w+1)*7);if(count>=quota)next=endWindow;else if(next>endWindow)next=new Date(endWindow.getTime()-60000)}p.next=next?.toISOString()||null;state.progress[key(t)]=p;logPatternAnswer(t,'choice',correct);state.attempts.push({at:now.toISOString(),id:t.id,src:state.src,dst:state.dst,c:correct,kind:t.k,category:t.c,sub:t.s,rating});if(state.attempts.length>30000)state.attempts=state.attempts.slice(-30000);persist()}
 function navBar(){nav.innerHTML=[['home','⌂','Home'],['settings','◎','Study'],['patterns','⋈','Patterns'],['stats','▥','Stats']].map(([key,ico,title])=>`<button class="nav ${state.tab===key?'active':''}" data-nav="${key}"><span class="sym">${ico}</span>${title}</button>`).join('')}
-function render(){navBar();view.closest('.app').classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;}
+function render(){navBar();view.closest('.app').classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;window.dispatchEvent(new Event('quizlab:rendered'));}
 function goStep(n){ui.setupStep=Math.min(2,Math.max(1,Number(n)));setTab('settings')}
 function setTab(v){if(state.tab==='quiz'&&v!=='quiz'&&ui.patternStudyBefore){Object.assign(state,ui.patternStudyBefore);ui.patternStudyBefore=null;}state.tab=v;persist();render();view.closest('.app').scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
 function setSetting(name,value){if(['src','dst','kind'].includes(name))patternReset();state[name]=value;if(name==='kind'&&value==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(name==='gameMode'&&value==='color')state.kind='word';ui.session=null;ui.question=null;persist();render()}
@@ -421,5 +421,221 @@ view.addEventListener('submit',e=>{if(e.target.id!=='typingForm')return;e.preven
 view.addEventListener('change',e=>{const d=e.target.dataset;if(d.patternLimitSelect){state.quizLimit=Number(e.target.value);persist();return render()}if(d.patternSort){state.patternSort=e.target.value;ui.patternShowAll='';persist();return render()}if(d.patternSetting){if(d.patternSetting==='source'){ui.patternSource=e.target.value;if(ui.patternTarget===ui.patternSource)ui.patternTarget=Object.keys(langNames).find(k=>k!==ui.patternSource)}else if(d.patternSetting==='target'&&e.target.value!==ui.patternSource)ui.patternTarget=e.target.value;patternReset();return render()}if(d.setting){if(d.setting==='src'&&e.target.value===state.dst)state.dst=Object.keys(langNames).find(k=>k!==e.target.value);return setSetting(d.setting,e.target.value)}if(d.settingCheck)return setSetting(d.settingCheck,e.target.checked);if(d.catSelect!==undefined)return toggleSelection(terms.filter(t=>eligible(t)&&t.c===d.catSelect),e.target.checked);if(d.subSelect!==undefined){const [cat,sub]=d.subSelect.split('|');return toggleSelection(terms.filter(t=>eligible(t)&&t.c===cat&&t.s===sub),e.target.checked)}if(d.wordSelect!==undefined){const t=byId.get(d.wordSelect);if(t)return toggleSelection([t],e.target.checked)}if(e.target.id==='importJson')return onFile(e.target.files?.[0]);});
 view.addEventListener('input',e=>{if(e.target.id==='typingAnswer'){ui.typedEntry=e.target.value;updateTypingSlots();return}if(e.target.id==='patternSearch'){const a=e.target.selectionStart;ui.patternSearch=e.target.value;ui.patternFocus='';ui.patternCollapsed.clear();ui.patternBranchRoot=null;ui.patternBranchTrail=[];render();const n=document.getElementById('patternSearch');if(n){n.focus();n.setSelectionRange(a,a)}return}if(e.target.id==='vocabSearch'){const a=e.target.selectionStart;ui.wordFilter=e.target.value;render();const n=document.getElementById('vocabSearch');n.focus();n.setSelectionRange(a,a)}});
 document.getElementById('topInfo')?.addEventListener('click',()=>{alert(`Quiz Lab mobile web preview\n${terms.length} learning items (1,804 original + 67 reference)\nStorage: your browser only\nCloud: not connected\nBuild: 2026-10-13`)});
+window.QuizLabSyncHooks={state,terms,persist,render};
 render();
+})();
+/* Quiz Lab offline-first Supabase sync. The browser remains fully usable without cloud. */
+(() => {
+  'use strict';
+  const app = window.QuizLabSyncHooks;
+  const config = window.QUIZLAB_SUPABASE_CONFIG || {};
+  const api = config.url && config.publishableKey && window.supabase
+    ? window.supabase.createClient(config.url, config.publishableKey) : null;
+  if (!app) return;
+  const {state, terms, persist, render} = app;
+  const ownerKey = 'quizlab.sync.owner.v1';
+  const known = new Map(terms.map(t => [t.id, t]));
+  let user = null, busy = false, applying = false, timer = null;
+  let message = api ? 'Sign in on both devices to sync progress.'
+    : 'Cloud sync is ready in the code, but needs the Supabase project URL and publishable key.';
+  const freshId = () => (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID() : 'web-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  const dateDay = date => {
+    const d = new Date(date);
+    return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5;
+  };
+  const normalizedEvent = (entry, type) => {
+    if (!entry.event_id) entry.event_id = freshId();
+    const at = entry.at && !Number.isNaN(Date.parse(entry.at)) ? entry.at : new Date().toISOString();
+    const payload = type === 'quiz_answer' ? {
+      item_id: 'language:' + entry.id + ':' + entry.src + '>' + entry.dst,
+      topic: (entry.category || '') + ' / ' + (entry.sub || ''),
+      category: 'language', source_lang: entry.src, target_lang: entry.dst,
+      correct: !!entry.c, rating: entry.rating || (entry.c ? 'good' : 'again'),
+      elapsed_ms: 0, kind: entry.kind || 'word'
+    } : {web_record: entry};
+    return {event_id: entry.event_id, event_type: type, occurred_at: at, payload};
+  };
+
+  function reviewStep(previous, correct, rating, at) {
+    const now = new Date(at), p = {...previous};
+    let start = p.start ? new Date(p.start)
+      : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let week = Math.floor((dateDay(now) - dateDay(start)) / 7);
+    if (p.mastered && !correct) {
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      p.w1 = p.w2 = p.w3 = 0; p.mastered = false; week = 0;
+    }
+    const missed = week < 0 || week > 2 || (week >= 1 && p.w1 < 3) || (week >= 2 && p.w2 < 2);
+    if (!p.mastered && missed) {
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      p.w1 = p.w2 = p.w3 = 0; week = 0;
+    }
+    if (correct && !p.mastered) {
+      if (week === 0) p.w1++;
+      else if (week === 1) p.w2++;
+      else if (week === 2) p.w3++;
+      p.mastered = p.w1 >= 3 && p.w2 >= 2 && p.w3 >= 1;
+    }
+    p.c += correct ? 1 : 0;
+    p.w += correct ? 0 : 1;
+    p.streak = correct ? 0 : p.streak + 1;
+    p.start = start.toISOString();
+    p.next = null;
+    if (!p.mastered) {
+      const minutes = !correct || rating === 'again' ? 5 :
+        rating === 'hard' ? 360 : rating === 'easy' ? 4320 : 1440;
+      let next = new Date(now.getTime() + minutes * 60000);
+      const quota = [3, 2, 1][week];
+      const count = [p.w1, p.w2, p.w3][week];
+      const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + (week + 1) * 7);
+      if (count >= quota) next = end;
+      else if (next > end) next = new Date(end.getTime() - 60000);
+      p.next = next.toISOString();
+    }
+    return p;
+  }
+
+  function rebuildReview() {
+    const grouped = new Map();
+    for (const answer of state.attempts) {
+      if (!answer.id || !answer.src || !answer.dst) continue;
+      const key = 'language:' + answer.id + ':' + answer.src + '>' + answer.dst;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(answer);
+    }
+    for (const [key, answers] of grouped) {
+      answers.sort((a, b) => Date.parse(a.at) - Date.parse(b.at) ||
+        String(a.event_id).localeCompare(String(b.event_id)));
+      let value = {w1: 0, w2: 0, w3: 0, c: 0, w: 0, streak: 0, mastered: false, start: null, next: null};
+      for (const a of answers) value = reviewStep(value, !!a.c, a.rating || 'good', a.at);
+      state.progress[key] = value;
+    }
+  }
+
+  async function syncNow() {
+    if (busy || !api || !user) return;
+    const owner = localStorage.getItem(ownerKey);
+    if (owner && owner !== user.id) throw new Error('Local progress is already linked to another Supabase account. Sign in with that account.');
+    busy = true;
+    message = 'Syncing quiz history…'; renderPanel();
+    try {
+      applying = true;
+      const local = [
+        ...state.attempts.map(a => normalizedEvent(a, 'quiz_answer')),
+        ...state.typingHistory.map(a => normalizedEvent(a, 'writing_attempt')),
+        ...state.patternAttempts.map(a => normalizedEvent(a, 'pattern_attempt')),
+      ];
+      persist();
+      applying = false;
+      for (let i = 0; i < local.length; i += 200) {
+        const rows = local.slice(i, i + 200).map(e => ({...e, user_id: user.id}));
+        const {error} = await api.from('quiz_sync_events')
+          .upsert(rows, {onConflict: 'user_id,event_id', ignoreDuplicates: true});
+        if (error) throw error;
+      }
+      const remote = [];
+      for (let offset = 0; ; offset += 500) {
+        const {data, error} = await api.from('quiz_sync_events')
+          .select('event_id,event_type,occurred_at,payload').eq('user_id', user.id)
+          .order('occurred_at', {ascending: true}).order('event_id', {ascending: true})
+          .range(offset, offset + 499);
+        if (error) throw error;
+        remote.push(...data);
+        if (data.length < 500) break;
+      }
+      if ((await api.auth.getUser()).data.user?.id !== user.id) throw new Error('Account changed during sync.');
+      const seen = new Set([...state.attempts, ...state.typingHistory, ...state.patternAttempts].map(x => x.event_id));
+      let added = 0;
+      applying = true;
+      for (const e of remote) {
+        if (seen.has(e.event_id)) continue;
+        const p = e.payload || {};
+        if (e.event_type === 'quiz_answer' && typeof p.item_id === 'string') {
+          const match = /^language:(.*):([^:]+)>([^:]+)$/.exec(p.item_id);
+          if (!match) continue;
+          const [, id, src, dst] = match;
+          const term = known.get(id);
+          state.attempts.push({event_id: e.event_id, at: e.occurred_at, id, src, dst,
+            c: !!p.correct, rating: p.rating || 'good', kind: term?.k || p.kind || 'word',
+            category: term?.c || 'Language', sub: term?.s || ''});
+        } else if ((e.event_type === 'writing_attempt' || e.event_type === 'pattern_attempt') &&
+                   p.web_record && typeof p.web_record === 'object') {
+          const entry = {...p.web_record, event_id: e.event_id};
+          (e.event_type === 'writing_attempt' ? state.typingHistory : state.patternAttempts).push(entry);
+        } else continue;
+        seen.add(e.event_id); added++;
+      }
+      if (added) rebuildReview();
+      persist(); render();
+      applying = false;
+      localStorage.setItem(ownerKey, user.id);
+      message = 'Synced ✓ · ' + added + ' events received · ' + new Date().toLocaleTimeString();
+      renderPanel();
+    } catch (error) {
+      message = 'Sync error: ' + (error.message || error);
+      throw error;
+    } finally {
+      applying = false; busy = false; renderPanel();
+    }
+  }
+
+  function scheduleSync() {
+    if (!api || !user || applying) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => { syncNow().catch(() => {}); }, 3000);
+  }
+
+  function renderPanel() {
+    document.getElementById('quizlab-sync-panel')?.remove();
+    if (state.tab !== 'settings') return;
+    const wrapper = document.createElement('section');
+    wrapper.id = 'quizlab-sync-panel'; wrapper.className = 'card flat';
+    wrapper.innerHTML = '<div class="section" style="margin-top:0">Cloud progress</div>' +
+      '<p class="small">Answers, 3·2·1 reviews, writing and pattern history sync across devices; offline work stays on this device.</p>' +
+      (user ? '<p class="small">Connected: ' + String(user.email || user.id).replace(/[&<>"\']/g, '') + '</p>' +
+        '<div class="row"><button class="secondary" data-sync-now="1" type="button" ' + (busy ? 'disabled' : '') + '>Sync now</button>' +
+        '<button class="ghost" data-cloud-out="1" type="button">Sign out</button></div>'
+      : api ? '<form id="quizlab-cloud-auth"><input class="field" type="email" name="email" autocomplete="email" placeholder="Email" required>' +
+        '<input class="field" type="password" name="password" autocomplete="current-password" placeholder="Password" required style="margin-top:8px">' +
+        '<div class="row" style="margin-top:8px"><button class="secondary" type="submit" name="action" value="signin">Sign in</button>' +
+        '<button class="ghost" type="submit" name="action" value="signup">Create account</button></div></form>' : '') +
+      '<p class="small" role="status">' + String(message).replace(/[&<>]/g, '') + '</p>';
+    document.getElementById('view').prepend(wrapper);
+  }
+
+  document.getElementById('view').addEventListener('submit', async event => {
+    if (event.target.id !== 'quizlab-cloud-auth') return;
+    event.preventDefault();
+    const form = event.target;
+    const email = form.elements.namedItem('email').value;
+    const password = form.elements.namedItem('password').value;
+    const action = event.submitter?.value || 'signin';
+    try {
+      const result = action === 'signup' ? await api.auth.signUp({email, password})
+        : await api.auth.signInWithPassword({email, password});
+      if (result.error) throw result.error;
+      user = result.data.user && result.data.session ? result.data.user : null;
+      message = user ? 'Signed in. Starting sync…' : 'Check email confirmation, then sign in.';
+      renderPanel();
+      if (user) await syncNow();
+    } catch (error) { message = 'Authentication error: ' + (error.message || error); renderPanel(); }
+  });
+  document.getElementById('view').addEventListener('click', async event => {
+    if (event.target.closest('[data-sync-now]')) {
+      syncNow().catch(() => {});
+    } else if (event.target.closest('[data-cloud-out]')) {
+      await api.auth.signOut(); user = null; message = 'Signed out; local progress is preserved.'; renderPanel();
+    }
+  });
+  window.addEventListener('quizlab:rendered', renderPanel);
+  window.addEventListener('quizlab:changed', scheduleSync);
+  if (api) {
+    api.auth.onAuthStateChange((event, session) => {
+      user = session?.user || null;
+      renderPanel();
+      if (user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) scheduleSync();
+    });
+  }
+  renderPanel();
 })();
