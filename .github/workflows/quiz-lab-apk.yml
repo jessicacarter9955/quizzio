@@ -40,7 +40,13 @@ jobs:
           cp -R quiz_lab_src/Quiz-Lab-Flutter/{lib,test,assets} quiz_lab_build/
           cp quiz_lab_src/Quiz-Lab-Flutter/pubspec.yaml quiz_lab_build/pubspec.yaml
           bash quiz_lab_src/Quiz-Lab-Flutter/scripts/prepare_android_manifest.sh quiz_lab_build
-          sed -i 's/android:label="quiz_app"/android:label="Quiz Lab"/' quiz_lab_build/android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="quiz_app"/android:label="Quiz Lab Yellow"/' quiz_lab_build/android/app/src/main/AndroidManifest.xml
+          # A preview application ID avoids destructive uninstall of the v18 APK,
+          # whose ephemeral CI debug-signing key differs from this release.
+          GRADLE_FILE=quiz_lab_build/android/app/build.gradle.kts
+          grep -q 'applicationId = "dev.quizlab.quiz_app"' "$GRADLE_FILE"
+          sed -i 's/applicationId = "dev.quizlab.quiz_app"/applicationId = "dev.quizlab.quiz_app.yellowpreview"/' "$GRADLE_FILE"
+          grep -q 'applicationId = "dev.quizlab.quiz_app.yellowpreview"' "$GRADLE_FILE"
       - name: Resolve dependencies
         working-directory: quiz_lab_build
         run: flutter pub get
@@ -55,11 +61,11 @@ jobs:
         run: |
           flutter build apk --release --target-platform android-arm64 --tree-shake-icons
           mkdir -p ../apk_outputs
-          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19.apk
+          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19-Preview.apk
       - name: Verify RELEASE APK integrity and signature
         run: |
           set -euo pipefail
-          APK=apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19.apk
+          APK=apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19-Preview.apk
           test -s "$APK"
           unzip -tq "$APK" > /dev/null
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
@@ -72,7 +78,7 @@ jobs:
       - name: Publish signed RELEASE APK
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19
-          path: apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19.apk
+          name: Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19-Preview
+          path: apk_outputs/Quiz-Lab-Yellow-Language-Quiz-ARM64-Release-v19-Preview.apk
           if-no-files-found: error
           retention-days: 30
