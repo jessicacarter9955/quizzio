@@ -3,7 +3,7 @@ on:
   push:
     branches: [quiz-lab-apk-builder]
     paths:
-      - 'release-payload-v20/**'
+      - 'release-payload-v21/**'
       - 'flutter-overrides/v18/**'
       - '.github/workflows/quiz-lab-apk.yml'
   workflow_dispatch:
@@ -26,10 +26,10 @@ jobs:
       - name: Reassemble verified Flutter source
         run: |
           set -euo pipefail
-          cat release-payload-v20/part*.b64 | base64 --decode > quiz-lab-payload-v20.zip
-          echo '8bc6b995c155afb43235585afee787977d2e1118191265c54f33dd9d5354db0f  quiz-lab-payload-v20.zip' | sha256sum -c -
+          cat release-payload-v21/part*.b64 | base64 --decode > quiz-lab-payload-v21.zip
+          echo 'f74957750c2beef351063389151a48d9e5aebacf4a6401e53a0bc49d4e7da355  quiz-lab-payload-v21.zip' | sha256sum -c -
           mkdir -p quiz_lab_src
-          unzip -q quiz-lab-payload-v20.zip -d quiz_lab_src
+          unzip -q quiz-lab-payload-v21.zip -d quiz_lab_src
           test -f quiz_lab_src/Quiz-Lab-Flutter/lib/ui/pattern_screen.dart
           test -f quiz_lab_src/Quiz-Lab-Flutter/test/pattern_index_test.dart
           cp flutter-overrides/v18/stats_screen.dart quiz_lab_src/Quiz-Lab-Flutter/lib/ui/stats_screen.dart
