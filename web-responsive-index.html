@@ -171,6 +171,15 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .pattern-groups{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:15px}
 .pattern-group{background:white;border:1px solid #eee8df;border-radius:17px;overflow:hidden;min-width:0}
 .pattern-group-head{display:flex;align-items:stretch;justify-content:space-between;gap:6px;min-height:52px;padding:5px}
+.pattern-selection-check{display:flex;align-items:center;justify-content:center;flex:none;align-self:stretch;padding:0 2px 0 9px;cursor:pointer}
+.pattern-selection-check input{width:19px;height:19px;accent-color:#171717;cursor:pointer}
+.pattern-group:has(.pattern-selection-check input:checked),.branch-node-card:has(.pattern-selection-check input:checked){border-color:#d9af4b;box-shadow:0 0 0 2px #f6d67877}
+.pattern-selected-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff1c3;border:1px solid #e9d38e;border-radius:15px;padding:11px 13px;margin:12px 0;color:#3b2c11;font-size:12px;font-weight:650}
+.pattern-selected-actions{display:flex;align-items:center;gap:7px}
+.pattern-selected-actions button{min-height:38px;padding:9px 12px;font-size:12px}
+.pattern-selected-actions .primary{background:#1a1a1a;color:#fff}
+.pattern-selected-actions .secondary{background:#fff9e9;color:#473c29;border-color:#e4d7b4}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .pattern-group-name{border:none;flex:1;min-width:0;display:flex;align-items:center;gap:9px;text-align:left;color:#231f19;background:none;padding:8px 8px 8px 11px}
 .pattern-group-name strong{font-size:19px;letter-spacing:-.6px;overflow-wrap:anywhere;max-width:45%}
 .pattern-group-name span{font-size:11px;color:#887f71;white-space:nowrap}
@@ -216,6 +225,7 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .branch-workspace{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(116px,1fr);gap:10px;align-items:start;min-width:0}
 .branch-table{min-width:0;background:#fff;border:1px solid #ebe3d7;border-radius:14px;overflow:hidden;margin:0}
 .branch-table-head{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #efe9dc;background:#fff9eb}
+.branch-table-head>.pattern-selection-check{padding-left:0}
 .branch-table-head>span{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;min-width:0}
 .branch-table-head strong{font-size:16px;overflow-wrap:anywhere}
 .branch-table-head small{font-size:11px;color:#877c6c;white-space:nowrap}
@@ -244,6 +254,10 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 /* v15 · focused graph: show alphabetic word lists below every immediate child */
 .branch-graph-nodes{gap:10px}
 .branch-node-card{position:relative;min-width:0;background:#fff;border:1px solid #e9dfcd;border-radius:11px;overflow:visible}
+.branch-node-head{display:flex;align-items:stretch;min-width:0;background:#fff8e8;border-radius:10px 10px 0 0}
+.branch-node-head .pattern-selection-check{padding:0 3px 0 7px;position:relative;z-index:2}
+.branch-node-head .pattern-selection-check input{width:17px;height:17px}
+.branch-node-head>.branch-node{flex:1 1 0;width:auto;min-width:0}
 .branch-node-card::before{content:'';position:absolute;left:-15px;top:19px;width:14px;border-top:2px solid #e0bd73}
 .branch-node-card>.branch-node{border:0;border-radius:10px 10px 0 0;background:#fff8e8}
 .branch-node-card>.branch-node::before{display:none}
@@ -278,4 +292,4 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .copy-model>strong{font-size:clamp(30px,5vw,52px);letter-spacing:-1px;line-height:1.2;overflow-wrap:anywhere}
 .copy-translation{font-size:13px;color:#776d5d}
 @media(max-width:600px){.pattern-memory-row{display:block}.pattern-memory-row strong{display:block;margin-top:3px;text-align:left}.writing-style,.mnemonic-controls{gap:5px}.writing-style .branch-mode,.mnemonic-controls .branch-mode{font-size:11px;padding:8px}}
-</style></head><body class="web-responsive"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script src="data.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script></body></html>
+</style></head><body class="web-responsive"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script>window.QUIZLAB_SUPABASE_CONFIG=window.QUIZLAB_SUPABASE_CONFIG||{};</script><script src="data.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script></body></html>
