@@ -326,9 +326,9 @@ class _WordMatchPageState extends State<WordMatchPage> {
                                 setState(() => _draggingRightIndex = null);
                               },
                               child: DragTarget<int>(
-                                onWillAcceptWithDetails: (from) => from != i,
-                                onAcceptWithDetails: (from) {
-                                  _reorderRight(from, i);
+                                onWillAcceptWithDetails: (details) => details.data != i,
+                                onAcceptWithDetails: (details) {
+                                  _reorderRight(details.data, i);
                                 },
                                 builder: (context, candidate, rejected) {
                                   final highlight =
