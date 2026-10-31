@@ -14,6 +14,7 @@ import 'package:wordweaver/screens/grammar_sentences_page.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/screens/chat_mock_page.dart';
 import 'package:wordweaver/screens/settings_page.dart';
+import 'package:wordweaver/screens/pattern_screen.dart';
 import 'package:wordweaver/screens/image_hotspot_quiz_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 
@@ -87,6 +88,21 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 CurrentTopicsCard(topicService: topicService),
+                const SizedBox(height: 20),
+                // Same minimal Wordweaver design and navigation as the other modes.
+                Card(
+                  elevation: 0,
+                  child: ListTile(
+                    leading: const Icon(Icons.auto_awesome_outlined),
+                    title: const Text('Patterns & Mnemonic'),
+                    subtitle: const Text('Grouped words · combined quiz · 3·2·1 recall'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PatternScreen()),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 32),
                 StartModesButton(
                   topicService: topicService,
