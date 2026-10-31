@@ -1,0 +1,94 @@
+name: Wordweaver Unified · Web + Android Release
+
+on:
+  push:
+    branches: [wordweaver-patterns-unified]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Resolve packages
+        run: flutter pub get
+      - name: Analyze source
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - name: Test Wordweaver and Patterns
+        run: flutter test
+      - name: Compile Flutter Web
+        run: flutter build web --release --base-href /quizzio/
+      - name: Build Android ARM64 release
+        run: flutter build apk --release --target-platform android-arm64
+      - name: Verify APK signature and prepare permanent downloads
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/Wordweaver-Patterns-ARM64.apk
+          test -s dist/Wordweaver-Patterns-ARM64.apk
+          unzip -tq dist/Wordweaver-Patterns-ARM64.apk >/dev/null
+          SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          "$SIGNER" verify --print-certs dist/Wordweaver-Patterns-ARM64.apk
+          (cd build/web && zip -qr ../../dist/Wordweaver-Patterns-Web.zip .)
+          test -s dist/Wordweaver-Patterns-Web.zip
+          sha256sum dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wordweaver-Patterns-Web-and-APK
+          path: dist/*
+          retention-days: 30
+      - name: Publish stable GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view wordweaver-unified-latest >/dev/null 2>&1; then
+            gh release upload wordweaver-unified-latest dist/* --clobber
+          else
+            gh release create wordweaver-unified-latest dist/* \
+              --title "Wordweaver · Patterns + Mnemonic (Android & Web)" \
+              --notes "Wordweaver native minimalist UI with Pattern groups, combined quiz and 3·2·1 mnemonic recall. Android ARM64 preview release. The APK is CI signed, not Play Store production signed."
+          fi
+          gh release view wordweaver-unified-latest --json assets,url
+
+  pages:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build web --release --base-href /quizzio/
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload web app
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: deployment
+        name: Deploy web app
+        uses: actions/deploy-pages@v4
