@@ -15,6 +15,7 @@ class TopicService extends ChangeNotifier {
   }
   static final List<Topic> _defaultTopics = [
     Topic(id: 'food', name: 'Food & Drink', emoji: '🍔'),
+    Topic(id: 'conversation', name: 'Conversation', emoji: '💬'),
     Topic(id: 'body', name: 'Body', emoji: '💪'),
     Topic(
       id: 'family_and_relationships',
