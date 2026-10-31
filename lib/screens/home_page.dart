@@ -206,6 +206,9 @@ class StartModesButton extends StatelessWidget {
 
   void _showModePicker(BuildContext context, QuizService quizService) {
     final theme = Theme.of(context);
+    final pairKey = LanguageService().currentLanguagePair?.key;
+    final count = QuizSelection.quizCount(
+      pairKey, QuizSelection.activeTopics(pairKey).map((t) => t.id));
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -253,8 +256,8 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.quiz_outlined,
                             title: 'Quiz',
-                            subtitle: 'Multiple-choice practice',
-                            onTap: () {
+                            subtitle: 'Multiple-choice practice ($count)',
+                            onTap: count == 0 ? null : () {
                               _startQuiz(context, quizService);
                             },
                           ),
@@ -262,8 +265,8 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.spellcheck_outlined,
                             title: 'Complete the word',
-                            subtitle: 'Fill in missing letters',
-                            onTap: () {
+                            subtitle: 'Fill in missing letters ($count)',
+                            onTap: count == 0 ? null : () {
                               _startCompleteWord(context, quizService);
                             },
                           ),
@@ -271,8 +274,8 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.record_voice_over_outlined,
                             title: 'Speaking Quiz',
-                            subtitle: 'Say the answer out loud',
-                            onTap: () {
+                            subtitle: 'Say the answer out loud ($count)',
+                            onTap: count == 0 ? null : () {
                               _startQuiz(context, quizService, speaking: true);
                             },
                           ),
@@ -280,7 +283,7 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.mic_outlined,
                             title: 'Speaking fill word',
-                            subtitle: 'Answer by speaking the word',
+                            subtitle: 'Answer by speaking the word ($count)',
                             onTap: () {
                               _startCompleteWord(
                                 context,
@@ -293,8 +296,8 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.grid_4x4_outlined,
                             title: 'Ruzzle',
-                            subtitle: 'Find words in the grid',
-                            onTap: () {
+                            subtitle: 'Find words in the grid ($count)',
+                            onTap: count == 0 ? null : () {
                               _startRuzzle(context, quizService);
                             },
                           ),
@@ -302,8 +305,8 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.palette_outlined,
                             title: 'BLUE quiz',
-                            subtitle: 'Design-focused multiple choice',
-                            onTap: () {
+                            subtitle: 'Design-focused multiple choice ($count)',
+                            onTap: count == 0 ? null : () {
                               _startBlueQuiz(context, quizService);
                             },
                           ),
@@ -320,7 +323,7 @@ class StartModesButton extends StatelessWidget {
                             sheetContext,
                             icon: Icons.view_column_outlined,
                             title: 'Word Match',
-                            subtitle: 'Match translations in pairs',
+                            subtitle: 'Match translations in pairs ($count)',
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -362,7 +365,7 @@ class StartModesButton extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     final theme = Theme.of(sheetContext);
     return ListTile(
@@ -379,7 +382,7 @@ class StartModesButton extends StatelessWidget {
           color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
         ),
       ),
-      onTap: () {
+      onTap: onTap == null ? null : () {
         Navigator.pop(sheetContext);
         onTap();
       },
