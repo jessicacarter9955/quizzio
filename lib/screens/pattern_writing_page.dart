@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/services/quiz_service.dart';
 import 'package:wordweaver/services/stats_service.dart';
+import 'package:wordweaver/services/word_mistake_service.dart';
 
 /// Pattern-driven written quiz. Recall hides the answer; Copy displays it.
 /// Records are local, tied to the Wordweaver language direction and stable word identity.
@@ -34,6 +35,9 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
 
   Future<void> _check() async {
     if (_checked || _index >= widget.words.length) return;
+    final mistakes = WordMistakeService();
+    // Import old writing attempts before appending this new one.
+    await mistakes.ready;
     final w = widget.words[_index];
     final answer = _entry.text.trim();
     final correct = _normalize(answer) == _normalize(w.targetWord);
@@ -55,6 +59,7 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
       topicId: w.topic,
       languagePairKey: widget.pairKey,
     );
+    await mistakes.recordAnswer(word: w, isCorrect: correct, mode: 'writing');
     if (!mounted) return;
     setState(() {
       _checked = true;

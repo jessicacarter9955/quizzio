@@ -18,7 +18,9 @@ import 'package:wordweaver/screens/pattern_writing_page.dart';
 /// One shared, native Material 3 interface on Android and Flutter Web.
 /// Wordweaver's existing palette, navigation and settings are preserved.
 class PatternScreen extends StatefulWidget {
-  const PatternScreen({super.key});
+  const PatternScreen({super.key, this.reviewWords, this.reviewPair});
+  final List<VocabularyWord>? reviewWords;
+  final LanguagePair? reviewPair;
 
   @override
   State<PatternScreen> createState() => _PatternScreenState();
@@ -43,6 +45,16 @@ class _PatternScreenState extends State<PatternScreen> {
 
   Future<void> _load() async {
     try {
+      if (widget.reviewWords != null && widget.reviewPair != null) {
+        await TopicService().ready;
+        if (!mounted) return;
+        setState(() {
+          _pair = widget.reviewPair;
+          _words = PatternEngine.distinct(widget.reviewWords!);
+          _loading = false;
+        });
+        return;
+      }
       if (LanguageService().currentLanguagePair == null) {
         await LanguageService().initialize();
       }

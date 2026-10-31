@@ -11,6 +11,8 @@ import 'package:wordweaver/services/locale_service.dart';
 import 'package:wordweaver/services/ai_settings_service.dart';
 import 'package:intl/intl.dart';
 import 'package:wordweaver/screens/stats_page.dart';
+import 'package:wordweaver/screens/mistake_review_page.dart';
+import 'package:wordweaver/services/word_mistake_service.dart';
 import 'package:wordweaver/screens/my_list_page.dart';
 import 'package:wordweaver/screens/puter_auth_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
@@ -22,6 +24,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeService = ThemeService();
     final vocabularyService = VocabularyService();
+    final mistakeService = WordMistakeService();
 
     final l10n = AppLocalizations.of(context);
 
@@ -169,6 +172,23 @@ class SettingsPage extends StatelessWidget {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const StatsPage()),
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.1),
+                    ),
+                    ListenableBuilder(
+                      listenable: mistakeService,
+                      builder: (context, _) => SettingsListTile(
+                        icon: Icons.error_outline,
+                        title: 'Most missed words (${mistakeService.mistakenWordCount})',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MistakeReviewPage()),
+                        ),
                       ),
                     ),
                     Divider(

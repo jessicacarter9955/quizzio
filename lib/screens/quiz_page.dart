@@ -7,6 +7,7 @@ import 'package:wordweaver/services/quiz_service.dart';
 import 'package:wordweaver/services/user_service.dart';
 import 'package:wordweaver/screens/quiz_results_page.dart';
 import 'package:wordweaver/services/stats_service.dart';
+import 'package:wordweaver/services/word_mistake_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/saved_words_service.dart';
 import 'package:wordweaver/services/speech_service.dart';
@@ -237,6 +238,11 @@ class _QuizPageState extends State<QuizPage> {
       isCorrect: correct,
       topicId: question.topic,
       languagePairKey: widget.languagePair.key,
+    );
+    WordMistakeService().recordAnswer(
+      word: question.word,
+      isCorrect: correct,
+      mode: 'standard',
     );
   }
 

@@ -29,6 +29,7 @@ void main() {
 
     // Verify that the app bar title is displayed
     expect(find.text('Profile'), findsOneWidget);
+    expect(find.textContaining('Most missed words'), findsOneWidget);
 
     // Verify that the page contains some list tiles
     expect(find.byType(ListTile), findsWidgets);

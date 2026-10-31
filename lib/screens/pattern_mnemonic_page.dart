@@ -5,14 +5,20 @@ import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
 import 'package:wordweaver/services/stats_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
+import 'package:wordweaver/services/word_mistake_service.dart';
 
 /// 3·2·1 spaced recall: three successful recalls, then two at the next
 /// weekly checkpoint, then one at the final checkpoint. Failed recall restarts.
 /// Practice history is stored locally and survives restarts on web and mobile.
 class PatternMnemonicPage extends StatefulWidget {
-  const PatternMnemonicPage({super.key, required this.words, required this.pairKey});
+  const PatternMnemonicPage({
+    super.key, required this.words, required this.pairKey,
+    this.forcePractice = false,
+  });
   final List<VocabularyWord> words;
   final String pairKey;
+  /// Review selected mistakes now, even if their 3·2·1 due date is later.
+  final bool forcePractice;
 
   @override
   State<PatternMnemonicPage> createState() => _PatternMnemonicPageState();
@@ -27,6 +33,7 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
   int _correct = 0, _wrong = 0;
   bool _sessionClosed = false;
   final Stopwatch _stopwatch = Stopwatch()..start();
+  final Set<String> _practiceReviewed = {};
 
   @override
   void initState() {
@@ -49,6 +56,7 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
   }
 
   bool _due(VocabularyWord w) {
+    if (widget.forcePractice) return !_practiceReviewed.contains(_key(w));
     final r = _review(w);
     final due = DateTime.tryParse((r['due'] ?? '').toString());
     return (r['stage'] ?? 0) < 3 &&
@@ -68,7 +76,7 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
     if (!remembered) {
       stage = 0; hits = 0;
       r['due'] = DateTime.now().add(const Duration(minutes: 5)).toIso8601String();
-    } else {
+    } else if (stage < 3) {
       hits++;
       const targets = [3, 2, 1];
       if (hits >= targets[stage.clamp(0, 2)]) {
@@ -81,6 +89,7 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
     }
     r['stage'] = stage; r['hits'] = hits;
     _saved[_key(word)] = r;
+    if (widget.forcePractice) _practiceReviewed.add(_key(word));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(storeKey, jsonEncode(_saved));
     if (remembered) { _correct++; } else { _wrong++; }
@@ -89,6 +98,8 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
       topicId: word.topic,
       languagePairKey: widget.pairKey,
     );
+    await WordMistakeService().recordAnswer(
+      word: word, isCorrect: remembered, mode: 'mnemonic');
     if (_pending.isEmpty && !_sessionClosed) {
       _sessionClosed = true;
       _stopwatch.stop();
@@ -121,7 +132,8 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
     }
     final pending = _pending;
     final done = widget.words.where((w) => (_review(w)['stage'] ?? 0) == 3).length;
-    final waiting = widget.words.length - pending.length - done;
+    final waiting = widget.forcePractice
+        ? 0 : widget.words.length - pending.length - done;
     final current = pending.isEmpty ? null : pending[_index.clamp(0, pending.length - 1)];
     final stage = current == null ? 0 : (_review(current)['stage'] as num?)?.toInt() ?? 0;
     final hits = current == null ? 0 : (_review(current)['hits'] as num?)?.toInt() ?? 0;
@@ -139,10 +151,13 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
               const Spacer(),
               const Icon(Icons.check_circle_outline, size: 52),
               const SizedBox(height: 16),
-              Text('All due cards reviewed', textAlign: TextAlign.center,
+              Text(widget.forcePractice ? 'Review complete' : 'All due cards reviewed',
+                textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
-              const Text('The next 3·2·1 stage becomes available on its review date.',
+              Text(widget.forcePractice
+                  ? 'You reviewed all the selected difficult words.'
+                  : 'The next 3·2·1 stage becomes available on its review date.',
                 textAlign: TextAlign.center),
               const Spacer(),
             ] else ...[
