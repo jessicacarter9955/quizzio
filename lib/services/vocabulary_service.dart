@@ -37,9 +37,47 @@ class VocabularyService extends ChangeNotifier {
       final data = jsonDecode(await rootBundle.loadString(
         'assets/data/quizlab_terms.json')) as Map<String, dynamic>;
       _originalQuizLabTerms = data['terms'] as List<dynamic>? ?? [];
+      await _loadQuizLabConversationQuestions();
       debugPrint('Original Quiz Lab: ${_originalQuizLabTerms.length} terms available.');
     } catch (e) {
       debugPrint('Original Quiz Lab vocabulary missing: $e');
+    }
+  }
+
+  Future<void> _loadQuizLabConversationQuestions() async {
+    // The original small bilingual quizzes did not provide category metadata:
+    // classify them consistently as Conversation for Home and Patterns.
+    const languages = ['es', 'fr', 'it', 'pt', 'ru', 'ar'];
+    for (final language in languages) {
+      final paths = language == 'it'
+          ? ['assets/data/quiz_en_it_v2.json', 'assets/data/quiz_en_it.json']
+          : ['assets/data/quiz_en_$language.json'];
+      for (final path in paths) {
+        try {
+          final raw = jsonDecode(await rootBundle.loadString(path))
+              as Map<String, dynamic>;
+          final rows = raw['questions'] as List<dynamic>? ?? [];
+          for (var i = 0; i < rows.length; i++) {
+            if (rows[i] is! Map<String, dynamic>) continue;
+            final question = rows[i] as Map<String, dynamic>;
+            final source = (question['sourceEnglish'] ?? '').toString().trim();
+            final target = (question['correctAnswer'] ?? '').toString().trim();
+            if (source.isEmpty || target.isEmpty) continue;
+            _originalQuizLabTerms.add(<String, dynamic>{
+              'id': 'quizlab_conversation_${language}_${question['id'] ?? i}',
+              'category': 'Conversation',
+              'subtopic': 'Phrases',
+              'kind': 'phrase',
+              'translations': <String, dynamic>{
+                'en': source,
+                language: target,
+              },
+            });
+          }
+        } catch (e) {
+          debugPrint('Optional Quiz Lab conversation file missing: $path ($e)');
+        }
+      }
     }
   }
 
