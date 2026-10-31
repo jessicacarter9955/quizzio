@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'package:wordweaver/services/theme_service.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
+import 'package:wordweaver/services/quiz_selection.dart';
+import 'package:wordweaver/services/language_service.dart';
+import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/locale_service.dart';
 import 'package:wordweaver/services/ai_settings_service.dart';
 import 'package:intl/intl.dart';
@@ -696,8 +699,16 @@ class _QuizSettingsSectionState extends State<QuizSettingsSection> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: _quizService,
+      listenable: Listenable.merge([
+        _quizService, TopicService(), LanguageService(), VocabularyService(),
+      ]),
       builder: (context, _) {
+        final pairKey = LanguageService().currentLanguagePairKey;
+        final available = QuizSelection.availableTopics(pairKey);
+        final selectedIds = TopicService().getSelectedTopics().map((t) => t.id).toSet();
+        final base = selectedIds.isEmpty
+            ? available : available.where((t) => selectedIds.contains(t.id)).toList();
+        final maxQuestions = QuizSelection.wordCount(pairKey, base.take(1).map((t) => t.id));
         final questionCount = _quizService.questionCount;
         final answerOptionCount = _quizService.answerOptionCount;
         final topicMode = _quizService.topicMode;
@@ -722,6 +733,7 @@ class _QuizSettingsSectionState extends State<QuizSettingsSection> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<int>(
+                      key: ValueKey('question-count-$questionCount'),
                       initialValue: questionCount,
                       decoration: InputDecoration(
                         labelText: 'Questions per quiz',
@@ -734,8 +746,9 @@ class _QuizSettingsSectionState extends State<QuizSettingsSection> {
                           vertical: 10,
                         ),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 5, child: Text('5')),
+                      items: [
+                        DropdownMenuItem(value: 0, child: Text('Max ($maxQuestions)')),
+                        const DropdownMenuItem(value: 5, child: Text('5')),
                         DropdownMenuItem(value: 10, child: Text('10')),
                         DropdownMenuItem(value: 15, child: Text('15')),
                         DropdownMenuItem(value: 20, child: Text('20')),
@@ -794,7 +807,7 @@ class _QuizSettingsSectionState extends State<QuizSettingsSection> {
                     _quizService.setTopicMode(value);
                   }
                 },
-                title: const Text('Mix all selected topics in one quiz'),
+                title: Text('Mix selected topics (${QuizSelection.wordCount(pairKey, base.map((t) => t.id))})'),
                 dense: true,
               ),
               RadioListTile<String>(
@@ -805,9 +818,7 @@ class _QuizSettingsSectionState extends State<QuizSettingsSection> {
                     _quizService.setTopicMode(value);
                   }
                 },
-                title: const Text(
-                  'Focus on one topic per quiz (from selected)',
-                ),
+                title: Text('Focus on one topic per quiz ($maxQuestions)'),
                 dense: true,
               ),
             ],
