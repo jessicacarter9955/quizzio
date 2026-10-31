@@ -90,8 +90,10 @@ jobs:
       - run: python3 tools/build_quizlab_corpus.py
       - run: flutter pub get
       - run: flutter build web --release --base-href /quizzio/
-      - name: Configure GitHub Pages
+      - name: Enable and configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload web app
         uses: actions/upload-pages-artifact@v3
         with:
