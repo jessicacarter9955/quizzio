@@ -48,9 +48,9 @@ with zipfile.ZipFile(archive_path) as archive:
             category = str(row.get("category") or row.get("topic") or "General")
             subtopic = str(row.get("subtopic") or "General")
             kind = str(row.get("kind") or row.get("type") or "word")
-            # Preserve homographs that differ in translation; deduplicate only
-            # identical multilingual entries from overlapping source files.
-            key = json.dumps([kind, sorted(translations.items())],
+            # Preserve both homographs and legitimate cross-topic occurrences;
+            # collapse only identical translations within the same taxonomy node.
+            key = json.dumps([kind, category.strip().casefold(), subtopic.strip().casefold(),\n                              sorted(translations.items())],
                              ensure_ascii=False, separators=(",", ":"))
             if key in unique:
                 continue
