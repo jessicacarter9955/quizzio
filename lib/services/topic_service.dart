@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:wordweaver/services/quizlab_topics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/topic.dart';
 
@@ -49,7 +51,7 @@ class TopicService extends ChangeNotifier {
             .toList();
         // Keep only supported IDs from defaults, then add any missing defaults
         final supported = _defaultTopics.map((t) => t.id).toSet();
-        _topics = _topics.where((t) => supported.contains(t.id)).toList();
+        _topics = _topics.where((t) => supported.contains(t.id) || t.id.startsWith('quizlab_')).toList();
         for (final def in _defaultTopics) {
           if (!_topics.any((t) => t.id == def.id)) {
             _topics.add(Topic(id: def.id, name: def.name, emoji: def.emoji));
@@ -62,10 +64,33 @@ class TopicService extends ChangeNotifier {
         _topics.sort((a, b) => a.name.compareTo(b.name));
         await _saveTopics();
       }
+      await _addQuizLabCategories();
       notifyListeners();
     } catch (e) {
       _topics = List.from(_defaultTopics);
       debugPrint('Error loading topics: $e');
+    }
+  }
+
+  Future<void> _addQuizLabCategories() async {
+    try {
+      final data = jsonDecode(await rootBundle.loadString(
+        'assets/data/quizlab_terms.json')) as Map<String, dynamic>;
+      final categories = <String, String>{};
+      for (final raw in data['terms'] as List<dynamic>? ?? []) {
+        if (raw is! Map<String, dynamic>) continue;
+        final label = (raw['category'] ?? 'General').toString().trim();
+        if (label.isEmpty) continue;
+        categories[quizLabTopicId(label)] = label;
+      }
+      for (final entry in categories.entries) {
+        if (_topics.any((t) => t.id == entry.key)) continue;
+        _topics.add(Topic(id: entry.key, name: entry.value, emoji: '📚'));
+      }
+      _topics.sort((a, b) => a.name.compareTo(b.name));
+      await _saveTopics();
+    } catch (e) {
+      debugPrint('Quiz Lab topic metadata unavailable: $e');
     }
   }
 
