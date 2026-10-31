@@ -8,11 +8,14 @@ class StatsService extends ChangeNotifier {
   factory StatsService() => _instance;
 
   StatsService._internal() {
-    _load();
+    ready = _load();
   }
+
+  late final Future<void> ready;
 
   Stats _stats = const Stats();
   Stats get stats => _stats;
+  Future<void> _writeQueue = Future<void>.value();
 
   Future<void> _load() async {
     try {
@@ -29,13 +32,19 @@ class StatsService extends ChangeNotifier {
   }
 
   Future<void> _save() async {
-    try {
+    final snapshot = jsonEncode(_stats.toJson());
+    // Preserve answer order even when multiple quiz taps save very quickly.
+    _writeQueue = _writeQueue.then((_) async {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('stats', jsonEncode(_stats.toJson()));
-    } catch (_) {}
+      await prefs.setString('stats', snapshot);
+    }).catchError((Object error) {
+      debugPrint('Unable to persist stats: $error');
+    });
+    await _writeQueue;
   }
 
   Future<void> reset() async {
+    await ready;
     _stats = const Stats();
     await _save();
     notifyListeners();
@@ -46,19 +55,24 @@ class StatsService extends ChangeNotifier {
     required String topicId,
     required String languagePairKey,
   }) async {
+    await ready;
     final perTopic = Map<String, TopicStats>.from(_stats.perTopic);
     final perPair = Map<String, TopicStats>.from(_stats.perLangPair);
 
     final t = perTopic[topicId] ?? const TopicStats();
     perTopic[topicId] = t.copyWith(
+      topicId: topicId,
       attempts: t.attempts + 1,
       correct: t.correct + (isCorrect ? 1 : 0),
+      lastAttempt: DateTime.now(),
     );
 
     final p = perPair[languagePairKey] ?? const TopicStats();
     perPair[languagePairKey] = p.copyWith(
+      topicId: languagePairKey,
       attempts: p.attempts + 1,
       correct: p.correct + (isCorrect ? 1 : 0),
+      lastAttempt: DateTime.now(),
     );
 
     _stats = _stats.copyWith(
@@ -76,12 +90,18 @@ class StatsService extends ChangeNotifier {
     required int totalQuestionsInQuiz,
     required Duration duration,
   }) async {
-    final totalQs = _stats.totalQuestions == 0 ? 1 : _stats.totalQuestions;
+    await ready;
+    // Answers from the just-finished quiz were already counted by
+    // recordAnswer. Exclude them from the previous average's denominator.
+    final totalQs = _stats.totalQuestions;
+    final previousQs = totalQs > totalQuestionsInQuiz
+        ? totalQs - totalQuestionsInQuiz
+        : 0;
     final prevAvg = _stats.avgTimePerQuestionSec;
-    final totalTimeSoFar = prevAvg * totalQs;
-    final newAvg =
-        (totalTimeSoFar + duration.inSeconds) /
-        (totalQs + totalQuestionsInQuiz);
+    final totalTimeSoFar = prevAvg * previousQs;
+    final newAvg = totalQs == 0
+        ? 0.0
+        : (totalTimeSoFar + duration.inSeconds) / totalQs;
 
     final now = DateTime.now();
     var streak = _stats.streakDays;
@@ -112,3 +132,4 @@ class StatsService extends ChangeNotifier {
     notifyListeners();
   }
 }
+

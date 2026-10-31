@@ -12,6 +12,30 @@ void main() {
 class WordweaverApp extends StatelessWidget {
   const WordweaverApp({super.key});
 
+  // High-contrast lime accents for buttons, chips, icons and progress bars.
+  // Keep page surfaces neutral so quiz text stays easy to read.
+  static ColorScheme _limeScheme(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    return ColorScheme.fromSeed(
+      seedColor: const Color(0xFFA3E635),
+      brightness: brightness,
+    ).copyWith(
+      primary: const Color(0xFFA3E635),
+      onPrimary: const Color(0xFF1B2909),
+      primaryContainer: dark
+          ? const Color(0xFF354B12)
+          : const Color(0xFFE8F8C7),
+      onPrimaryContainer: dark
+          ? const Color(0xFFE8F8C7)
+          : const Color(0xFF263B0C),
+      secondary: const Color(0xFF86C71D),
+      onSecondary: const Color(0xFF152507),
+      tertiary: const Color(0xFF36A853),
+      onTertiary: Colors.white,
+      surfaceTint: const Color(0xFFA3E635),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeService = ThemeService();
@@ -20,14 +44,8 @@ class WordweaverApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: Listenable.merge([themeService, localeService]),
       builder: (context, _) {
-        final lightScheme = ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-          brightness: Brightness.light,
-        );
-        final darkScheme = ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-          brightness: Brightness.dark,
-        );
+        final lightScheme = _limeScheme(Brightness.light);
+        final darkScheme = _limeScheme(Brightness.dark);
 
         return MaterialApp(
           title: 'Wordweaver',
@@ -55,3 +73,4 @@ class WordweaverApp extends StatelessWidget {
     );
   }
 }
+

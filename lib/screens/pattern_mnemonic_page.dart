@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
+import 'package:wordweaver/services/stats_service.dart';
+import 'package:wordweaver/services/quiz_service.dart';
 
 /// 3·2·1 spaced recall: three successful recalls, then two at the next
 /// weekly checkpoint, then one at the final checkpoint. Failed recall restarts.
@@ -22,6 +24,9 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
   int _index = 0;
   bool _showAnswer = false;
   bool _loaded = false;
+  int _correct = 0, _wrong = 0;
+  bool _sessionClosed = false;
+  final Stopwatch _stopwatch = Stopwatch()..start();
 
   @override
   void initState() {
@@ -78,6 +83,27 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
     _saved[_key(word)] = r;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(storeKey, jsonEncode(_saved));
+    if (remembered) { _correct++; } else { _wrong++; }
+    await StatsService().recordAnswer(
+      isCorrect: remembered,
+      topicId: word.topic,
+      languagePairKey: widget.pairKey,
+    );
+    if (_pending.isEmpty && !_sessionClosed) {
+      _sessionClosed = true;
+      _stopwatch.stop();
+      await StatsService().recordQuizEnd(
+        totalQuestionsInQuiz: _correct + _wrong,
+        duration: _stopwatch.elapsed,
+      );
+      await QuizService().saveQuizResult(QuizService().createResult(
+        languagePairKey: widget.pairKey,
+        topics: widget.words.map((w) => w.topic).toSet().toList(),
+        correctAnswers: _correct,
+        incorrectAnswers: _wrong,
+        timeTaken: _stopwatch.elapsed.inSeconds,
+      ));
+    }
     if (!mounted) return;
     setState(() {
       _showAnswer = false;
@@ -152,6 +178,10 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
                   child: const Text('Reveal answer'))
               else Row(children: [
                 Expanded(child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFB8BC),
+                    foregroundColor: const Color(0xFF711622),
+                  ),
                   onPressed: () => _rate(false), child: const Text('Again'))),
                 const SizedBox(width: 12),
                 Expanded(child: FilledButton(
@@ -165,3 +195,4 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
     );
   }
 }
+

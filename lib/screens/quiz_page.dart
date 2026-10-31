@@ -222,28 +222,25 @@ class _QuizPageState extends State<QuizPage> {
 
   void handleAnswer(String answer) {
     if (hasAnswered) return;
+    final question = questions![currentQuestionIndex];
+    final correct = answer == question.correctAnswer;
     setState(() {
       selectedAnswer = answer;
       hasAnswered = true;
-      if (answer == questions![currentQuestionIndex].correctAnswer) {
+      if (correct) {
         correctAnswers++;
-        _statsService.recordAnswer(
-          isCorrect: true,
-          topicId: questions![currentQuestionIndex].topic,
-          languagePairKey: widget.languagePair.key,
-        );
       } else {
         incorrectAnswers++;
-        _statsService.recordAnswer(
-          isCorrect: false,
-          topicId: questions![currentQuestionIndex].topic,
-          languagePairKey: widget.languagePair.key,
-        );
       }
     });
+    _statsService.recordAnswer(
+      isCorrect: correct,
+      topicId: question.topic,
+      languagePairKey: widget.languagePair.key,
+    );
   }
 
-  void nextQuestion() {
+  Future<void> nextQuestion() async {
     if (currentQuestionIndex < (questions!.length - 1)) {
       setState(() {
         currentQuestionIndex++;
@@ -265,13 +262,19 @@ class _QuizPageState extends State<QuizPage> {
         timeTaken: stopwatch.elapsed.inSeconds,
       );
 
-      _quizService.saveQuizResult(result);
-      userService.updateWordsLearned(correctAnswers);
-      _statsService.recordQuizEnd(
+      await _quizService.saveQuizResult(result);
+      await userService.updateWordsLearned(correctAnswers);
+      await userService.recordQuizResults(
+        questionsCount: questions!.length,
+        correctCount: correctAnswers,
+        incorrectCount: incorrectAnswers,
+      );
+      await _statsService.recordQuizEnd(
         totalQuestionsInQuiz: questions!.length,
         duration: stopwatch.elapsed,
       );
 
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => QuizResultsPage(result: result)),
@@ -453,26 +456,18 @@ class _QuizPageState extends State<QuizPage> {
 
                             if (hasAnswered) {
                               if (isCorrect) {
-                                backgroundColor = Theme.of(
-                                  context,
-                                ).colorScheme.tertiary.withValues(alpha: 0.15);
-                                borderColor = Theme.of(
-                                  context,
-                                ).colorScheme.tertiary;
+                                backgroundColor = const Color(0xFFB8F76B);
+                                borderColor = const Color(0xFF4B8D0F);
                                 trailing = Icon(
                                   Icons.check_circle,
-                                  color: Theme.of(context).colorScheme.tertiary,
+                                  color: const Color(0xFF28620A),
                                 );
                               } else if (isSelected) {
-                                backgroundColor = Theme.of(
-                                  context,
-                                ).colorScheme.error.withValues(alpha: 0.15);
-                                borderColor = Theme.of(
-                                  context,
-                                ).colorScheme.error;
+                                backgroundColor = const Color(0xFFFFB8BC);
+                                borderColor = const Color(0xFFCE2938);
                                 trailing = Icon(
                                   Icons.cancel,
-                                  color: Theme.of(context).colorScheme.error,
+                                  color: const Color(0xFFC21D2D),
                                 );
                               }
                             }
@@ -482,6 +477,9 @@ class _QuizPageState extends State<QuizPage> {
                               onTap: () => handleAnswer(answer),
                               backgroundColor: backgroundColor,
                               borderColor: borderColor,
+                              textColor: hasAnswered && (isCorrect || isSelected)
+                                  ? const Color(0xFF17240B)
+                                  : null,
                               trailing: trailing,
                               isDisabled: hasAnswered,
                             );
@@ -525,6 +523,7 @@ class AnswerOption extends StatelessWidget {
   final VoidCallback onTap;
   final Color? backgroundColor;
   final Color? borderColor;
+  final Color? textColor;
   final Widget? trailing;
   final bool isDisabled;
 
@@ -534,6 +533,7 @@ class AnswerOption extends StatelessWidget {
     required this.onTap,
     this.backgroundColor,
     this.borderColor,
+    this.textColor,
     this.trailing,
     this.isDisabled = false,
   });
@@ -560,7 +560,7 @@ class AnswerOption extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: textColor ?? Theme.of(context).colorScheme.onSurface,
           ),
         ),
         trailing:
@@ -576,3 +576,4 @@ class AnswerOption extends StatelessWidget {
     );
   }
 }
+

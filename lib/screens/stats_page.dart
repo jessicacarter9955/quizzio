@@ -203,19 +203,17 @@ class _StatsPageState extends State<StatsPage> {
               builder: (context, __) {
                 final history = filteredResults(quizService.quizHistory);
                 final agg = aggregate(history);
-                final accuracy = (agg['totalQuestions'] == 0)
-                    ? 0.0
-                    : (agg['correct'] / agg['totalQuestions'] * 100.0);
-
-                final series = <double>[];
-                int cum = 0;
-                for (final r in history.reversed) {
-                  cum += r.correctAnswers;
-                  series.add(cum.toDouble());
-                }
-
-                final perPair =
-                    (agg['perPair'] as Map<String, Map<String, int>>);
+                // Quiz history is saved only when a session finishes. Use the
+                // live answer-level StatsService so this page works even after
+                // one answered question or an interrupted writing/mnemonic run.
+                final live = statsService.stats;
+                final hasLiveAnswers = live.totalQuestions > 0;
+                final perPair = hasLiveAnswers
+                    ? live.perLangPair.map((key, value) => MapEntry(key, {
+                          'attempts': value.attempts,
+                          'correct': value.correct,
+                        }))
+                    : agg['perPair'] as Map<String, Map<String, int>>;
                 final perPairSorted = perPair.entries.toList()
                   ..sort(
                     (a, b) => (b.value['correct'] ?? 0).compareTo(
@@ -223,8 +221,12 @@ class _StatsPageState extends State<StatsPage> {
                     ),
                   );
 
-                final perTopic =
-                    (agg['perTopic'] as Map<String, Map<String, int>>);
+                final perTopic = hasLiveAnswers
+                    ? live.perTopic.map((key, value) => MapEntry(key, {
+                          'attempts': value.attempts,
+                          'correct': value.correct,
+                        }))
+                    : agg['perTopic'] as Map<String, Map<String, int>>;
                 final topTopics = perTopic.entries.toList()
                   ..sort((a, b) {
                     final aA = (a.value['attempts'] ?? 0);
@@ -548,8 +550,20 @@ class QuickStatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final summary = userService.getStatsSummary();
-    final l10n = AppLocalizations.of(context);
+    final legacy = userService.getStatsSummary();
+    final live = statsService.stats;
+    final oldQuestions = legacy['totalQuestions'] as int? ?? 0;
+    final questions = live.totalQuestions > 0
+        ? live.totalQuestions
+        : oldQuestions;
+    final correct = live.totalQuestions > 0
+        ? live.correct
+        : (legacy['totalCorrectAnswers'] as int? ?? 0);
+    final oldQuizzes = legacy['totalQuizzesTaken'] as int? ?? 0;
+    final completed = QuizService().quizHistory.length;
+    final quizzes = live.totalQuizzes > oldQuizzes
+        ? (live.totalQuizzes > completed ? live.totalQuizzes : completed)
+        : (oldQuizzes > completed ? oldQuizzes : completed);
 
     return GridView(
       shrinkWrap: true,
@@ -564,24 +578,25 @@ class QuickStatsSection extends StatelessWidget {
         _quickStatCard(
           context,
           label: 'Total quizzes',
-          value: summary['totalQuizzesTaken'].toString(),
+          value: quizzes.toString(),
           color: Theme.of(context).colorScheme.primary,
         ),
         _quickStatCard(
           context,
           label: 'Correct answers',
-          value: summary['totalCorrectAnswers'].toString(),
+          value: correct.toString(),
         ),
         _quickStatCard(
           context,
           label: 'Total questions',
-          value: summary['totalQuestions'].toString(),
+          value: questions.toString(),
         ),
         _quickStatCard(
           context,
           label: 'Overall accuracy',
-          value:
-              '${((summary['overallAccuracy'] as double) * 100).toStringAsFixed(0)}%',
+          value: questions == 0
+              ? '0%'
+              : '${(correct / questions * 100).toStringAsFixed(0)}%',
         ),
       ],
     );
@@ -623,3 +638,4 @@ class QuickStatsSection extends StatelessWidget {
     );
   }
 }
+

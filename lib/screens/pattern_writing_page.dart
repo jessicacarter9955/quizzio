@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
+import 'package:wordweaver/services/quiz_service.dart';
+import 'package:wordweaver/services/stats_service.dart';
 
 /// Pattern-driven written quiz. Recall hides the answer; Copy displays it.
 /// Records are local, tied to the Wordweaver language direction and stable word identity.
@@ -21,6 +23,8 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
   bool _copy = false, _checked = false;
   int _index = 0, _correct = 0, _wrong = 0;
   String _answer = '';
+  final Stopwatch _stopwatch = Stopwatch()..start();
+  bool _finished = false;
 
   @override
   void dispose() { _entry.dispose(); super.dispose(); }
@@ -46,6 +50,11 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
     });
     if (history.length > 30000) history = history.sublist(history.length - 30000);
     await prefs.setString(key, jsonEncode(history));
+    await StatsService().recordAnswer(
+      isCorrect: correct,
+      topicId: w.topic,
+      languagePairKey: widget.pairKey,
+    );
     if (!mounted) return;
     setState(() {
       _checked = true;
@@ -54,7 +63,23 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
     });
   }
 
-  void _next() {
+  Future<void> _next() async {
+    if (_index == widget.words.length - 1 && !_finished) {
+      _finished = true;
+      _stopwatch.stop();
+      await StatsService().recordQuizEnd(
+        totalQuestionsInQuiz: _correct + _wrong,
+        duration: _stopwatch.elapsed,
+      );
+      await QuizService().saveQuizResult(QuizService().createResult(
+        languagePairKey: widget.pairKey,
+        topics: widget.words.map((w) => w.topic).toSet().toList(),
+        correctAnswers: _correct,
+        incorrectAnswers: _wrong,
+        timeTaken: _stopwatch.elapsed.inSeconds,
+      ));
+    }
+    if (!mounted) return;
     setState(() { _index++; _entry.clear(); _checked = false; });
   }
 
@@ -119,11 +144,23 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
           ),
           if (_checked) ...[
             const SizedBox(height: 10),
-            Text(
-              _normalize(_entry.text) == _normalize(_answer)
-                ? 'Correct' : 'Answer: $_answer',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _normalize(_entry.text) == _normalize(_answer)
+                    ? const Color(0xFFB8F76B)
+                    : const Color(0xFFFFB8BC),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _normalize(_entry.text) == _normalize(_answer)
+                    ? 'Correct!' : 'Incorrect · Answer: $_answer',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: const Color(0xFF17240B),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
           const Spacer(),
@@ -136,3 +173,4 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
     );
   }
 }
+

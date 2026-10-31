@@ -27,6 +27,8 @@ jobs:
           channel: stable
       - name: Generate and validate original Quiz Lab vocabulary
         run: python3 tools/build_quizlab_corpus.py
+      - name: Verify multilingual pairing and ambiguity guards
+        run: python3 -m unittest discover -s tools -p 'test_*.py'
       - name: Resolve packages
         run: flutter pub get
       - name: Analyze source
