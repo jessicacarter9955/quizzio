@@ -44,6 +44,9 @@ class VocabularyService extends ChangeNotifier {
   }
 
   void _ensurePair(String languagePairKey) {
+    // Wordweaver Home may ask for topic counts while assets are still loading.
+    // Do not mark a direction as hydrated until the bundled corpus is ready.
+    if (_originalQuizLabTerms.isEmpty) return;
     if (_hydratedDirections.contains(languagePairKey)) return;
     _hydratedDirections.add(languagePairKey);
     final codes = languagePairKey.split('_');
