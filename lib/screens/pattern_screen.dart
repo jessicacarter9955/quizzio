@@ -360,7 +360,7 @@ class _PatternScreenState extends State<PatternScreen> {
                       style: theme.textTheme.titleSmall,
                     ),
                     const SizedBox(height: 6),
-                    Text('${_words.length} unique words · all topics',
+                    Text('Words (${_words.length}) · ${QuizSelection.activeTopics(_pair?.key).map((t) => t.name).join(', ')}',
                       style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 18),
