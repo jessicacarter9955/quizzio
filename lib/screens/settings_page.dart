@@ -708,7 +708,9 @@ class _QuizSettingsSectionState extends State<QuizSettingsSection> {
         final selectedIds = TopicService().getSelectedTopics().map((t) => t.id).toSet();
         final base = selectedIds.isEmpty
             ? available : available.where((t) => selectedIds.contains(t.id)).toList();
-        final maxQuestions = QuizSelection.wordCount(pairKey, base.take(1).map((t) => t.id));
+        final usedTopics = _quizService.topicMode == 'single'
+            ? base.take(1) : base;
+        final maxQuestions = QuizSelection.wordCount(pairKey, usedTopics.map((t) => t.id));
         final questionCount = _quizService.questionCount;
         final answerOptionCount = _quizService.answerOptionCount;
         final topicMode = _quizService.topicMode;
