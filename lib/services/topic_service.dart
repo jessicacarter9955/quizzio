@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -40,6 +41,8 @@ class TopicService extends ChangeNotifier {
 
   List<Topic> _topics = [];
   List<Topic> get topics => _topics;
+  final Completer<void> _readyCompleter = Completer<void>();
+  Future<void> get ready => _readyCompleter.future;
 
   Future<void> _loadTopics() async {
     try {
@@ -70,6 +73,8 @@ class TopicService extends ChangeNotifier {
     } catch (e) {
       _topics = List.from(_defaultTopics);
       debugPrint('Error loading topics: $e');
+    } finally {
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
     }
   }
 
