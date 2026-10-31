@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wordweaver/models/language.dart';
 import 'package:wordweaver/services/language_service.dart';
+import 'package:wordweaver/services/vocabulary_service.dart';
 
 class LanguageSetupPage extends StatefulWidget {
   const LanguageSetupPage({super.key});
@@ -16,10 +17,26 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
   String targetSearchQuery = '';
   String sourceSearchQuery = '';
   int step = 0; // 0 = source (I speak), 1 = target (I want to learn)
+  final vocabulary = VocabularyService();
+  bool _ready = false;
+  bool _showUnavailable = false;
+
+  int _sourceCount(Language lang) {
+    var best = 0;
+    for (final target in Language.supported) {
+      if (target.code == lang.code) continue;
+      final count = vocabulary.getPairWordCount(lang.code, target.code);
+      if (count > best) best = count;
+    }
+    return best;
+  }
 
   @override
   void initState() {
     super.initState();
+    vocabulary.ready.then((_) {
+      if (mounted) setState(() => _ready = true);
+    });
     final currentPair = languageService.currentLanguagePair;
     if (currentPair != null) {
       selectedTarget = currentPair.targetLanguage;
@@ -39,7 +56,7 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
+      body: !_ready ? const Center(child: CircularProgressIndicator()) : SafeArea(
         child: Column(
           children: [
             Expanded(
@@ -85,13 +102,23 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Show unavailable languages'),
+                          value: _showUnavailable,
+                          onChanged: (v) => setState(() => _showUnavailable = v),
+                        ),
                         const SizedBox(height: 16),
                         ...languageService
                             .searchLanguages(sourceSearchQuery)
+                            .where((lang) => _showUnavailable || vocabulary.hasAvailableTarget(lang.code))
                             .map(
                               (lang) => LanguageListTile(
                                 language: lang,
                                 isSelected: selectedSource?.code == lang.code,
+                                count: _sourceCount(lang),
+                                available: vocabulary.hasAvailableTarget(lang.code),
                                 onTap: () =>
                                     setState(() => selectedSource = lang),
                               ),
@@ -128,14 +155,25 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Show unavailable languages'),
+                          value: _showUnavailable,
+                          onChanged: (v) => setState(() => _showUnavailable = v),
+                        ),
                         const SizedBox(height: 16),
                         ...languageService
                             .searchLanguages(targetSearchQuery)
                             .where((lang) => lang.code != selectedSource?.code)
+                            .where((lang) => _showUnavailable ||
+                                vocabulary.getPairWordCount(selectedSource?.code ?? '', lang.code) > 0)
                             .map(
                               (lang) => LanguageListTile(
                                 language: lang,
                                 isSelected: selectedTarget?.code == lang.code,
+                                count: vocabulary.getPairWordCount(selectedSource?.code ?? '', lang.code),
+                                available: vocabulary.getPairWordCount(selectedSource?.code ?? '', lang.code) > 0,
                                 onTap: () =>
                                     setState(() => selectedTarget = lang),
                               ),
@@ -176,7 +214,11 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
                   if (step == 1) const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () async {
+                      onPressed: (step == 0
+                          ? selectedSource != null && vocabulary.hasAvailableTarget(selectedSource!.code)
+                          : selectedTarget != null && selectedSource != null &&
+                              vocabulary.getPairWordCount(selectedSource!.code, selectedTarget!.code) > 0)
+                          ? () async {
                         if (step == 0) {
                           if (selectedSource != null) {
                             setState(() => step = 1);
@@ -191,7 +233,8 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
                             if (context.mounted) Navigator.pop(context);
                           }
                         }
-                      },
+                      }
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Theme.of(
@@ -229,12 +272,16 @@ class LanguageListTile extends StatelessWidget {
   final Language language;
   final bool isSelected;
   final VoidCallback onTap;
+  final int count;
+  final bool available;
 
   const LanguageListTile({
     super.key,
     required this.language,
     required this.isSelected,
     required this.onTap,
+    this.count = 0,
+    this.available = true,
   });
 
   @override
@@ -251,7 +298,8 @@ class LanguageListTile extends StatelessWidget {
             : null,
       ),
       child: ListTile(
-        onTap: onTap,
+        enabled: available,
+        onTap: available ? onTap : null,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Text(language.flag, style: const TextStyle(fontSize: 28)),
         title: Text(
@@ -264,7 +312,7 @@ class LanguageListTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          language.nativeName,
+          '${language.nativeName} · ($count)${available ? '' : ' unavailable'}',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isSelected
                 ? Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8)
