@@ -257,6 +257,62 @@ class VocabularyService extends ChangeNotifier {
     }
   }
 
+  /// Number of distinct translation pairs for the currently selected topics.
+  /// This deliberately counts the actual quiz questions, not raw category rows.
+  int getQuizWordCount(String languagePairKey, List<String> topicIds) {
+    _ensurePair(languagePairKey);
+    final pair = _vocabulary[languagePairKey];
+    if (pair == null || topicIds.isEmpty) return 0;
+    final keys = <String>{};
+    for (final topic in topicIds) {
+      for (final word in pair[topic] ?? <VocabularyWord>[]) {
+        keys.add('${word.sourceWord.toLowerCase()}\u0001${word.targetWord.toLowerCase()}');
+      }
+    }
+    return keys.length;
+  }
+
+  /// Exact number of distinct source→target pairs in the bundled vocabulary,
+  /// including imported words. Languages without translations return zero.
+  int getPairWordCount(String source, String target) {
+    if (source == target) return 0;
+    final direction = '${source}_${target}';
+    final keys = <String>{};
+    for (final raw in _originalQuizLabTerms) {
+      if (raw is! Map<String, dynamic>) continue;
+      final translations = raw['translations'];
+      if (translations is! Map<String, dynamic>) continue;
+      final from = (translations[source] ?? '').toString().trim();
+      final to = (translations[target] ?? '').toString().trim();
+      if (from.isNotEmpty && to.isNotEmpty) {
+        keys.add('${from.toLowerCase()}\u0001${to.toLowerCase()}');
+      }
+    }
+    final custom = _vocabulary[direction];
+    if (custom != null) {
+      for (final list in custom.values) {
+        for (final word in list) {
+          keys.add('${word.sourceWord.toLowerCase()}\u0001${word.targetWord.toLowerCase()}');
+        }
+      }
+    }
+    return keys.length;
+  }
+
+  bool hasAvailableTarget(String source) {
+    // Do not advertise a language with no valid target corpus.
+    return _originalQuizLabTerms.any((raw) {
+      if (raw is! Map<String, dynamic>) return false;
+      final t = raw['translations'];
+      if (t is! Map<String, dynamic>) return false;
+      if ((t[source] ?? '').toString().trim().isEmpty) return false;
+      return t.entries.any((entry) =>
+          entry.key != source && entry.value.toString().trim().isNotEmpty);
+    }) || _vocabulary.entries.any((entry) =>
+        entry.key.startsWith('${source}_') &&
+        entry.value.values.any((words) => words.isNotEmpty));
+  }
+
   /// Returns the total number of vocabulary words for a given
   /// language pair and topic. If either the pair or topic
   /// doesn't exist, returns 0.
