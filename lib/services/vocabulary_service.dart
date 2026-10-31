@@ -56,7 +56,7 @@ class VocabularyService extends ChangeNotifier {
     final seen = <String>{};
     for (final words in languageVocab.values) {
       for (final w in words) {
-        seen.add('${w.sourceWord.toLowerCase()}\u0001${w.targetWord.toLowerCase()}');
+        seen.add('${w.topic}\u0001${w.sourceWord.toLowerCase()}\u0001${w.targetWord.toLowerCase()}');
       }
     }
     for (final raw in _originalQuizLabTerms) {
@@ -66,8 +66,8 @@ class VocabularyService extends ChangeNotifier {
       final from = (t[codes[0]] ?? '').toString().trim();
       final to = (t[codes[1]] ?? '').toString().trim();
       if (from.isEmpty || to.isEmpty) continue;
-      if (!seen.add('${from.toLowerCase()}\u0001${to.toLowerCase()}')) continue;
       final topic = quizLabTopicId((raw['category'] ?? 'General').toString());
+      if (!seen.add('${topic}\u0001${from.toLowerCase()}\u0001${to.toLowerCase()}')) continue;
       languageVocab.putIfAbsent(topic, () => <VocabularyWord>[]).add(
         VocabularyWord(
           id: raw['id'].toString(),
@@ -313,8 +313,17 @@ class VocabularyService extends ChangeNotifier {
       return [];
     }
 
-    words.shuffle(Random());
-    final result = words.take(count).toList();
+    // The same expression can legitimately belong to different topics.
+    // Ask each distinct translation only once in a combined quiz.
+    final unique = <String, VocabularyWord>{};
+    for (final w in words) {
+      unique.putIfAbsent(
+        '${w.sourceWord.toLowerCase()}\u0001${w.targetWord.toLowerCase()}',
+        () => w,
+      );
+    }
+    final shuffled = unique.values.toList()..shuffle(Random());
+    final result = shuffled.take(count).toList();
     debugPrint('Returning ${result.length} questions');
     return result;
   }
