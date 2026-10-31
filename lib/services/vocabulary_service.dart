@@ -5,9 +5,10 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
 import 'dart:math';
+import 'package:wordweaver/services/quizlab_topics.dart';
 
 class VocabularyService extends ChangeNotifier {
-  static const int _vocabVersion = 4;
+  static const int _vocabVersion = 5;
   // Singleton instance to ensure vocabulary is loaded once and shared
   static final VocabularyService _instance = VocabularyService._internal();
   factory VocabularyService() => _instance;
@@ -25,7 +26,60 @@ class VocabularyService extends ChangeNotifier {
   /// Await this before accessing data to ensure it's loaded.
   Future<void> get ready async => _readyCompleter.future;
 
+  /// Original Quiz Lab is bundled once and materialized lazily for each
+  /// Wordweaver language direction. We never write its whole multilingual
+  /// corpus to SharedPreferences (browser quota / mobile memory protection).
+  List<dynamic> _originalQuizLabTerms = [];
+  final Set<String> _hydratedDirections = {};
+
+  Future<void> _loadOriginalQuizLabCorpus() async {
+    try {
+      final data = jsonDecode(await rootBundle.loadString(
+        'assets/data/quizlab_terms.json')) as Map<String, dynamic>;
+      _originalQuizLabTerms = data['terms'] as List<dynamic>? ?? [];
+      debugPrint('Original Quiz Lab: ${_originalQuizLabTerms.length} terms available.');
+    } catch (e) {
+      debugPrint('Original Quiz Lab vocabulary missing: $e');
+    }
+  }
+
+  void _ensurePair(String languagePairKey) {
+    if (_hydratedDirections.contains(languagePairKey)) return;
+    _hydratedDirections.add(languagePairKey);
+    final codes = languagePairKey.split('_');
+    if (codes.length != 2 || codes[0] == codes[1]) return;
+    final languageVocab = _vocabulary.putIfAbsent(
+      languagePairKey, () => <String, List<VocabularyWord>>{});
+    final seen = <String>{};
+    for (final words in languageVocab.values) {
+      for (final w in words) {
+        seen.add('${w.sourceWord.toLowerCase()}\u0001${w.targetWord.toLowerCase()}');
+      }
+    }
+    for (final raw in _originalQuizLabTerms) {
+      if (raw is! Map<String, dynamic>) continue;
+      final t = raw['translations'];
+      if (t is! Map<String, dynamic>) continue;
+      final from = (t[codes[0]] ?? '').toString().trim();
+      final to = (t[codes[1]] ?? '').toString().trim();
+      if (from.isEmpty || to.isEmpty) continue;
+      if (!seen.add('${from.toLowerCase()}\u0001${to.toLowerCase()}')) continue;
+      final topic = quizLabTopicId((raw['category'] ?? 'General').toString());
+      languageVocab.putIfAbsent(topic, () => <VocabularyWord>[]).add(
+        VocabularyWord(
+          id: raw['id'].toString(),
+          sourceWord: from,
+          targetWord: to,
+          languagePairKey: languagePairKey,
+          topic: topic,
+          createdAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+    }
+  }
+
   Future<void> _loadVocabulary() async {
+    await _loadOriginalQuizLabCorpus();
     try {
       final prefs = await SharedPreferences.getInstance();
       final vocabData = prefs.getString('vocabulary');
@@ -204,6 +258,7 @@ class VocabularyService extends ChangeNotifier {
   /// language pair and topic. If either the pair or topic
   /// doesn't exist, returns 0.
   int getWordCountForTopic(String languagePairKey, String topicId) {
+    _ensurePair(languagePairKey);
     final langVocab = _vocabulary[languagePairKey];
     if (langVocab == null) return 0;
     final words = langVocab[topicId];
@@ -216,6 +271,7 @@ class VocabularyService extends ChangeNotifier {
     List<String> topicIds,
     int count,
   ) {
+    _ensurePair(languagePairKey);
     debugPrint(
       'Getting words for language: $languagePairKey, topics: $topicIds',
     );
@@ -267,6 +323,7 @@ class VocabularyService extends ChangeNotifier {
     String? topicId,
     List<String>? topicIds,
   }) {
+    _ensurePair(languagePairKey);
     final langVocab = _vocabulary[languagePairKey];
     if (langVocab == null) return [];
 
