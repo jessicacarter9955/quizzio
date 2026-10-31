@@ -112,13 +112,13 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
                         const SizedBox(height: 16),
                         ...languageService
                             .searchLanguages(sourceSearchQuery)
-                            .where((lang) => _showUnavailable || vocabulary.hasAvailableTarget(lang.code))
+                            .where((lang) => _showUnavailable || _sourceCount(lang) > 0)
                             .map(
                               (lang) => LanguageListTile(
                                 language: lang,
                                 isSelected: selectedSource?.code == lang.code,
                                 count: _sourceCount(lang),
-                                available: vocabulary.hasAvailableTarget(lang.code),
+                                available: _sourceCount(lang) > 0,
                                 onTap: () =>
                                     setState(() => selectedSource = lang),
                               ),
@@ -215,7 +215,7 @@ class _LanguageSetupPageState extends State<LanguageSetupPage> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: (step == 0
-                          ? selectedSource != null && vocabulary.hasAvailableTarget(selectedSource!.code)
+                          ? selectedSource != null && _sourceCount(selectedSource!) > 0
                           : selectedTarget != null && selectedSource != null &&
                               vocabulary.getPairWordCount(selectedSource!.code, selectedTarget!.code) > 0)
                           ? () async {
