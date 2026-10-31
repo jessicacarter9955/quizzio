@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: wordweaver-unified-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -21,6 +25,18 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: Inspect Quiz Lab's original bundled vocabulary (nonblocking)
+        continue-on-error: true
+        run: |
+          set -eo pipefail
+          git fetch --no-tags --depth=1 origin quiz-lab-apk-builder
+          mkdir -p /tmp/quizlab_source
+          for part in 00 01 02 03 04; do
+            git show "FETCH_HEAD:release-payload-v21/part${part}.b64" >> /tmp/quizlab_source/combined.b64
+          done
+          base64 -d /tmp/quizlab_source/combined.b64 > /tmp/quizlab_source/source.zip
+          echo "== QUIZ LAB SOURCE CONTENTS =="
+          unzip -Z1 /tmp/quizlab_source/source.zip | grep -Ei 'asset|json|vocab|word' | head -100 || true
       - name: Resolve packages
         run: flutter pub get
       - name: Analyze source
