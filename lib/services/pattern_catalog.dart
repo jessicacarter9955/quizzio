@@ -4,6 +4,7 @@ import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
+import 'package:wordweaver/services/quizlab_topics.dart';
 
 /// Supplements Wordweaver's own stored vocabulary with the existing Quiz Lab
 /// bilingual quiz files. No network connection or manual import is required.
@@ -64,7 +65,7 @@ class PatternCatalog {
           sourceWord: from,
           targetWord: to,
           languagePairKey: pairKey,
-          topic: (term['category'] ?? 'General').toString(),
+          topic: quizLabTopicId((term['category'] ?? 'General').toString()),
           createdAt: DateTime.utc(2026, 1, 1),
         ));
       }
