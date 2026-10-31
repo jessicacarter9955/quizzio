@@ -11,6 +11,7 @@ import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/screens/quiz_page.dart';
 import 'package:wordweaver/screens/language_setup_page.dart';
 import 'package:wordweaver/screens/pattern_mnemonic_page.dart';
+import 'package:wordweaver/screens/pattern_writing_page.dart';
 
 /// One shared, native Material 3 interface on Android and Flutter Web.
 /// Wordweaver's existing palette, navigation and settings are preserved.
@@ -144,6 +145,14 @@ class _PatternScreenState extends State<PatternScreen> {
     ));
   }
 
+  void _startWriting() {
+    final pair = _pair, selected = _selection;
+    if (pair == null || selected.isEmpty) return;
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => PatternWritingPage(words: selected, pairKey: pair.key),
+    ));
+  }
+
   Widget _groupCard(PatternGroup group) {
     final theme = Theme.of(context);
     final checked = _checked.containsKey(_groupId(group));
@@ -248,11 +257,15 @@ class _PatternScreenState extends State<PatternScreen> {
                 icon: const Icon(Icons.quiz_outlined),
                 label: const Text('Quiz'),
               )),
-              const SizedBox(width: 10),
-              Expanded(child: OutlinedButton.icon(
+              const SizedBox(width: 8),
+              Expanded(child: OutlinedButton(
+                onPressed: selected.isEmpty ? null : _startWriting,
+                child: const Text('Write'),
+              )),
+              const SizedBox(width: 8),
+              Expanded(child: OutlinedButton(
                 onPressed: selected.isEmpty ? null : _startMnemonic,
-                icon: const Icon(Icons.psychology_outlined),
-                label: const Text('Mnemonic'),
+                child: const Text('Mnemonic'),
               )),
             ]),
           ]),
