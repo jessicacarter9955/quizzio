@@ -37,6 +37,18 @@ jobs:
           base64 -d /tmp/quizlab_source/combined.b64 > /tmp/quizlab_source/source.zip
           echo "== QUIZ LAB SOURCE CONTENTS =="
           unzip -Z1 /tmp/quizlab_source/source.zip | grep -Ei 'asset|json|vocab|word' | head -100 || true
+          python3 - <<'PY'
+          import zipfile,json
+          z=zipfile.ZipFile('/tmp/quizlab_source/source.zip')
+          for name in z.namelist():
+              if name.startswith('Quiz-Lab-Flutter/assets/data/') and name.endswith('.json'):
+                  try:
+                      obj=json.loads(z.read(name))
+                      print('DATA SHAPE:',name,'ROOT',type(obj).__name__, 'COUNT',len(obj))
+                      print('SAMPLE:',str(obj)[:650])
+                  except Exception as e:
+                      print('UNREADABLE:',name,str(e))
+          PY
       - name: Resolve packages
         run: flutter pub get
       - name: Analyze source
