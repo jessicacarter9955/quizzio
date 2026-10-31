@@ -1,0 +1,343 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:wordweaver/models/language_pair.dart';
+import 'package:wordweaver/models/vocabulary_word.dart';
+import 'package:wordweaver/models/quiz_question.dart';
+import 'package:wordweaver/services/language_service.dart';
+import 'package:wordweaver/services/pattern_catalog.dart';
+import 'package:wordweaver/services/pattern_engine.dart';
+import 'package:wordweaver/services/topic_service.dart';
+import 'package:wordweaver/screens/quiz_page.dart';
+import 'package:wordweaver/screens/language_setup_page.dart';
+import 'package:wordweaver/screens/pattern_mnemonic_page.dart';
+
+/// One shared, native Material 3 interface on Android and Flutter Web.
+/// Wordweaver's existing palette, navigation and settings are preserved.
+class PatternScreen extends StatefulWidget {
+  const PatternScreen({super.key});
+
+  @override
+  State<PatternScreen> createState() => _PatternScreenState();
+}
+
+class _PatternScreenState extends State<PatternScreen> {
+  PatternMode _mode = PatternMode.prefix;
+  String _branch = '';
+  List<VocabularyWord> _words = [];
+  final Map<String, List<VocabularyWord>> _checked = {};
+  final TextEditingController _maxController = TextEditingController(text: '50');
+  bool _all = true;
+  bool _loading = true;
+  String? _error;
+  LanguagePair? _pair;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      if (LanguageService().currentLanguagePair == null) {
+        await LanguageService().initialize();
+      }
+      final pair = LanguageService().currentLanguagePair;
+      if (pair == null) throw StateError('Select your language pair first.');
+      final words = await PatternCatalog.forPair(pair.key);
+      if (!mounted) return;
+      setState(() { _pair = pair; _words = words; _loading = false; });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _error = '$e'; _loading = false; });
+    }
+  }
+
+  @override
+  void dispose() {
+    _maxController.dispose();
+    super.dispose();
+  }
+
+  List<VocabularyWord> get _pool {
+    if (_branch.isEmpty) return _words;
+    return _words.where((w) {
+      final key = PatternEngine.lettersOnly(w.sourceWord);
+      return _mode == PatternMode.prefix
+          ? key.startsWith(_branch) : key.endsWith(_branch);
+    }).toList();
+  }
+
+  String _groupId(PatternGroup group) => '${_pair?.key}:${_mode.name}:${group.key}';
+
+  List<VocabularyWord> get _selection => PatternEngine.selectedWords(
+    _checked,
+    maximum: _all ? null : int.tryParse(_maxController.text),
+  );
+
+  void _openGroup(PatternGroup group) {
+    if (_mode == PatternMode.prefix || _mode == PatternMode.suffix) {
+      // A terminal group can be selected without adding a redundant drill level.
+      if (group.words.every((w) =>
+          PatternEngine.lettersOnly(w.sourceWord).runes.length <=
+          group.key.runes.length)) return;
+      setState(() => _branch = group.key);
+    } else {
+      setState(() {
+        final id = _groupId(group);
+        if (_checked.containsKey(id)) { _checked.remove(id); }
+        else { _checked[id] = group.words; }
+      });
+    }
+  }
+
+  void _select(PatternGroup group, bool checked) {
+    setState(() {
+      final id = _groupId(group);
+      if (checked) { _checked[id] = group.words; }
+      else { _checked.remove(id); }
+    });
+  }
+
+  List<QuizQuestion> _makeQuiz(List<VocabularyWord> selected) {
+    final all = PatternEngine.distinct([..._words, ...selected]);
+    final random = Random();
+    final result = <QuizQuestion>[];
+    for (final word in selected) {
+      final distractors = all
+          .map((w) => w.targetWord)
+          .where((s) => s != word.targetWord)
+          .toSet().toList()..shuffle(random);
+      final wrong = distractors.take(3).toList();
+      final options = [word.targetWord, ...wrong]..shuffle(random);
+      result.add(QuizQuestion(
+        word: word,
+        options: options,
+        correctIndex: options.indexOf(word.targetWord),
+        wrongAnswers: wrong,
+        topic: word.topic,
+      ));
+    }
+    return result..shuffle(random);
+  }
+
+  void _startQuiz() {
+    final pair = _pair, selected = _selection;
+    if (pair == null || selected.isEmpty) return;
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => QuizPage(
+        languagePair: pair,
+        selectedTopics: TopicService().topics,
+        questionCount: selected.length,
+        answerOptionCount: 3,
+        initialQuestions: _makeQuiz(selected),
+      ),
+    ));
+  }
+
+  void _startMnemonic() {
+    final pair = _pair, selected = _selection;
+    if (pair == null || selected.isEmpty) return;
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => PatternMnemonicPage(words: selected, pairKey: pair.key),
+    ));
+  }
+
+  Widget _groupCard(PatternGroup group) {
+    final theme = Theme.of(context);
+    final checked = _checked.containsKey(_groupId(group));
+    final branchable = (_mode == PatternMode.prefix || _mode == PatternMode.suffix) &&
+        group.words.any((w) =>
+          PatternEngine.lettersOnly(w.sourceWord).runes.length >
+          group.key.runes.length);
+    final preview = group.words.take(4).map((w) =>
+        '${w.sourceWord} → ${w.targetWord}').join(' · ');
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          Checkbox(
+            key: ValueKey('check_${_groupId(group)}'),
+            value: checked,
+            onChanged: (v) => _select(group, v ?? false),
+            semanticLabel: 'Add ${group.title} to combined quiz',
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () => _openGroup(group),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 6, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Text(group.title, style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 8),
+                      Text('${group.words.length}', style: theme.textTheme.labelMedium
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(preview, maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (branchable)
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              tooltip: 'Explore next letters',
+              onPressed: () => _openGroup(group),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _footer() {
+    final theme = Theme.of(context);
+    final selected = _selection;
+    return Material(
+      elevation: 4,
+      color: theme.colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              Expanded(child: Text(
+                '${_checked.length} groups · ${selected.length} unique questions',
+                style: theme.textTheme.labelMedium,
+              )),
+              TextButton(
+                onPressed: _checked.isEmpty ? null : () =>
+                    setState(() => _checked.clear()),
+                child: const Text('Clear'),
+              ),
+            ]),
+            Row(children: [
+              ChoiceChip(label: const Text('All selected'), selected: _all,
+                onSelected: (_) => setState(() => _all = true)),
+              const SizedBox(width: 8),
+              ChoiceChip(label: const Text('Maximum'), selected: !_all,
+                onSelected: (_) => setState(() => _all = false)),
+              if (!_all) ...[
+                const SizedBox(width: 8),
+                SizedBox(width: 74, child: TextField(
+                  controller: _maxController,
+                  decoration: const InputDecoration(
+                    isDense: true, labelText: 'Max', border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (_) => setState(() {}),
+                )),
+              ],
+            ]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: FilledButton.icon(
+                onPressed: selected.isEmpty ? null : _startQuiz,
+                icon: const Icon(Icons.quiz_outlined),
+                label: const Text('Quiz'),
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: OutlinedButton.icon(
+                onPressed: selected.isEmpty ? null : _startMnemonic,
+                icon: const Icon(Icons.psychology_outlined),
+                label: const Text('Mnemonic'),
+              )),
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final pool = _pool;
+    final depth = _branch.runes.length + 1;
+    final groups = PatternEngine.group(
+      pool, _mode, branch: _branch, depth: depth,
+    );
+    return Scaffold(
+      appBar: AppBar(title: const Text('Patterns'), centerTitle: true),
+      bottomNavigationBar: _footer(),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!))
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                  children: [
+                    Text(
+                      '${_pair!.source.flag} ${_pair!.source.name} → ${_pair!.target.flag} ${_pair!.target.name}',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 6),
+                    Text('${_words.length} unique words · all topics',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 18),
+                    Wrap(spacing: 7, runSpacing: 4, children: [
+                      for (final mode in PatternMode.values)
+                        ChoiceChip(
+                          label: Text(switch(mode) {
+                            PatternMode.prefix => 'Starts with',
+                            PatternMode.suffix => 'Ends with',
+                            PatternMode.letters => 'Letters',
+                            PatternMode.words => 'Word count',
+                          }),
+                          selected: _mode == mode,
+                          onSelected: (_) => setState(() {
+                            _mode = mode; _branch = '';
+                          }),
+                        ),
+                    ]),
+                    if (_branch.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Align(alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          icon: const Icon(Icons.arrow_back),
+                          label: Text('Back · ${_branch}'),
+                          onPressed: () => setState(() {
+                            final chars = _branch.runes.toList();
+                            chars.removeAt(_mode == PatternMode.prefix
+                                ? chars.length - 1 : 0);
+                            _branch = String.fromCharCodes(chars);
+                          }),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Text('${groups.length} groups',
+                      style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    if (groups.isEmpty) const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text('No vocabulary for this language pair yet.'),
+                    ),
+                    for (final group in groups) _groupCard(group),
+                    if (_pair != null) TextButton(
+                      onPressed: () async {
+                        await Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const LanguageSetupPage()));
+                        setState(() { _loading = true; _checked.clear(); _branch = ''; });
+                        await _load();
+                      },
+                      child: const Text('Change language pair'),
+                    ),
+                  ],
+                ),
+    );
+  }
+}
