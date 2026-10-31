@@ -48,6 +48,29 @@ class PatternCatalog {
         }
       }
     }
+    // Full Quiz Lab original: includes categories, subtopics, phrases and all
+    // available translation directions, not just the handful of demo files.
+    try {
+      final raw = jsonDecode(await rootBundle.loadString(
+        'assets/data/quizlab_terms.json')) as Map<String, dynamic>;
+      for (final item in raw['terms'] as List<dynamic>? ?? []) {
+        final term = item as Map<String, dynamic>;
+        final translations = (term['translations'] as Map<String, dynamic>? ?? {});
+        final from = translations[source[0]]?.toString().trim() ?? '';
+        final to = translations[source[1]]?.toString().trim() ?? '';
+        if (from.isEmpty || to.isEmpty) continue;
+        result.add(VocabularyWord(
+          id: term['id'].toString(),
+          sourceWord: from,
+          targetWord: to,
+          languagePairKey: pairKey,
+          topic: (term['category'] ?? 'General').toString(),
+          createdAt: DateTime.utc(2026, 1, 1),
+        ));
+      }
+    } catch (_) {
+      // Existing imported Wordweaver words remain accessible offline.
+    }
     return PatternEngine.distinct(result);
   }
 }
