@@ -3,6 +3,8 @@ import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/user_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
+import 'package:wordweaver/services/quiz_selection.dart';
+import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/screens/language_setup_page.dart';
 import 'package:wordweaver/screens/topic_selection_page.dart';
 import 'package:wordweaver/screens/quiz_page.dart';
@@ -18,8 +20,19 @@ import 'package:wordweaver/screens/pattern_screen.dart';
 import 'package:wordweaver/screens/image_hotspot_quiz_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    LanguageService().initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -438,9 +451,10 @@ class StartModesButton extends StatelessWidget {
     bool speaking = false,
     bool cameFromRetry = false,
   }) async {
+    await Future.wait([VocabularyService().ready, topicService.ready]);
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
-    final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+    final baseTopics = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
     final topicMode = quizService.topicMode;
     final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
         ? [baseTopics.first]
@@ -481,9 +495,7 @@ class StartModesButton extends StatelessWidget {
       if (cameFromRetry) {
         final refreshedSelected = topicService.getSelectedTopics();
         final refreshedAll = topicService.topics;
-        final refreshedBase = refreshedSelected.isEmpty
-            ? refreshedAll
-            : refreshedSelected;
+        final refreshedBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => refreshedSelected.isEmpty || refreshedSelected.contains(t)).toList();
         final refreshedTopicsToUse =
             (topicMode == 'single' && refreshedBase.isNotEmpty)
             ? [refreshedBase.first]
@@ -510,7 +522,7 @@ class StartModesButton extends StatelessWidget {
 
     final finalSelected = topicService.getSelectedTopics();
     final finalAll = topicService.topics;
-    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => finalSelected.isEmpty || finalSelected.contains(t)).toList();
     final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
         ? [finalBase.first]
         : finalBase;
@@ -526,7 +538,7 @@ class StartModesButton extends StatelessWidget {
       return;
     }
 
-    final questionCount = quizService.questionCount;
+    final questionCount = QuizSelection.quizCount(finalPair?.key, finalTopicsToUse.map((t) => t.id));
     final answerOptionCount = quizService.answerOptionCount;
     Navigator.push(
       context,
@@ -556,9 +568,10 @@ class StartModesButton extends StatelessWidget {
     bool speaking = false,
     bool cameFromRetry = false,
   }) async {
+    await Future.wait([VocabularyService().ready, topicService.ready]);
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
-    final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+    final baseTopics = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
     final topicMode = quizService.topicMode;
     final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
         ? [baseTopics.first]
@@ -599,9 +612,7 @@ class StartModesButton extends StatelessWidget {
       if (cameFromRetry) {
         final refreshedSelected = topicService.getSelectedTopics();
         final refreshedAll = topicService.topics;
-        final refreshedBase = refreshedSelected.isEmpty
-            ? refreshedAll
-            : refreshedSelected;
+        final refreshedBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => refreshedSelected.isEmpty || refreshedSelected.contains(t)).toList();
         final refreshedTopicsToUse =
             (topicMode == 'single' && refreshedBase.isNotEmpty)
             ? [refreshedBase.first]
@@ -628,7 +639,7 @@ class StartModesButton extends StatelessWidget {
 
     final finalSelected = topicService.getSelectedTopics();
     final finalAll = topicService.topics;
-    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => finalSelected.isEmpty || finalSelected.contains(t)).toList();
     final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
         ? [finalBase.first]
         : finalBase;
@@ -644,7 +655,7 @@ class StartModesButton extends StatelessWidget {
       return;
     }
 
-    final questionCount = quizService.questionCount;
+    final questionCount = QuizSelection.quizCount(finalPair?.key, finalTopicsToUse.map((t) => t.id));
     final answerOptionCount = quizService.answerOptionCount;
     Navigator.push(
       context,
@@ -669,9 +680,10 @@ class StartModesButton extends StatelessWidget {
     QuizService quizService, {
     bool cameFromRetry = false,
   }) async {
+    await Future.wait([VocabularyService().ready, topicService.ready]);
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
-    final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+    final baseTopics = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
     final topicMode = quizService.topicMode;
     final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
         ? [baseTopics.first]
@@ -707,9 +719,7 @@ class StartModesButton extends StatelessWidget {
       if (cameFromRetry) {
         final refreshedSelected = topicService.getSelectedTopics();
         final refreshedAll = topicService.topics;
-        final refreshedBase = refreshedSelected.isEmpty
-            ? refreshedAll
-            : refreshedSelected;
+        final refreshedBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => refreshedSelected.isEmpty || refreshedSelected.contains(t)).toList();
         final refreshedTopicsToUse =
             (topicMode == 'single' && refreshedBase.isNotEmpty)
             ? [refreshedBase.first]
@@ -731,7 +741,7 @@ class StartModesButton extends StatelessWidget {
 
     final finalSelected = topicService.getSelectedTopics();
     final finalAll = topicService.topics;
-    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => finalSelected.isEmpty || finalSelected.contains(t)).toList();
     final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
         ? [finalBase.first]
         : finalBase;
@@ -767,9 +777,10 @@ class StartModesButton extends StatelessWidget {
     QuizService quizService, {
     bool cameFromRetry = false,
   }) async {
+    await Future.wait([VocabularyService().ready, topicService.ready]);
     final selectedTopics = topicService.getSelectedTopics();
     final allTopics = topicService.topics;
-    final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+    final baseTopics = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
     final topicMode = quizService.topicMode;
     final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
         ? [baseTopics.first]
@@ -805,9 +816,7 @@ class StartModesButton extends StatelessWidget {
       if (cameFromRetry) {
         final refreshedSelected = topicService.getSelectedTopics();
         final refreshedAll = topicService.topics;
-        final refreshedBase = refreshedSelected.isEmpty
-            ? refreshedAll
-            : refreshedSelected;
+        final refreshedBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => refreshedSelected.isEmpty || refreshedSelected.contains(t)).toList();
         final refreshedTopicsToUse =
             (topicMode == 'single' && refreshedBase.isNotEmpty)
             ? [refreshedBase.first]
@@ -829,7 +838,7 @@ class StartModesButton extends StatelessWidget {
 
     final finalSelected = topicService.getSelectedTopics();
     final finalAll = topicService.topics;
-    final finalBase = finalSelected.isEmpty ? finalAll : finalSelected;
+    final finalBase = QuizSelection.availableTopics(languageService.currentLanguagePair?.key).where((t) => finalSelected.isEmpty || finalSelected.contains(t)).toList();
     final finalTopicsToUse = (topicMode == 'single' && finalBase.isNotEmpty)
         ? [finalBase.first]
         : finalBase;
@@ -845,7 +854,7 @@ class StartModesButton extends StatelessWidget {
       return;
     }
 
-    final questionCount = quizService.questionCount;
+    final questionCount = QuizSelection.quizCount(finalPair?.key, finalTopicsToUse.map((t) => t.id));
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -888,18 +897,19 @@ class _RuzzleCtaState extends State<RuzzleCta> {
       listenable: Listenable.merge([
         widget.topicService,
         widget.languageService,
+        VocabularyService(),
         _quizService,
       ]),
       builder: (context, _) {
         final selectedTopics = widget.topicService.getSelectedTopics();
         final allTopics = widget.topicService.topics;
-        final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+        final baseTopics = QuizSelection.availableTopics(widget.languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
         final topicMode = _quizService.topicMode;
         final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
             ? [baseTopics.first]
             : baseTopics;
         final pair = widget.languageService.currentLanguagePair;
-        final isEnabled = pair != null && topicsToUse.isNotEmpty;
+        final isEnabled = pair != null && QuizSelection.wordCount(pair.key, topicsToUse.map((t) => t.id)) > 0;
 
         return SizedBox(
           width: double.infinity,
@@ -929,7 +939,7 @@ class _RuzzleCtaState extends State<RuzzleCta> {
               ),
             ),
             child: Text(
-              'Play Ruzzle',
+              'Play Ruzzle (${QuizSelection.wordCount(pair?.key, topicsToUse.map((t) => t.id))})',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onPrimary,
@@ -1178,19 +1188,20 @@ class _StartQuizCtaState extends State<StartQuizCta> {
       listenable: Listenable.merge([
         widget.topicService,
         widget.languageService,
+        VocabularyService(),
         _quizService,
       ]),
       builder: (context, _) {
         final selectedTopics = widget.topicService.getSelectedTopics();
         final allTopics = widget.topicService.topics;
-        final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+        final baseTopics = QuizSelection.availableTopics(widget.languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
         final topicMode = _quizService.topicMode;
         final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
             ? [baseTopics.first]
             : baseTopics;
         final pair = widget.languageService.currentLanguagePair;
-        final isEnabled = pair != null && topicsToUse.isNotEmpty;
-        final questionCount = _quizService.questionCount;
+        final isEnabled = pair != null && QuizSelection.wordCount(pair.key, topicsToUse.map((t) => t.id)) > 0;
+        final questionCount = QuizSelection.quizCount(pair?.key, topicsToUse.map((t) => t.id));
         final answerOptionCount = _quizService.answerOptionCount;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1225,7 +1236,7 @@ class _StartQuizCtaState extends State<StartQuizCta> {
                   ),
                 ),
                 child: Text(
-                  isEnabled ? l10n.homeStartQuiz : l10n.homePickTopicsToStart,
+                  isEnabled ? '${l10n.homeStartQuiz} ($questionCount)' : l10n.homePickTopicsToStart,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimary,
@@ -1270,19 +1281,20 @@ class _CompleteWordCtaState extends State<CompleteWordCta> {
       listenable: Listenable.merge([
         widget.topicService,
         widget.languageService,
+        VocabularyService(),
         _quizService,
       ]),
       builder: (context, _) {
         final selectedTopics = widget.topicService.getSelectedTopics();
         final allTopics = widget.topicService.topics;
-        final baseTopics = selectedTopics.isEmpty ? allTopics : selectedTopics;
+        final baseTopics = QuizSelection.availableTopics(widget.languageService.currentLanguagePair?.key).where((t) => selectedTopics.isEmpty || selectedTopics.contains(t)).toList();
         final topicMode = _quizService.topicMode;
         final topicsToUse = (topicMode == 'single' && baseTopics.isNotEmpty)
             ? [baseTopics.first]
             : baseTopics;
         final pair = widget.languageService.currentLanguagePair;
-        final isEnabled = pair != null && topicsToUse.isNotEmpty;
-        final questionCount = _quizService.questionCount;
+        final isEnabled = pair != null && QuizSelection.wordCount(pair.key, topicsToUse.map((t) => t.id)) > 0;
+        final questionCount = QuizSelection.quizCount(pair?.key, topicsToUse.map((t) => t.id));
         final answerOptionCount = _quizService.answerOptionCount;
         return SizedBox(
           width: double.infinity,
@@ -1318,7 +1330,7 @@ class _CompleteWordCtaState extends State<CompleteWordCta> {
             ),
             child: Text(
               isEnabled
-                  ? l10n.homePlayCompleteWord
+                  ? '${l10n.homePlayCompleteWord} ($questionCount)'
                   : l10n.homePickTopicsToStart,
               style: Theme.of(
                 context,
@@ -1340,11 +1352,12 @@ class CurrentTopicsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return ListenableBuilder(
-      listenable: topicService,
+      listenable: Listenable.merge([topicService, LanguageService(), VocabularyService()]),
       builder: (context, _) {
-        final topics = topicService.topics;
-        final selected = topicService.getSelectedTopics();
-        final showing = selected.isEmpty ? topics : selected;
+        final topics = QuizSelection.availableTopics(LanguageService().currentLanguagePair?.key);
+        final selectedIds = topicService.getSelectedTopics().map((t) => t.id).toSet();
+        final showing = selectedIds.isEmpty ? topics
+            : topics.where((t) => selectedIds.contains(t.id)).toList();
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -1440,7 +1453,7 @@ class CurrentTopicsCard extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    t.name,
+                                    '${t.name} (${VocabularyService().getWordCountForTopic(LanguageService().currentLanguagePairKey, t.id)})',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: Theme.of(
