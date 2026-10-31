@@ -11,11 +11,11 @@ import 'package:wordweaver/services/quizlab_topics.dart';
 class PatternCatalog {
   static const _pairs = ['es', 'fr', 'it', 'pt', 'ru', 'ar'];
 
-  static Future<List<VocabularyWord>> forPair(String pairKey) async {
+  static Future<List<VocabularyWord>> forPair(String pairKey, {List<String>? topicIds}) async {
     final source = pairKey.split('_');
     if (source.length != 2) return [];
     await VocabularyService().ready;
-    final topics = TopicService().topics.map((t) => t.id).toList();
+    final topics = topicIds ?? TopicService().topics.map((t) => t.id).toList();
     final result = VocabularyService().getWordsForQuiz(
       pairKey, topics, 10000000,
     );
@@ -72,6 +72,7 @@ class PatternCatalog {
     } catch (_) {
       // Existing imported Wordweaver words remain accessible offline.
     }
-    return PatternEngine.distinct(result);
+    final allowed = topics.toSet();
+    return PatternEngine.distinct(result.where((w) => allowed.contains(w.topic)));
   }
 }
