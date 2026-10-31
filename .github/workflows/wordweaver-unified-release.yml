@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   release:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -70,6 +69,9 @@ jobs:
           gh release view wordweaver-unified-latest --json assets,url
 
   pages:
+    # GitHub Pages requires repository administrator activation; until then,
+    # push builds are downloadable through the stable Release instead.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
