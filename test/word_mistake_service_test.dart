@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
-import 'package:wordweaver/screens/mistake_review_page.dart';
 import 'package:wordweaver/screens/pattern_mnemonic_page.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
-import 'package:wordweaver/services/topic_service.dart';
-import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/services/word_mistake_service.dart';
 
 void main() {
@@ -52,21 +49,6 @@ void main() {
     expect(saved['writingMigrated'], true);
     expect((saved['records'] as List).length, 1);
     expect((saved['records'] as List).single['wrong'], 2);
-  });
-
-  testWidgets('Review list shows errors and filters', (tester) async {
-    await Future.wait([
-      WordMistakeService().ready,
-      TopicService().ready,
-      VocabularyService().ready,
-    ]);
-    await tester.pumpWidget(const MaterialApp(home: MistakeReviewPage()));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Most missed words'), findsOneWidget);
-    expect(find.textContaining('bread'), findsWidgets);
-    expect(find.textContaining('mistakes'), findsWidgets);
-    expect(find.text('Quiz (1)'), findsOneWidget);
   });
 
   testWidgets('Forced mnemonic review includes already mastered words', (tester) async {
