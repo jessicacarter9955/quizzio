@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:wordweaver/services/theme_service.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
@@ -305,11 +304,11 @@ class SettingsPage extends StatelessWidget {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        withData: true,
       );
 
-      if (result != null && result.files.single.path != null) {
-        final file = File(result.files.single.path!);
-        final contents = await file.readAsString();
+      if (result != null && result.files.single.bytes != null) {
+        final contents = utf8.decode(result.files.single.bytes!);
         final Map<String, dynamic> data =
             jsonDecode(contents) as Map<String, dynamic>;
 
