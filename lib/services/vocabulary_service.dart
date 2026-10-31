@@ -30,6 +30,7 @@ class VocabularyService extends ChangeNotifier {
   /// Wordweaver language direction. We never write its whole multilingual
   /// corpus to SharedPreferences (browser quota / mobile memory protection).
   List<dynamic> _originalQuizLabTerms = [];
+  final Map<String, int> _pairCountCache = <String, int>{};
   final Set<String> _hydratedDirections = {};
 
   Future<void> _loadOriginalQuizLabCorpus() async {
@@ -38,6 +39,7 @@ class VocabularyService extends ChangeNotifier {
         'assets/data/quizlab_terms.json')) as Map<String, dynamic>;
       _originalQuizLabTerms = data['terms'] as List<dynamic>? ?? [];
       await _loadQuizLabConversationQuestions();
+      _pairCountCache.clear();
       debugPrint('Original Quiz Lab: ${_originalQuizLabTerms.length} terms available.');
     } catch (e) {
       debugPrint('Original Quiz Lab vocabulary missing: $e');
@@ -315,6 +317,8 @@ class VocabularyService extends ChangeNotifier {
   int getPairWordCount(String source, String target) {
     if (source == target) return 0;
     final direction = '${source}_${target}';
+    final cached = _pairCountCache[direction];
+    if (cached != null) return cached;
     final keys = <String>{};
     for (final raw in _originalQuizLabTerms) {
       if (raw is! Map<String, dynamic>) continue;
@@ -334,6 +338,7 @@ class VocabularyService extends ChangeNotifier {
         }
       }
     }
+    _pairCountCache[direction] = keys.length;
     return keys.length;
   }
 
@@ -466,6 +471,7 @@ class VocabularyService extends ChangeNotifier {
 
   Future<void> importFromJson(Map<String, dynamic> data) async {
     try {
+      _pairCountCache.clear();
       _vocabulary = {};
       data.forEach((langPairKey, topics) {
         _vocabulary[langPairKey] = {};
