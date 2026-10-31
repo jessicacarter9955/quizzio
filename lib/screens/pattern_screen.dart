@@ -153,6 +153,62 @@ class _PatternScreenState extends State<PatternScreen> {
     ));
   }
 
+  void _showGroupTable(PatternGroup group) {
+    final sorted = [...group.words]
+      ..sort((a, b) => a.sourceWord.compareTo(b.sourceWord));
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.72,
+        minChildSize: 0.35,
+        maxChildSize: 0.95,
+        builder: (context, controller) => Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+          child: Column(children: [
+            Row(children: [
+              Expanded(child: Text(
+                '${group.title} · ${sorted.length} entries',
+                style: Theme.of(context).textTheme.titleLarge,
+              )),
+              TextButton(
+                onPressed: () {
+                  _select(group, true);
+                  Navigator.pop(sheetContext);
+                },
+                child: const Text('Select table'),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Expanded(child: ListView.separated(
+              controller: controller,
+              itemCount: sorted.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (_, i) {
+                final w = sorted[i];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(w.sourceWord),
+                  subtitle: Text(w.topic),
+                  trailing: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 150),
+                    child: Text(
+                      w.targetWord,
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                );
+              },
+            )),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Widget _groupCard(PatternGroup group) {
     final theme = Theme.of(context);
     final checked = _checked.containsKey(_groupId(group));
@@ -176,7 +232,7 @@ class _PatternScreenState extends State<PatternScreen> {
           ),
           Expanded(
             child: InkWell(
-              onTap: () => _openGroup(group),
+              onTap: () => _showGroupTable(group),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(0, 12, 6, 12),
                 child: Column(
