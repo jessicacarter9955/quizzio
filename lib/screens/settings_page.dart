@@ -48,11 +48,9 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
                 child: ListenableBuilder(
                   listenable: themeService,
                   builder: (context, _) => SwitchListTile(
@@ -97,11 +95,9 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
                 child: SettingsListTile(
                   icon: Icons.language,
                   title: l10n.settingsLanguageLabel,
@@ -122,11 +118,9 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
                 child: SettingsListTile(
                   icon: Icons.tune,
                   title: l10n.settingsQuizSettingsTile,
@@ -147,11 +141,9 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
                 child: Column(
                   children: [
                     SettingsListTile(
@@ -248,11 +240,9 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
                 child: SettingsListTile(
                   icon: Icons.mic,
                   title: 'Speech & AI',
@@ -263,11 +253,9 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              Material(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
                 child: Column(
                   children: [
                     SettingsListTile(
