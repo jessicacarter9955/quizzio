@@ -8,6 +8,8 @@ import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/pattern_catalog.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
 import 'package:wordweaver/services/topic_service.dart';
+import 'package:wordweaver/services/quiz_selection.dart';
+import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/screens/quiz_page.dart';
 import 'package:wordweaver/screens/language_setup_page.dart';
 import 'package:wordweaver/screens/pattern_mnemonic_page.dart';
@@ -46,7 +48,11 @@ class _PatternScreenState extends State<PatternScreen> {
       }
       final pair = LanguageService().currentLanguagePair;
       if (pair == null) throw StateError('Select your language pair first.');
-      final words = await PatternCatalog.forPair(pair.key);
+      await Future.wait([TopicService().ready, VocabularyService().ready]);
+      final topics = QuizSelection.activeTopics(pair.key);
+      final words = await PatternCatalog.forPair(
+        pair.key, topicIds: topics.map((t) => t.id).toList(),
+      );
       if (!mounted) return;
       setState(() { _pair = pair; _words = words; _loading = false; });
     } catch (e) {
@@ -129,7 +135,8 @@ class _PatternScreenState extends State<PatternScreen> {
     Navigator.push(context, MaterialPageRoute(
       builder: (_) => QuizPage(
         languagePair: pair,
-        selectedTopics: TopicService().topics,
+        selectedTopics: TopicService().topics.where((t) =>
+            selected.map((w) => w.topic).contains(t.id)).toList(),
         questionCount: selected.length,
         answerOptionCount: 3,
         initialQuestions: _makeQuiz(selected),
@@ -242,7 +249,7 @@ class _PatternScreenState extends State<PatternScreen> {
                       Text(group.title, style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.w600)),
                       const SizedBox(width: 8),
-                      Text('${group.words.length}', style: theme.textTheme.labelMedium
+                      Text('(${group.words.length})', style: theme.textTheme.labelMedium
                           ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                     ]),
                     const SizedBox(height: 4),
@@ -311,17 +318,17 @@ class _PatternScreenState extends State<PatternScreen> {
               Expanded(child: FilledButton.icon(
                 onPressed: selected.isEmpty ? null : _startQuiz,
                 icon: const Icon(Icons.quiz_outlined),
-                label: const Text('Quiz'),
+                label: Text('Quiz (${selected.length})'),
               )),
               const SizedBox(width: 8),
               Expanded(child: OutlinedButton(
                 onPressed: selected.isEmpty ? null : _startWriting,
-                child: const Text('Write'),
+                child: Text('Write (${selected.length})'),
               )),
               const SizedBox(width: 8),
               Expanded(child: OutlinedButton(
                 onPressed: selected.isEmpty ? null : _startMnemonic,
-                child: const Text('Mnemonic'),
+                child: Text('Mnemonic (${selected.length})'),
               )),
             ]),
           ]),
@@ -388,7 +395,7 @@ class _PatternScreenState extends State<PatternScreen> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    Text('${groups.length} groups',
+                    Text('Pattern groups (${groups.length})',
                       style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     if (groups.isEmpty) const Padding(
