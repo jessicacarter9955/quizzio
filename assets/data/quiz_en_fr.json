@@ -1,0 +1,527 @@
+{
+  "quizId": "vocab_en_fr_1",
+  "sourceLanguage": "English",
+  "targetLanguage": "French",
+  "questions": [
+    {
+      "id": 1,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your name?",
+      "question": "How do you say 'What is your name?' in French?",
+      "correctAnswer": "Comment tu t’appelles ?",
+      "options": [
+        "Comment tu t’appelles ?",
+        "Quel âge as-tu ?",
+        "D’où viens-tu ?",
+        "Où habites-tu ?"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "multiple_choice",
+      "sourceEnglish": "How old are you?",
+      "question": "How do you say 'How old are you?' in French?",
+      "correctAnswer": "Quel âge as-tu ?",
+      "options": [
+        "Quel âge as-tu ?",
+        "Comment tu t’appelles ?",
+        "Où habites-tu ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where are you from?",
+      "question": "How do you say 'Where are you from?' in French?",
+      "correctAnswer": "D’où viens-tu ?",
+      "options": [
+        "D’où viens-tu ?",
+        "Où habites-tu ?",
+        "As-tu une grande famille ?",
+        "Où es-tu né ?"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where do you live?",
+      "question": "How do you say 'Where do you live?' in French?",
+      "correctAnswer": "Où habites-tu ?",
+      "options": [
+        "Où habites-tu ?",
+        "D’où viens-tu ?",
+        "Que fais-tu dans la vie ?",
+        "Que fais-tu habituellement le week-end ?"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do for a living?",
+      "question": "How do you say 'What do you do for a living?' in French?",
+      "correctAnswer": "Que fais-tu dans la vie ?",
+      "options": [
+        "Que fais-tu dans la vie ?",
+        "As-tu des frères ou des sœurs ?",
+        "Quelles langues parles-tu ?",
+        "Quel est ton hobby ?"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have brothers or sisters?",
+      "question": "How do you say 'Do you have brothers or sisters?' in French?",
+      "correctAnswer": "As-tu des frères ou des sœurs ?",
+      "options": [
+        "As-tu des frères ou des sœurs ?",
+        "As-tu une grande famille ?",
+        "Quelles langues parles-tu ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "multiple_choice",
+      "sourceEnglish": "What languages do you speak?",
+      "question": "How do you say 'What languages do you speak?' in French?",
+      "correctAnswer": "Quelles langues parles-tu ?",
+      "options": [
+        "Quelles langues parles-tu ?",
+        "Que fais-tu dans la vie ?",
+        "Qu’est-ce que tu aimes faire pendant ton temps libre ?",
+        "Que fais-tu habituellement le week-end ?"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you like doing in your free time?",
+      "question": "How do you say 'What do you like doing in your free time?' in French?",
+      "correctAnswer": "Qu’est-ce que tu aimes faire pendant ton temps libre ?",
+      "options": [
+        "Qu’est-ce que tu aimes faire pendant ton temps libre ?",
+        "Quel est ton hobby ?",
+        "Que fais-tu habituellement le week-end ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have a big family?",
+      "question": "How do you say 'Do you have a big family?' in French?",
+      "correctAnswer": "As-tu une grande famille ?",
+      "options": [
+        "As-tu une grande famille ?",
+        "As-tu des frères ou des sœurs ?",
+        "Où es-tu né ?",
+        "Où habites-tu ?"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where were you born?",
+      "question": "How do you say 'Where were you born?' in French?",
+      "correctAnswer": "Où es-tu né ?",
+      "options": [
+        "Où es-tu né ?",
+        "D’où viens-tu ?",
+        "Où habites-tu ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your hobby?",
+      "question": "How do you say 'What is your hobby?' in French?",
+      "correctAnswer": "Quel est ton hobby ?",
+      "options": [
+        "Quel est ton hobby ?",
+        "Qu’est-ce que tu aimes faire pendant ton temps libre ?",
+        "Que fais-tu dans la vie ?",
+        "Quelles langues parles-tu ?"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you usually do at the weekend?",
+      "question": "How do you say 'What do you usually do at the weekend?' in French?",
+      "correctAnswer": "Que fais-tu habituellement le week-end ?",
+      "options": [
+        "Que fais-tu habituellement le week-end ?",
+        "Qu’est-ce que tu aimes faire pendant ton temps libre ?",
+        "Aimes-tu voyager ?",
+        "Où habites-tu ?"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like travelling?",
+      "question": "How do you say 'Do you like travelling?' in French?",
+      "correctAnswer": "Aimes-tu voyager ?",
+      "options": [
+        "Aimes-tu voyager ?",
+        "Qu’est-ce que tu aimes faire pendant ton temps libre ?",
+        "As-tu une grande famille ?",
+        "Quel est ton hobby ?"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you married?",
+      "question": "How do you say 'Are you married?' in French?",
+      "correctAnswer": "Es-tu marié(e) ?",
+      "options": [
+        "Es-tu marié(e) ?",
+        "As-tu des frères ou des sœurs ?",
+        "As-tu une grande famille ?",
+        "Où habites-tu ?"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have children?",
+      "question": "How do you say 'Do you have children?' in French?",
+      "correctAnswer": "As-tu des enfants ?",
+      "options": [
+        "As-tu des enfants ?",
+        "As-tu des frères ou des sœurs ?",
+        "Où es-tu né ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite food?",
+      "question": "How do you say 'What is your favorite food?' in French?",
+      "correctAnswer": "Quel est ton plat préféré ?",
+      "options": [
+        "Quel est ton plat préféré ?",
+        "Quel est ton hobby ?",
+        "Que fais-tu dans la vie ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite music?",
+      "question": "How do you say 'What is your favorite music?' in French?",
+      "correctAnswer": "Quel est ton style de musique préféré ?",
+      "options": [
+        "Quel est ton style de musique préféré ?",
+        "Quel est ton hobby ?",
+        "Quelles langues parles-tu ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like sports?",
+      "question": "How do you say 'Do you like sports?' in French?",
+      "correctAnswer": "Aimes-tu le sport ?",
+      "options": [
+        "Aimes-tu le sport ?",
+        "Aimes-tu voyager ?",
+        "As-tu une grande famille ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 19,
+      "type": "multiple_choice",
+      "sourceEnglish": "What sport do you practice?",
+      "question": "How do you say 'What sport do you practice?' in French?",
+      "correctAnswer": "Quel sport pratiques-tu ?",
+      "options": [
+        "Quel sport pratiques-tu ?",
+        "Que fais-tu dans la vie ?",
+        "Quel est ton hobby ?",
+        "Aimes-tu le sport ?"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you work or study?",
+      "question": "How do you say 'Do you work or study?' in French?",
+      "correctAnswer": "Tu travailles ou tu étudies ?",
+      "options": [
+        "Tu travailles ou tu étudies ?",
+        "Que fais-tu dans la vie ?",
+        "Où habites-tu ?",
+        "Quelles langues parles-tu ?"
+      ]
+    },
+    {
+      "id": 21,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you study?",
+      "question": "How do you say 'What do you study?' in French?",
+      "correctAnswer": "Qu’est-ce que tu étudies ?",
+      "options": [
+        "Qu’est-ce que tu étudies ?",
+        "Que fais-tu dans la vie ?",
+        "Où es-tu né ?",
+        "Quel est ton hobby ?"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you wake up?",
+      "question": "How do you say 'What time do you wake up?' in French?",
+      "correctAnswer": "À quelle heure te réveilles-tu ?",
+      "options": [
+        "À quelle heure te réveilles-tu ?",
+        "À quelle heure travailles-tu ?",
+        "Que fais-tu aujourd’hui ?",
+        "Où habites-tu ?"
+      ]
+    },
+    {
+      "id": 23,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you work?",
+      "question": "How do you say 'What time do you work?' in French?",
+      "correctAnswer": "À quelle heure travailles-tu ?",
+      "options": [
+        "À quelle heure travailles-tu ?",
+        "À quelle heure te réveilles-tu ?",
+        "Que fais-tu dans la vie ?",
+        "Que fais-tu aujourd’hui ?"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do today?",
+      "question": "How do you say 'What do you do today?' in French?",
+      "correctAnswer": "Que fais-tu aujourd’hui ?",
+      "options": [
+        "Que fais-tu aujourd’hui ?",
+        "Que fais-tu habituellement le week-end ?",
+        "Que fais-tu dans la vie ?",
+        "Où habites-tu ?"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like coffee?",
+      "question": "How do you say 'Do you like coffee?' in French?",
+      "correctAnswer": "Aimes-tu le café ?",
+      "options": [
+        "Aimes-tu le café ?",
+        "Aimes-tu voyager ?",
+        "Quel est ton hobby ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 26,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you prefer tea or coffee?",
+      "question": "How do you say 'Do you prefer tea or coffee?' in French?",
+      "correctAnswer": "Tu préfères le thé ou le café ?",
+      "options": [
+        "Tu préfères le thé ou le café ?",
+        "Aimes-tu le café ?",
+        "Qu’est-ce que tu bois ?",
+        "Quel est ton hobby ?"
+      ]
+    },
+    {
+      "id": 27,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite city?",
+      "question": "How do you say 'What is your favorite city?' in French?",
+      "correctAnswer": "Quelle est ta ville préférée ?",
+      "options": [
+        "Quelle est ta ville préférée ?",
+        "Où habites-tu ?",
+        "Où es-tu né ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like reading?",
+      "question": "How do you say 'Do you like reading?' in French?",
+      "correctAnswer": "Aimes-tu lire ?",
+      "options": [
+        "Aimes-tu lire ?",
+        "Aimes-tu voyager ?",
+        "Quel est ton hobby ?",
+        "Quelles langues parles-tu ?"
+      ]
+    },
+    {
+      "id": 29,
+      "type": "multiple_choice",
+      "sourceEnglish": "What book are you reading?",
+      "question": "How do you say 'What book are you reading?' in French?",
+      "correctAnswer": "Quel livre es-tu en train de lire ?",
+      "options": [
+        "Quel livre es-tu en train de lire ?",
+        "Aimes-tu lire ?",
+        "Quel est ton hobby ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like movies?",
+      "question": "How do you say 'Do you like movies?' in French?",
+      "correctAnswer": "Aimes-tu les films ?",
+      "options": [
+        "Aimes-tu les films ?",
+        "Aimes-tu lire ?",
+        "Quel est ton hobby ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 31,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite movie?",
+      "question": "How do you say 'What is your favorite movie?' in French?",
+      "correctAnswer": "Quel est ton film préféré ?",
+      "options": [
+        "Quel est ton film préféré ?",
+        "Aimes-tu les films ?",
+        "Quel est ton hobby ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like living here?",
+      "question": "How do you say 'Do you like living here?' in French?",
+      "correctAnswer": "Aimes-tu vivre ici ?",
+      "options": [
+        "Aimes-tu vivre ici ?",
+        "Où habites-tu ?",
+        "Aimes-tu voyager ?",
+        "Que fais-tu dans la vie ?"
+      ]
+    },
+    {
+      "id": 33,
+      "type": "multiple_choice",
+      "sourceEnglish": "How long have you lived here?",
+      "question": "How do you say 'How long have you lived here?' in French?",
+      "correctAnswer": "Depuis combien de temps vis-tu ici ?",
+      "options": [
+        "Depuis combien de temps vis-tu ici ?",
+        "Où habites-tu ?",
+        "D’où viens-tu ?",
+        "Où es-tu né ?"
+      ]
+    },
+    {
+      "id": 34,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have pets?",
+      "question": "How do you say 'Do you have pets?' in French?",
+      "correctAnswer": "As-tu des animaux de compagnie ?",
+      "options": [
+        "As-tu des animaux de compagnie ?",
+        "As-tu des enfants ?",
+        "As-tu des frères ou des sœurs ?",
+        "Aimes-tu le sport ?"
+      ]
+    },
+    {
+      "id": 35,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite color?",
+      "question": "How do you say 'What is your favorite color?' in French?",
+      "correctAnswer": "Quelle est ta couleur préférée ?",
+      "options": [
+        "Quelle est ta couleur préférée ?",
+        "Quel est ton hobby ?",
+        "Que fais-tu dans la vie ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 36,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you a morning person?",
+      "question": "How do you say 'Are you a morning person?' in French?",
+      "correctAnswer": "Es-tu du matin ?",
+      "options": [
+        "Es-tu du matin ?",
+        "À quelle heure te réveilles-tu ?",
+        "Que fais-tu aujourd’hui ?",
+        "Aimes-tu vivre ici ?"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like cooking?",
+      "question": "How do you say 'Do you like cooking?' in French?",
+      "correctAnswer": "Aimes-tu cuisiner ?",
+      "options": [
+        "Aimes-tu cuisiner ?",
+        "Quel est ton plat préféré ?",
+        "Que fais-tu dans la vie ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 38,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite dish?",
+      "question": "How do you say 'What is your favorite dish?' in French?",
+      "correctAnswer": "Quel est ton plat préféré ?",
+      "options": [
+        "Quel est ton plat préféré ?",
+        "Quel est ton plat préféré ?",
+        "Aimes-tu cuisiner ?",
+        "Quel est ton hobby ?"
+      ]
+    },
+    {
+      "id": 39,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like learning languages?",
+      "question": "How do you say 'Do you like learning languages?' in French?",
+      "correctAnswer": "Aimes-tu apprendre des langues ?",
+      "options": [
+        "Aimes-tu apprendre des langues ?",
+        "Quelles langues parles-tu ?",
+        "Aimes-tu lire ?",
+        "Aimes-tu voyager ?"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "multiple_choice",
+      "sourceEnglish": "Why are you learning French?",
+      "question": "How do you say 'Why are you learning French?' in French?",
+      "correctAnswer": "Pourquoi apprends-tu le français ?",
+      "options": [
+        "Pourquoi apprends-tu le français ?",
+        "Quelles langues parles-tu ?",
+        "Aimes-tu voyager ?",
+        "D’où viens-tu ?"
+      ]
+    }
+  ]
+}

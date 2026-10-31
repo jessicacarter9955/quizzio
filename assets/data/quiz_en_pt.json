@@ -1,0 +1,527 @@
+{
+  "quizId": "vocab_en_pt_1",
+  "sourceLanguage": "English",
+  "targetLanguage": "Portuguese",
+  "questions": [
+    {
+      "id": 1,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your name?",
+      "question": "How do you say 'What is your name?' in Portuguese?",
+      "correctAnswer": "Como te chamas?",
+      "options": [
+        "Como te chamas?",
+        "Quantos anos você tem?",
+        "De onde você é?",
+        "Onde você mora?"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "multiple_choice",
+      "sourceEnglish": "How old are you?",
+      "question": "How do you say 'How old are you?' in Portuguese?",
+      "correctAnswer": "Quantos anos você tem?",
+      "options": [
+        "Quantos anos você tem?",
+        "Como te chamas?",
+        "Onde você mora?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where are you from?",
+      "question": "How do you say 'Where are you from?' in Portuguese?",
+      "correctAnswer": "De onde você é?",
+      "options": [
+        "De onde você é?",
+        "Onde você mora?",
+        "Você tem uma família grande?",
+        "Onde você nasceu?"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where do you live?",
+      "question": "How do you say 'Where do you live?' in Portuguese?",
+      "correctAnswer": "Onde você mora?",
+      "options": [
+        "Onde você mora?",
+        "De onde você é?",
+        "O que você faz da vida?",
+        "O que você costuma fazer no fim de semana?"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do for a living?",
+      "question": "How do you say 'What do you do for a living?' in Portuguese?",
+      "correctAnswer": "O que você faz da vida?",
+      "options": [
+        "O que você faz da vida?",
+        "Você tem irmãos ou irmãs?",
+        "Quais idiomas você fala?",
+        "Qual é o seu hobby?"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have brothers or sisters?",
+      "question": "How do you say 'Do you have brothers or sisters?' in Portuguese?",
+      "correctAnswer": "Você tem irmãos ou irmãs?",
+      "options": [
+        "Você tem irmãos ou irmãs?",
+        "Você tem uma família grande?",
+        "Quais idiomas você fala?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "multiple_choice",
+      "sourceEnglish": "What languages do you speak?",
+      "question": "How do you say 'What languages do you speak?' in Portuguese?",
+      "correctAnswer": "Quais idiomas você fala?",
+      "options": [
+        "Quais idiomas você fala?",
+        "O que você faz da vida?",
+        "O que você gosta de fazer no tempo livre?",
+        "O que você costuma fazer no fim de semana?"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you like doing in your free time?",
+      "question": "How do you say 'What do you like doing in your free time?' in Portuguese?",
+      "correctAnswer": "O que você gosta de fazer no tempo livre?",
+      "options": [
+        "O que você gosta de fazer no tempo livre?",
+        "Qual é o seu hobby?",
+        "O que você costuma fazer no fim de semana?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have a big family?",
+      "question": "How do you say 'Do you have a big family?' in Portuguese?",
+      "correctAnswer": "Você tem uma família grande?",
+      "options": [
+        "Você tem uma família grande?",
+        "Você tem irmãos ou irmãs?",
+        "Onde você nasceu?",
+        "Onde você mora?"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where were you born?",
+      "question": "How do you say 'Where were you born?' in Portuguese?",
+      "correctAnswer": "Onde você nasceu?",
+      "options": [
+        "Onde você nasceu?",
+        "De onde você é?",
+        "Onde você mora?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your hobby?",
+      "question": "How do you say 'What is your hobby?' in Portuguese?",
+      "correctAnswer": "Qual é o seu hobby?",
+      "options": [
+        "Qual é o seu hobby?",
+        "O que você gosta de fazer no tempo livre?",
+        "O que você faz da vida?",
+        "Quais idiomas você fala?"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you usually do at the weekend?",
+      "question": "How do you say 'What do you usually do at the weekend?' in Portuguese?",
+      "correctAnswer": "O que você costuma fazer no fim de semana?",
+      "options": [
+        "O que você costuma fazer no fim de semana?",
+        "O que você gosta de fazer no tempo livre?",
+        "Você gosta de viajar?",
+        "Onde você mora?"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like travelling?",
+      "question": "How do you say 'Do you like travelling?' in Portuguese?",
+      "correctAnswer": "Você gosta de viajar?",
+      "options": [
+        "Você gosta de viajar?",
+        "O que você gosta de fazer no tempo livre?",
+        "Você tem uma família grande?",
+        "Qual é o seu hobby?"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you married?",
+      "question": "How do you say 'Are you married?' in Portuguese?",
+      "correctAnswer": "Você é casado(a)?",
+      "options": [
+        "Você é casado(a)?",
+        "Você tem irmãos ou irmãs?",
+        "Você tem uma família grande?",
+        "Onde você mora?"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have children?",
+      "question": "How do you say 'Do you have children?' in Portuguese?",
+      "correctAnswer": "Você tem filhos?",
+      "options": [
+        "Você tem filhos?",
+        "Você tem irmãos ou irmãs?",
+        "Onde você nasceu?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite food?",
+      "question": "How do you say 'What is your favorite food?' in Portuguese?",
+      "correctAnswer": "Qual é a sua comida preferida?",
+      "options": [
+        "Qual é a sua comida preferida?",
+        "Qual é o seu hobby?",
+        "O que você faz da vida?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite music?",
+      "question": "How do you say 'What is your favorite music?' in Portuguese?",
+      "correctAnswer": "Qual é a sua música preferida?",
+      "options": [
+        "Qual é a sua música preferida?",
+        "Qual é o seu hobby?",
+        "Quais idiomas você fala?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like sports?",
+      "question": "How do you say 'Do you like sports?' in Portuguese?",
+      "correctAnswer": "Você gosta de esportes?",
+      "options": [
+        "Você gosta de esportes?",
+        "Você gosta de viajar?",
+        "Você tem uma família grande?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 19,
+      "type": "multiple_choice",
+      "sourceEnglish": "What sport do you practice?",
+      "question": "How do you say 'What sport do you practice?' in Portuguese?",
+      "correctAnswer": "Que esporte você pratica?",
+      "options": [
+        "Que esporte você pratica?",
+        "O que você faz da vida?",
+        "Qual é o seu hobby?",
+        "Você gosta de esportes?"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you work or study?",
+      "question": "How do you say 'Do you work or study?' in Portuguese?",
+      "correctAnswer": "Você trabalha ou estuda?",
+      "options": [
+        "Você trabalha ou estuda?",
+        "O que você faz da vida?",
+        "Onde você mora?",
+        "Quais idiomas você fala?"
+      ]
+    },
+    {
+      "id": 21,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you study?",
+      "question": "How do you say 'What do you study?' in Portuguese?",
+      "correctAnswer": "O que você estuda?",
+      "options": [
+        "O que você estuda?",
+        "O que você faz da vida?",
+        "Onde você nasceu?",
+        "Qual é o seu hobby?"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you wake up?",
+      "question": "How do you say 'What time do you wake up?' in Portuguese?",
+      "correctAnswer": "Que horas você acorda?",
+      "options": [
+        "Que horas você acorda?",
+        "Que horas você trabalha?",
+        "O que você vai fazer hoje?",
+        "Onde você mora?"
+      ]
+    },
+    {
+      "id": 23,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you work?",
+      "question": "How do you say 'What time do you work?' in Portuguese?",
+      "correctAnswer": "Que horas você trabalha?",
+      "options": [
+        "Que horas você trabalha?",
+        "Que horas você acorda?",
+        "O que você faz da vida?",
+        "O que você vai fazer hoje?"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do today?",
+      "question": "How do you say 'What do you do today?' in Portuguese?",
+      "correctAnswer": "O que você vai fazer hoje?",
+      "options": [
+        "O que você vai fazer hoje?",
+        "O que você costuma fazer no fim de semana?",
+        "O que você faz da vida?",
+        "Onde você mora?"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like coffee?",
+      "question": "How do you say 'Do you like coffee?' in Portuguese?",
+      "correctAnswer": "Você gosta de café?",
+      "options": [
+        "Você gosta de café?",
+        "Você gosta de viajar?",
+        "Qual é o seu hobby?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 26,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you prefer tea or coffee?",
+      "question": "How do you say 'Do you prefer tea or coffee?' in Portuguese?",
+      "correctAnswer": "Você prefere chá ou café?",
+      "options": [
+        "Você prefere chá ou café?",
+        "Você gosta de café?",
+        "O que você costuma beber?",
+        "Qual é o seu hobby?"
+      ]
+    },
+    {
+      "id": 27,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite city?",
+      "question": "How do you say 'What is your favorite city?' in Portuguese?",
+      "correctAnswer": "Qual é a sua cidade preferida?",
+      "options": [
+        "Qual é a sua cidade preferida?",
+        "Onde você mora?",
+        "Onde você nasceu?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like reading?",
+      "question": "How do you say 'Do you like reading?' in Portuguese?",
+      "correctAnswer": "Você gosta de ler?",
+      "options": [
+        "Você gosta de ler?",
+        "Você gosta de viajar?",
+        "Qual é o seu hobby?",
+        "Quais idiomas você fala?"
+      ]
+    },
+    {
+      "id": 29,
+      "type": "multiple_choice",
+      "sourceEnglish": "What book are you reading?",
+      "question": "How do you say 'What book are you reading?' in Portuguese?",
+      "correctAnswer": "Que livro você está lendo?",
+      "options": [
+        "Que livro você está lendo?",
+        "Você gosta de ler?",
+        "Qual é o seu hobby?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like movies?",
+      "question": "How do you say 'Do you like movies?' in Portuguese?",
+      "correctAnswer": "Você gosta de filmes?",
+      "options": [
+        "Você gosta de filmes?",
+        "Você gosta de ler?",
+        "Qual é o seu hobby?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 31,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite movie?",
+      "question": "How do you say 'What is your favorite movie?' in Portuguese?",
+      "correctAnswer": "Qual é o seu filme preferido?",
+      "options": [
+        "Qual é o seu filme preferido?",
+        "Você gosta de filmes?",
+        "Qual é o seu hobby?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like living here?",
+      "question": "How do you say 'Do you like living here?' in Portuguese?",
+      "correctAnswer": "Você gosta de morar aqui?",
+      "options": [
+        "Você gosta de morar aqui?",
+        "Onde você mora?",
+        "Você gosta de viajar?",
+        "O que você faz da vida?"
+      ]
+    },
+    {
+      "id": 33,
+      "type": "multiple_choice",
+      "sourceEnglish": "How long have you lived here?",
+      "question": "How do you say 'How long have you lived here?' in Portuguese?",
+      "correctAnswer": "Há quanto tempo você mora aqui?",
+      "options": [
+        "Há quanto tempo você mora aqui?",
+        "Onde você mora?",
+        "De onde você é?",
+        "Onde você nasceu?"
+      ]
+    },
+    {
+      "id": 34,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have pets?",
+      "question": "How do you say 'Do you have pets?' in Portuguese?",
+      "correctAnswer": "Você tem animais de estimação?",
+      "options": [
+        "Você tem animais de estimação?",
+        "Você tem filhos?",
+        "Você tem irmãos ou irmãs?",
+        "Você gosta de esportes?"
+      ]
+    },
+    {
+      "id": 35,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite color?",
+      "question": "How do you say 'What is your favorite color?' in Portuguese?",
+      "correctAnswer": "Qual é a sua cor preferida?",
+      "options": [
+        "Qual é a sua cor preferida?",
+        "Qual é o seu hobby?",
+        "O que você faz da vida?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 36,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you a morning person?",
+      "question": "How do you say 'Are you a morning person?' in Portuguese?",
+      "correctAnswer": "Você é uma pessoa matutina?",
+      "options": [
+        "Você é uma pessoa matutina?",
+        "Que horas você acorda?",
+        "O que você vai fazer hoje?",
+        "Você gosta de morar aqui?"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like cooking?",
+      "question": "How do you say 'Do you like cooking?' in Portuguese?",
+      "correctAnswer": "Você gosta de cozinhar?",
+      "options": [
+        "Você gosta de cozinhar?",
+        "Qual é a sua comida preferida?",
+        "O que você faz da vida?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 38,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite dish?",
+      "question": "How do you say 'What is your favorite dish?' in Portuguese?",
+      "correctAnswer": "Qual é o seu prato preferido?",
+      "options": [
+        "Qual é o seu prato preferido?",
+        "Qual é a sua comida preferida?",
+        "Você gosta de cozinhar?",
+        "Qual é o seu hobby?"
+      ]
+    },
+    {
+      "id": 39,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like learning languages?",
+      "question": "How do you say 'Do you like learning languages?' in Portuguese?",
+      "correctAnswer": "Você gosta de aprender línguas?",
+      "options": [
+        "Você gosta de aprender línguas?",
+        "Quais idiomas você fala?",
+        "Você gosta de ler?",
+        "Você gosta de viajar?"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "multiple_choice",
+      "sourceEnglish": "Why are you learning Portuguese?",
+      "question": "How do you say 'Why are you learning Portuguese?' in Portuguese?",
+      "correctAnswer": "Por que você está aprendendo português?",
+      "options": [
+        "Por que você está aprendendo português?",
+        "Quais idiomas você fala?",
+        "Você gosta de viajar?",
+        "De onde você é?"
+      ]
+    }
+  ]
+}

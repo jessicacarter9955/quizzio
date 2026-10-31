@@ -1,0 +1,527 @@
+{
+  "quizId": "vocab_en_es_1",
+  "sourceLanguage": "English",
+  "targetLanguage": "Spanish",
+  "questions": [
+    {
+      "id": 1,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your name?",
+      "question": "How do you say 'What is your name?' in Spanish?",
+      "correctAnswer": "¿Cómo te llamas?",
+      "options": [
+        "¿Cómo te llamas?",
+        "¿Cuántos años tienes?",
+        "¿De dónde eres?",
+        "¿Dónde vives?"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "multiple_choice",
+      "sourceEnglish": "How old are you?",
+      "question": "How do you say 'How old are you?' in Spanish?",
+      "correctAnswer": "¿Cuántos años tienes?",
+      "options": [
+        "¿Cuántos años tienes?",
+        "¿Cómo te llamas?",
+        "¿Dónde vives?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where are you from?",
+      "question": "How do you say 'Where are you from?' in Spanish?",
+      "correctAnswer": "¿De dónde eres?",
+      "options": [
+        "¿De dónde eres?",
+        "¿Dónde vives?",
+        "¿Tienes una familia grande?",
+        "¿Dónde naciste?"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where do you live?",
+      "question": "How do you say 'Where do you live?' in Spanish?",
+      "correctAnswer": "¿Dónde vives?",
+      "options": [
+        "¿Dónde vives?",
+        "¿De dónde eres?",
+        "¿A qué te dedicas?",
+        "¿Qué sueles hacer el fin de semana?"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do for a living?",
+      "question": "How do you say 'What do you do for a living?' in Spanish?",
+      "correctAnswer": "¿A qué te dedicas?",
+      "options": [
+        "¿A qué te dedicas?",
+        "¿Tienes hermanos o hermanas?",
+        "¿Qué idiomas hablas?",
+        "¿Cuál es tu hobby?"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have brothers or sisters?",
+      "question": "How do you say 'Do you have brothers or sisters?' in Spanish?",
+      "correctAnswer": "¿Tienes hermanos o hermanas?",
+      "options": [
+        "¿Tienes hermanos o hermanas?",
+        "¿Tienes una familia grande?",
+        "¿Qué idiomas hablas?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "multiple_choice",
+      "sourceEnglish": "What languages do you speak?",
+      "question": "How do you say 'What languages do you speak?' in Spanish?",
+      "correctAnswer": "¿Qué idiomas hablas?",
+      "options": [
+        "¿Qué idiomas hablas?",
+        "¿A qué te dedicas?",
+        "¿Qué te gusta hacer en tu tiempo libre?",
+        "¿Qué sueles hacer el fin de semana?"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you like doing in your free time?",
+      "question": "How do you say 'What do you like doing in your free time?' in Spanish?",
+      "correctAnswer": "¿Qué te gusta hacer en tu tiempo libre?",
+      "options": [
+        "¿Qué te gusta hacer en tu tiempo libre?",
+        "¿Cuál es tu hobby?",
+        "¿Qué sueles hacer el fin de semana?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 9,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have a big family?",
+      "question": "How do you say 'Do you have a big family?' in Spanish?",
+      "correctAnswer": "¿Tienes una familia grande?",
+      "options": [
+        "¿Tienes una familia grande?",
+        "¿Tienes hermanos o hermanas?",
+        "¿Dónde naciste?",
+        "¿Dónde vives?"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "multiple_choice",
+      "sourceEnglish": "Where were you born?",
+      "question": "How do you say 'Where were you born?' in Spanish?",
+      "correctAnswer": "¿Dónde naciste?",
+      "options": [
+        "¿Dónde naciste?",
+        "¿De dónde eres?",
+        "¿Dónde vives?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your hobby?",
+      "question": "How do you say 'What is your hobby?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu hobby?",
+      "options": [
+        "¿Cuál es tu hobby?",
+        "¿Qué te gusta hacer en tu tiempo libre?",
+        "¿A qué te dedicas?",
+        "¿Qué idiomas hablas?"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you usually do at the weekend?",
+      "question": "How do you say 'What do you usually do at the weekend?' in Spanish?",
+      "correctAnswer": "¿Qué sueles hacer el fin de semana?",
+      "options": [
+        "¿Qué sueles hacer el fin de semana?",
+        "¿Qué te gusta hacer en tu tiempo libre?",
+        "¿Te gusta viajar?",
+        "¿Dónde vives?"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like travelling?",
+      "question": "How do you say 'Do you like travelling?' in Spanish?",
+      "correctAnswer": "¿Te gusta viajar?",
+      "options": [
+        "¿Te gusta viajar?",
+        "¿Qué te gusta hacer en tu tiempo libre?",
+        "¿Tienes una familia grande?",
+        "¿Cuál es tu hobby?"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you married?",
+      "question": "How do you say 'Are you married?' in Spanish?",
+      "correctAnswer": "¿Estás casado/a?",
+      "options": [
+        "¿Estás casado/a?",
+        "¿Tienes hermanos o hermanas?",
+        "¿Tienes una familia grande?",
+        "¿Dónde vives?"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have children?",
+      "question": "How do you say 'Do you have children?' in Spanish?",
+      "correctAnswer": "¿Tienes hijos?",
+      "options": [
+        "¿Tienes hijos?",
+        "¿Tienes hermanos o hermanas?",
+        "¿Dónde naciste?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite food?",
+      "question": "How do you say 'What is your favorite food?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu comida favorita?",
+      "options": [
+        "¿Cuál es tu comida favorita?",
+        "¿Cuál es tu hobby?",
+        "¿A qué te dedicas?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite music?",
+      "question": "How do you say 'What is your favorite music?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu música favorita?",
+      "options": [
+        "¿Cuál es tu música favorita?",
+        "¿Cuál es tu hobby?",
+        "¿Qué idiomas hablas?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like sports?",
+      "question": "How do you say 'Do you like sports?' in Spanish?",
+      "correctAnswer": "¿Te gustan los deportes?",
+      "options": [
+        "¿Te gustan los deportes?",
+        "¿Te gusta viajar?",
+        "¿Tienes una familia grande?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 19,
+      "type": "multiple_choice",
+      "sourceEnglish": "What sport do you practice?",
+      "question": "How do you say 'What sport do you practice?' in Spanish?",
+      "correctAnswer": "¿Qué deporte practicas?",
+      "options": [
+        "¿Qué deporte practicas?",
+        "¿A qué te dedicas?",
+        "¿Cuál es tu hobby?",
+        "¿Te gustan los deportes?"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you work or study?",
+      "question": "How do you say 'Do you work or study?' in Spanish?",
+      "correctAnswer": "¿Trabajas o estudias?",
+      "options": [
+        "¿Trabajas o estudias?",
+        "¿A qué te dedicas?",
+        "¿Dónde vives?",
+        "¿Qué idiomas hablas?"
+      ]
+    },
+    {
+      "id": 21,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you study?",
+      "question": "How do you say 'What do you study?' in Spanish?",
+      "correctAnswer": "¿Qué estudias?",
+      "options": [
+        "¿Qué estudias?",
+        "¿A qué te dedicas?",
+        "¿Dónde naciste?",
+        "¿Cuál es tu hobby?"
+      ]
+    },
+    {
+      "id": 22,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you wake up?",
+      "question": "How do you say 'What time do you wake up?' in Spanish?",
+      "correctAnswer": "¿A qué hora te despiertas?",
+      "options": [
+        "¿A qué hora te despiertas?",
+        "¿A qué hora trabajas?",
+        "¿Qué haces hoy?",
+        "¿Dónde vives?"
+      ]
+    },
+    {
+      "id": 23,
+      "type": "multiple_choice",
+      "sourceEnglish": "What time do you work?",
+      "question": "How do you say 'What time do you work?' in Spanish?",
+      "correctAnswer": "¿A qué hora trabajas?",
+      "options": [
+        "¿A qué hora trabajas?",
+        "¿A qué hora te despiertas?",
+        "¿A qué te dedicas?",
+        "¿Qué haces hoy?"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "multiple_choice",
+      "sourceEnglish": "What do you do today?",
+      "question": "How do you say 'What do you do today?' in Spanish?",
+      "correctAnswer": "¿Qué haces hoy?",
+      "options": [
+        "¿Qué haces hoy?",
+        "¿Qué sueles hacer el fin de semana?",
+        "¿A qué te dedicas?",
+        "¿Dónde vives?"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like coffee?",
+      "question": "How do you say 'Do you like coffee?' in Spanish?",
+      "correctAnswer": "¿Te gusta el café?",
+      "options": [
+        "¿Te gusta el café?",
+        "¿Te gusta viajar?",
+        "¿Cuál es tu hobby?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 26,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you prefer tea or coffee?",
+      "question": "How do you say 'Do you prefer tea or coffee?' in Spanish?",
+      "correctAnswer": "¿Prefieres té o café?",
+      "options": [
+        "¿Prefieres té o café?",
+        "¿Te gusta el café?",
+        "¿Qué bebes?",
+        "¿Cuál es tu hobby?"
+      ]
+    },
+    {
+      "id": 27,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite city?",
+      "question": "How do you say 'What is your favorite city?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu ciudad favorita?",
+      "options": [
+        "¿Cuál es tu ciudad favorita?",
+        "¿Dónde vives?",
+        "¿Dónde naciste?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like reading?",
+      "question": "How do you say 'Do you like reading?' in Spanish?",
+      "correctAnswer": "¿Te gusta leer?",
+      "options": [
+        "¿Te gusta leer?",
+        "¿Te gusta viajar?",
+        "¿Cuál es tu hobby?",
+        "¿Qué idiomas hablas?"
+      ]
+    },
+    {
+      "id": 29,
+      "type": "multiple_choice",
+      "sourceEnglish": "What book are you reading?",
+      "question": "How do you say 'What book are you reading?' in Spanish?",
+      "correctAnswer": "¿Qué libro estás leyendo?",
+      "options": [
+        "¿Qué libro estás leyendo?",
+        "¿Te gusta leer?",
+        "¿Cuál es tu hobby?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like movies?",
+      "question": "How do you say 'Do you like movies?' in Spanish?",
+      "correctAnswer": "¿Te gustan las películas?",
+      "options": [
+        "¿Te gustan las películas?",
+        "¿Te gusta leer?",
+        "¿Cuál es tu hobby?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 31,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite movie?",
+      "question": "How do you say 'What is your favorite movie?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu película favorita?",
+      "options": [
+        "¿Cuál es tu película favorita?",
+        "¿Te gustan las películas?",
+        "¿Cuál is tu hobby?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like living here?",
+      "question": "How do you say 'Do you like living here?' in Spanish?",
+      "correctAnswer": "¿Te gusta vivir aquí?",
+      "options": [
+        "¿Te gusta vivir aquí?",
+        "¿Dónde vives?",
+        "¿Te gusta viajar?",
+        "¿A qué te dedicas?"
+      ]
+    },
+    {
+      "id": 33,
+      "type": "multiple_choice",
+      "sourceEnglish": "How long have you lived here?",
+      "question": "How do you say 'How long have you lived here?' in Spanish?",
+      "correctAnswer": "¿Desde cuándo vives aquí?",
+      "options": [
+        "¿Desde cuándo vives aquí?",
+        "¿Dónde vives?",
+        "¿De dónde eres?",
+        "¿Dónde naciste?"
+      ]
+    },
+    {
+      "id": 34,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you have pets?",
+      "question": "How do you say 'Do you have pets?' in Spanish?",
+      "correctAnswer": "¿Tienes mascotas?",
+      "options": [
+        "¿Tienes mascotas?",
+        "¿Tienes hijos?",
+        "¿Tienes hermanos o hermanas?",
+        "¿Te gustan los deportes?"
+      ]
+    },
+    {
+      "id": 35,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite color?",
+      "question": "How do you say 'What is your favorite color?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu color favorito?",
+      "options": [
+        "¿Cuál es tu color favorito?",
+        "¿Cuál es tu hobby?",
+        "¿A qué te dedicas?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 36,
+      "type": "multiple_choice",
+      "sourceEnglish": "Are you a morning person?",
+      "question": "How do you say 'Are you a morning person?' in Spanish?",
+      "correctAnswer": "¿Eres una persona madrugadora?",
+      "options": [
+        "¿Eres una persona madrugadora?",
+        "¿A qué hora te despiertas?",
+        "¿Qué haces hoy?",
+        "¿Te gusta vivir aquí?"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like cooking?",
+      "question": "How do you say 'Do you like cooking?' in Spanish?",
+      "correctAnswer": "¿Te gusta cocinar?",
+      "options": [
+        "¿Te gusta cocinar?",
+        "¿Cuál es tu comida favorita?",
+        "¿A qué te dedicas?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 38,
+      "type": "multiple_choice",
+      "sourceEnglish": "What is your favorite dish?",
+      "question": "How do you say 'What is your favorite dish?' in Spanish?",
+      "correctAnswer": "¿Cuál es tu plato favorito?",
+      "options": [
+        "¿Cuál es tu plato favorito?",
+        "¿Cuál es tu comida favorita?",
+        "¿Te gusta cocinar?",
+        "¿Cuál es tu hobby?"
+      ]
+    },
+    {
+      "id": 39,
+      "type": "multiple_choice",
+      "sourceEnglish": "Do you like learning languages?",
+      "question": "How do you say 'Do you like learning languages?' in Spanish?",
+      "correctAnswer": "¿Te gusta aprender idiomas?",
+      "options": [
+        "¿Te gusta aprender idiomas?",
+        "¿Qué idiomas hablas?",
+        "¿Te gusta leer?",
+        "¿Te gusta viajar?"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "multiple_choice",
+      "sourceEnglish": "Why are you learning Spanish?",
+      "question": "How do you say 'Why are you learning Spanish?' in Spanish?",
+      "correctAnswer": "¿Por qué estás aprendiendo español?",
+      "options": [
+        "¿Por qué estás aprendiendo español?",
+        "¿Qué idiomas hablas?",
+        "¿Te gusta viajar?",
+        "¿De dónde eres?"
+      ]
+    }
+  ]
+}
