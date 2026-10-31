@@ -6,6 +6,8 @@ import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/screens/mistake_review_page.dart';
 import 'package:wordweaver/screens/pattern_mnemonic_page.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
+import 'package:wordweaver/services/topic_service.dart';
+import 'package:wordweaver/services/vocabulary_service.dart';
 import 'package:wordweaver/services/word_mistake_service.dart';
 
 void main() {
@@ -53,8 +55,14 @@ void main() {
   });
 
   testWidgets('Review list shows errors and filters', (tester) async {
+    await Future.wait([
+      WordMistakeService().ready,
+      TopicService().ready,
+      VocabularyService().ready,
+    ]);
     await tester.pumpWidget(const MaterialApp(home: MistakeReviewPage()));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Most missed words'), findsOneWidget);
     expect(find.textContaining('bread'), findsWidgets);
     expect(find.textContaining('mistakes'), findsWidgets);
