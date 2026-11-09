@@ -9,6 +9,8 @@ import 'package:wordweaver/services/user_service.dart';
 import 'package:wordweaver/services/stats_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/speech_service.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
+import 'package:wordweaver/services/word_mistake_service.dart';
 import 'package:wordweaver/screens/quiz_results_page.dart';
 
 class CompleteWordPage extends StatefulWidget {
@@ -70,8 +72,11 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
     super.dispose();
   }
 
+  String _target(QuizQuestion question) =>
+      GrammarPracticeService().display(question.word, source: false);
+
   Future<void> _prepareQuiz() async {
-    await _vocabularyService.ready;
+    await Future.wait([_vocabularyService.ready, GrammarPracticeService().ready]);
     final generated = _quizService.generateQuiz(
       widget.languagePair.key,
       widget.selectedTopics.map((t) => t.id).toList(),
@@ -98,7 +103,7 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
       return;
     }
     final q = questions![currentQuestionIndex];
-    final target = q.correctAnswer;
+    final target = _target(q);
     _answerController.clear();
     hasAnswered = false;
     lastAnswerCorrect = null;
@@ -122,7 +127,7 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
 
   String _hintPattern() {
     if (questions == null || questions!.isEmpty) return '';
-    final word = questions![currentQuestionIndex].correctAnswer;
+    final word = _target(questions![currentQuestionIndex]);
     if (word.isEmpty) return '';
     final buffer = StringBuffer();
     for (var i = 0; i < word.length; i++) {
@@ -231,7 +236,7 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
 
   void _revealNextLetter() {
     if (questions == null || questions!.isEmpty) return;
-    final word = questions![currentQuestionIndex].correctAnswer;
+    final word = _target(questions![currentQuestionIndex]);
     for (var i = 0; i < word.length; i++) {
       final ch = word[i];
       if (ch == ' ') {
@@ -248,7 +253,7 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
 
   void _revealFullWord() {
     if (questions == null || questions!.isEmpty) return;
-    final word = questions![currentQuestionIndex].correctAnswer;
+    final word = _target(questions![currentQuestionIndex]);
     setState(() {
       _revealed = List<bool>.filled(word.length, true);
     });
@@ -295,7 +300,7 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
     if (questions == null || questions!.isEmpty) return;
     if (hasAnswered) return;
     final q = questions![currentQuestionIndex];
-    final expected = q.correctAnswer;
+    final expected = _target(q);
     final given = _answerController.text;
     final expectedNorm = _normalizeForCompare(
       expected,
@@ -316,6 +321,9 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
       isCorrect: isCorrect,
       topicId: q.topic,
       languagePairKey: widget.languagePair.key,
+    );
+    await WordMistakeService().recordAnswer(
+      word: q.word, isCorrect: isCorrect, mode: 'writing',
     );
   }
 
@@ -485,7 +493,7 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                "How do you write '${_capitalize(question.word.sourceWord)}' in ${widget.languagePair.targetLanguage.name}?",
+                "How do you write '${_capitalize(GrammarPracticeService().display(question.word, source: true))}' in ${widget.languagePair.targetLanguage.name}?",
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -578,10 +586,10 @@ class _CompleteWordPageState extends State<CompleteWordPage> {
                 Text(
                   lastAnswerCorrect!
                       ? 'Correct!'
-                      : "Correct answer: ${question.correctAnswer}",
+                      : "Correct answer: ${_target(question)}",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: lastAnswerCorrect!
-                        ? Theme.of(context).colorScheme.tertiary
+                        ? const Color(0xFF28620A)
                         : Theme.of(context).colorScheme.error,
                     fontWeight: FontWeight.w600,
                   ),

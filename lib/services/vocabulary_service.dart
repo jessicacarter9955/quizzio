@@ -428,13 +428,24 @@ class VocabularyService extends ChangeNotifier {
       });
     }
 
-    final allWords = candidates
-        .where(GrammarPracticeService().isEligible)
-        .map((w) => w.targetWord)
-        .where((w) => w != correctAnswer)
-        .toList();
-    allWords.shuffle(Random());
-    return allWords.take(count).toList();
+    final grammar = GrammarPracticeService();
+    final targetCode = languagePairKey.split('_').last;
+    final uniqueDisplay = <String>{
+      (grammar.format(targetCode, correctAnswer) ?? correctAnswer).toLowerCase(),
+    };
+    candidates.shuffle(Random());
+    final wrong = <String>[];
+    for (final candidate in candidates) {
+      if (!grammar.isEligible(candidate)) continue;
+      final raw = candidate.targetWord;
+      final rendered = grammar.format(targetCode, raw);
+      if (rendered == null || !uniqueDisplay.add(rendered.toLowerCase())) {
+        continue;
+      }
+      wrong.add(raw);
+      if (wrong.length == count) break;
+    }
+    return wrong;
   }
 
   Future<void> importFromJson(Map<String, dynamic> data) async {

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
 
 class WordMatchPage extends StatefulWidget {
@@ -72,7 +73,7 @@ class _WordMatchPageState extends State<WordMatchPage> {
   }
 
   Future<void> _prepareGame() async {
-    await _vocab.ready; // ensure vocab is loaded
+    await Future.wait([_vocab.ready, GrammarPracticeService().ready]);
     final pair = _lang.currentLanguagePair;
     final selected = _topics.getSelectedTopics();
     if (pair == null) {
@@ -111,7 +112,7 @@ class _WordMatchPageState extends State<WordMatchPage> {
       final topicEmoji = {for (final t in _topics.topics) t.id: t.emoji};
       final chosen = words.take(6).toList();
       // If fewer than 6 from vocab, pad with simple placeholders to keep the game playable
-      while (chosen.length < 6) {
+      while (chosen.length < 6 && !GrammarPracticeService().active) {
         chosen.add(
           VocabularyWord(
             id: 'pad-${chosen.length}-${DateTime.now().millisecondsSinceEpoch}',
@@ -130,8 +131,8 @@ class _WordMatchPageState extends State<WordMatchPage> {
       right = <_CardModel>[];
       for (final w in chosen) {
         final emoji = topicEmoji[w.topic] ?? '🔤';
-        left.add(_CardModel(id: w.id, emoji: emoji, label: w.sourceWord));
-        right.add(_CardModel(id: w.id, emoji: emoji, label: w.targetWord));
+        left.add(_CardModel(id: w.id, emoji: emoji, label: GrammarPracticeService().display(w, source: true)));
+        right.add(_CardModel(id: w.id, emoji: emoji, label: GrammarPracticeService().display(w, source: false)));
       }
       // Sort left alphabetically (source language), shuffle right
       left.sort(
