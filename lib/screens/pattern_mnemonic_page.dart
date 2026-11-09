@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
 import 'package:wordweaver/services/stats_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
@@ -173,11 +174,11 @@ class _PatternMnemonicPageState extends State<PatternMnemonicPage> {
                     padding: const EdgeInsets.all(24),
                     child: Column(mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(current.sourceWord, textAlign: TextAlign.center,
+                        Text(GrammarPracticeService().display(current, source: true), textAlign: TextAlign.center,
                             style: theme.textTheme.headlineMedium),
                         const SizedBox(height: 24),
                         if (_showAnswer)
-                          Text(current.targetWord, textAlign: TextAlign.center,
+                          Text(GrammarPracticeService().display(current, source: false), textAlign: TextAlign.center,
                             style: theme.textTheme.headlineSmall?.copyWith(
                                 color: theme.colorScheme.primary))
                         else

@@ -4,6 +4,7 @@ import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/quiz_selection.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 
 /// Only selectable topics are those with real bilingual words for the active
 /// source→target direction. Unavailable topics can be viewed but not selected.
@@ -17,6 +18,7 @@ class TopicSelectionPage extends StatefulWidget {
 class _TopicSelectionPageState extends State<TopicSelectionPage> {
   final TopicService topicService = TopicService();
   final VocabularyService vocabularyService = VocabularyService();
+  final GrammarPracticeService grammarService = GrammarPracticeService();
   bool _showUnavailable = false;
   bool _ready = false;
 
@@ -27,7 +29,7 @@ class _TopicSelectionPageState extends State<TopicSelectionPage> {
   }
 
   Future<void> _initialize() async {
-    await Future.wait([topicService.ready, vocabularyService.ready]);
+    await Future.wait([topicService.ready, vocabularyService.ready, grammarService.ready]);
     if (LanguageService().currentLanguagePair == null) {
       await LanguageService().initialize();
     }
@@ -57,7 +59,7 @@ class _TopicSelectionPageState extends State<TopicSelectionPage> {
       body: SafeArea(
         child: ListenableBuilder(
           listenable: Listenable.merge([
-            topicService, vocabularyService, LanguageService(),
+            topicService, vocabularyService, LanguageService(), grammarService,
           ]),
           builder: (context, _) {
             final pair = LanguageService().currentLanguagePair;
@@ -84,6 +86,76 @@ class _TopicSelectionPageState extends State<TopicSelectionPage> {
                       Text(
                         'Available topics (${available.length}) · Words ($total)',
                         style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        elevation: 0,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text('Grammar in vocabulary quizzes',
+                                style: Theme.of(context).textTheme.titleSmall),
+                              SwitchListTile.adaptive(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text('Articles'),
+                                subtitle: const Text('the hamburger / il hamburger'),
+                                value: grammarService.articles,
+                                onChanged: grammarService.setArticles,
+                              ),
+                              SwitchListTile.adaptive(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text('Possessives (my / mio / mia)'),
+                                subtitle: const Text('Use the natural possessive form in each language'),
+                                value: grammarService.possessives,
+                                onChanged: grammarService.setPossessives,
+                              ),
+                              if (grammarService.articles) ...[
+                                const SizedBox(height: 4),
+                                Text('Article type',
+                                  style: Theme.of(context).textTheme.labelMedium),
+                                const SizedBox(height: 6),
+                                SegmentedButton<bool>(
+                                  segments: const [
+                                    ButtonSegment(value: false, label: Text('Definite')),
+                                    ButtonSegment(value: true, label: Text('Indefinite')),
+                                  ],
+                                  selected: {grammarService.indefinite},
+                                  onSelectionChanged: grammarService.possessives
+                                      ? null
+                                      : (values) => grammarService.setIndefinite(values.first),
+                                ),
+                              ],
+                              if (grammarService.possessives)
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    'With possessives, articles are used only where grammatically required '
+                                    '(e.g. il mio, my, mi). Indefinite articles are unavailable.',
+                                  ),
+                                ),
+                              if (grammarService.active && key != null) ...[
+                                const SizedBox(height: 8),
+                                Builder(builder: (context) {
+                                  final examples = vocabularyService.getWordsForQuiz(
+                                    key, const ['food'], 300,
+                                  );
+                                  if (examples.isEmpty) {
+                                    return const Text('No verified noun phrases for this pair in Food.');
+                                  }
+                                  final word = examples.first;
+                                  return Text(
+                                    'Example: ${grammarService.display(word, source: true)}'
+                                    ' → ${grammarService.display(word, source: false)}',
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  );
+                                }),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,

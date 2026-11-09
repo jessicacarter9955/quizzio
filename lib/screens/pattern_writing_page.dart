@@ -5,6 +5,7 @@ import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/services/quiz_service.dart';
 import 'package:wordweaver/services/stats_service.dart';
 import 'package:wordweaver/services/word_mistake_service.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 
 /// Pattern-driven written quiz. Recall hides the answer; Copy displays it.
 /// Records are local, tied to the Wordweaver language direction and stable word identity.
@@ -40,7 +41,8 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
     await mistakes.ready;
     final w = widget.words[_index];
     final answer = _entry.text.trim();
-    final correct = _normalize(answer) == _normalize(w.targetWord);
+    final correct = _normalize(answer) == _normalize(
+      GrammarPracticeService().display(w, source: false));
     final prefs = await SharedPreferences.getInstance();
     final key = 'wordweaver.pattern.writing.v1';
     List<dynamic> history;
@@ -63,7 +65,7 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
     if (!mounted) return;
     setState(() {
       _checked = true;
-      _answer = w.targetWord;
+      _answer = GrammarPracticeService().display(w, source: false);
       if (correct) { _correct++; } else { _wrong++; }
     });
   }
@@ -125,11 +127,11 @@ class _PatternWritingPageState extends State<PatternWritingPage> {
               onSelected: _checked ? null : (_) => setState(() => _copy = true)),
           ]),
           const Spacer(),
-          Text(w.sourceWord, textAlign: TextAlign.center,
+          Text(GrammarPracticeService().display(w, source: true), textAlign: TextAlign.center,
             style: theme.textTheme.headlineMedium),
           if (_copy) ...[
             const SizedBox(height: 12),
-            Text(w.targetWord, textAlign: TextAlign.center,
+            Text(GrammarPracticeService().display(w, source: false), textAlign: TextAlign.center,
               style: theme.textTheme.titleLarge?.copyWith(
                 color: theme.colorScheme.primary)),
           ],

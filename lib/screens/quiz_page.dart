@@ -11,6 +11,7 @@ import 'package:wordweaver/services/word_mistake_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/saved_words_service.dart';
 import 'package:wordweaver/services/speech_service.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
 
 class QuizPage extends StatefulWidget {
@@ -65,10 +66,27 @@ class _QuizPageState extends State<QuizPage> {
     stopwatch = Stopwatch()..start();
   }
 
+  String _displayAnswer(String raw) {
+    final grammar = GrammarPracticeService();
+    if (!grammar.active) return raw;
+    return grammar.format(widget.languagePair.targetLanguage.code, raw) ?? raw;
+  }
+
   Future<void> _prepareQuiz() async {
+    final grammar = GrammarPracticeService();
+    await grammar.ready;
+    if (!mounted) return;
     if (widget.initialQuestions != null) {
       setState(() {
-        questions = widget.initialQuestions;
+        questions = grammar.active
+            ? widget.initialQuestions!.where((q) => grammar.isEligible(q.word)).map((q) {
+                final code = widget.languagePair.targetLanguage.code;
+                final wrong = q.wrongAnswers.where((answer) =>
+                  grammar.format(code, answer) != null).toList();
+                return QuizQuestion(word: q.word, options: [q.correctAnswer, ...wrong],
+                  correctIndex: 0, wrongAnswers: wrong, topic: q.topic);
+              }).where((q) => q.wrongAnswers.isNotEmpty).toList()
+            : widget.initialQuestions;
         if (questions != null && questions!.isNotEmpty) {
           final q = questions![0];
           _currentShuffledAnswers = [q.correctAnswer, ...q.wrongAnswers]
@@ -165,7 +183,7 @@ class _QuizPageState extends State<QuizPage> {
     var bestScore = -1;
 
     for (final opt in options) {
-      final optNorm = _normalizeSpoken(opt);
+      final optNorm = _normalizeSpoken(_displayAnswer(opt));
       if (optNorm == spokenNorm) {
         best = opt;
         bestScore = 999;
@@ -414,7 +432,7 @@ class _QuizPageState extends State<QuizPage> {
                   Expanded(
                     child: Text(
                       l10n.quizPromptHowDoYouSay(
-                        _capitalize(question.word.sourceWord),
+                        _capitalize(GrammarPracticeService().display(question.word, source: true)),
                         widget.languagePair.targetLanguage.name,
                       ),
                       maxLines: 3,
@@ -479,7 +497,7 @@ class _QuizPageState extends State<QuizPage> {
                             }
 
                             return AnswerOption(
-                              answer: _capitalize(answer),
+                              answer: _capitalize(_displayAnswer(answer)),
                               onTap: () => handleAnswer(answer),
                               backgroundColor: backgroundColor,
                               borderColor: borderColor,

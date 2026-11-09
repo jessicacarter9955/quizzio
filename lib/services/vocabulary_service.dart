@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 import 'dart:math';
 import 'package:wordweaver/services/quizlab_topics.dart';
 
@@ -270,6 +271,7 @@ class VocabularyService extends ChangeNotifier {
     final keys = <String>{};
     for (final topic in topicIds) {
       for (final word in pair[topic] ?? <VocabularyWord>[]) {
+        if (!GrammarPracticeService().isEligible(word)) continue;
         keys.add('${word.sourceWord.toLowerCase()}\u0001${word.targetWord.toLowerCase()}');
       }
     }
@@ -329,7 +331,7 @@ class VocabularyService extends ChangeNotifier {
     if (langVocab == null) return 0;
     final words = langVocab[topicId];
     if (words == null) return 0;
-    return words.length;
+    return words.where(GrammarPracticeService().isEligible).length;
   }
 
   List<VocabularyWord> getWordsForQuiz(
@@ -385,7 +387,8 @@ class VocabularyService extends ChangeNotifier {
         () => w,
       );
     }
-    final shuffled = unique.values.toList()..shuffle(Random());
+    final shuffled = unique.values
+        .where(GrammarPracticeService().isEligible).toList()..shuffle(Random());
     final result = shuffled.take(count).toList();
     debugPrint('Returning ${result.length} questions');
     return result;
@@ -426,6 +429,7 @@ class VocabularyService extends ChangeNotifier {
     }
 
     final allWords = candidates
+        .where(GrammarPracticeService().isEligible)
         .map((w) => w.targetWord)
         .where((w) => w != correctAnswer)
         .toList();

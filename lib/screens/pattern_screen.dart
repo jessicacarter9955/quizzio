@@ -10,6 +10,7 @@ import 'package:wordweaver/services/pattern_engine.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/quiz_selection.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
+import 'package:wordweaver/services/grammar_practice_service.dart';
 import 'package:wordweaver/screens/quiz_page.dart';
 import 'package:wordweaver/screens/language_setup_page.dart';
 import 'package:wordweaver/screens/pattern_mnemonic_page.dart';
@@ -120,15 +121,17 @@ class _PatternScreenState extends State<PatternScreen> {
   }
 
   List<QuizQuestion> _makeQuiz(List<VocabularyWord> selected) {
-    final all = PatternEngine.distinct([..._words, ...selected]);
+    final all = PatternEngine.distinct([..._words, ...selected])
+      .where(GrammarPracticeService().isEligible).toList();
     final random = Random();
     final result = <QuizQuestion>[];
-    for (final word in selected) {
+    for (final word in selected.where(GrammarPracticeService().isEligible)) {
       final distractors = all
           .map((w) => w.targetWord)
           .where((s) => s != word.targetWord)
           .toSet().toList()..shuffle(random);
       final wrong = distractors.take(3).toList();
+      if (wrong.isEmpty) continue;
       final options = [word.targetWord, ...wrong]..shuffle(random);
       result.add(QuizQuestion(
         word: word,
@@ -160,7 +163,9 @@ class _PatternScreenState extends State<PatternScreen> {
     final pair = _pair, selected = _selection;
     if (pair == null || selected.isEmpty) return;
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => PatternMnemonicPage(words: selected, pairKey: pair.key),
+      builder: (_) => PatternMnemonicPage(
+          words: selected.where(GrammarPracticeService().isEligible).toList(),
+          pairKey: pair.key),
     ));
   }
 
@@ -168,7 +173,9 @@ class _PatternScreenState extends State<PatternScreen> {
     final pair = _pair, selected = _selection;
     if (pair == null || selected.isEmpty) return;
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => PatternWritingPage(words: selected, pairKey: pair.key),
+      builder: (_) => PatternWritingPage(
+          words: selected.where(GrammarPracticeService().isEligible).toList(),
+          pairKey: pair.key),
     ));
   }
 
