@@ -78,6 +78,8 @@ void main() {
     await grammar.setArticles(true);
     expect(grammar.isEligible(noun('en_ru', 'hamburger', 'гамбургер')), isFalse);
     expect(grammar.isEligible(noun('en_it', 'eat', 'mangiare')), isFalse);
+    expect(grammar.isEligible(noun('en_it', 'eat', 'mangio')), isFalse);
+    expect(grammar.isEligible(noun('it_es', 'mangio', 'como')), isFalse);
     expect(grammar.isEligible(noun('en_fr', 'zebra', 'zèbre')), isFalse);
     expect(grammar.isEligible(noun('en_it', 'go', 'vado', topic: 'conversation')), isFalse);
   });

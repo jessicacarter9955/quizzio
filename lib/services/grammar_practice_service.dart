@@ -243,11 +243,27 @@ class GrammarPracticeService extends ChangeNotifier {
       return '${articleType ? (gender == 'm' ? 'um' : 'uma') : (gender == 'm' ? 'o' : 'a')} $base';
     }
     if (lang == 'de') {
-      if (possessives) return '${gender == 'f' ? 'meine' : 'mein'} $base';
+      final noun = '${base[0].toUpperCase()}${base.substring(1)}';
+      if (possessives) return '${gender == 'f' ? 'meine' : 'mein'} $noun';
       const definite = {'m':'der', 'f':'die', 'n':'das'};
-      return '${articleType ? (gender == 'f' ? 'eine' : 'ein') : definite[gender]} $base';
+      return '${articleType ? (gender == 'f' ? 'eine' : 'ein') : definite[gender]} $noun';
     }
     return null;
+  }
+
+  bool _hasNounEvidence(String lang, String raw) {
+    final value = raw.trim().replaceAll('’', "'").toLowerCase();
+    if (genders[lang]?.containsKey(value) ?? false) return true;
+    const articles = <String, String>{
+      'it': r"^(il |lo |la |l'|un |uno |una |un')",
+      'es': r'^(el |la |un |una )',
+      'fr': r"^(le |la |l'|un |une )",
+      'pt': r'^(o |a |um |uma )',
+      'de': r'^(der |die |das |ein |eine )',
+      'en': r'^(the |an |a )',
+    };
+    final prefix = articles[lang];
+    return prefix != null && RegExp(prefix).hasMatch(value);
   }
 
   bool isEligible(VocabularyWord word) {
@@ -255,8 +271,12 @@ class GrammarPracticeService extends ChangeNotifier {
     if (!nounTopics.contains(word.topic)) return false;
     final langs = word.languagePairKey.split('_');
     if (langs.length != 2) return false;
-    return format(langs[0], word.sourceWord) != null &&
-        format(langs[1], word.targetWord) != null;
+    if (format(langs[0], word.sourceWord) == null ||
+        format(langs[1], word.targetWord) == null) return false;
+    // A gender-looking suffix does not prove a word is a noun: "mangio"
+    // and "como" are verbs. Require an attested noun on at least one side.
+    return _hasNounEvidence(langs[0], word.sourceWord) ||
+        _hasNounEvidence(langs[1], word.targetWord);
   }
 
   String display(VocabularyWord word, {required bool source}) {
