@@ -46,21 +46,9 @@ jobs:
       - name: Packages
         working-directory: flutter_app
         run: flutter pub get
-      - name: Compile APK release (Supabase)
+      - name: Dart source sanity check
         working-directory: flutter_app
-        run: |
-          flutter build apk --release \
-            --dart-define=API_BASE_URL=https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-market-api \
-            --dart-define=TRADE_API_BASE_URL=https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-api \
-            --dart-define=SUPABASE_URL=https://fcypamejorxoxvtcqubs.supabase.co \
-            --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_irzgokPHFHYBuS0XjzFwRQ_jEB0Yfe_
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: verge-trading-academy-verified-charts-apk
-          path: flutter_app/build/app/outputs/flutter-apk/*.apk
-          if-no-files-found: warn
-
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib
       - name: Compile Flutter Web for mobile viewport QA
         if: success()
         working-directory: flutter_app
@@ -76,3 +64,18 @@ jobs:
           name: verge-flutter-web-qa
           path: flutter_app/build/web/
           if-no-files-found: error
+      - name: Compile APK release (Supabase)
+        working-directory: flutter_app
+        run: |
+          flutter build apk --release \
+            --dart-define=API_BASE_URL=https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-market-api \
+            --dart-define=TRADE_API_BASE_URL=https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-api \
+            --dart-define=SUPABASE_URL=https://fcypamejorxoxvtcqubs.supabase.co \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_irzgokPHFHYBuS0XjzFwRQ_jEB0Yfe_
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verge-trading-academy-verified-charts-apk
+          path: flutter_app/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: warn
+
