@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/verge-web-qa-export.yml
       - public/verge/index.html
+      - public/verge/qa-fixtures.json
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,5 +23,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: verge-live-web-qa-source
-          path: public/verge/index.html
+          path: |
+            public/verge/index.html
+            public/verge/qa-fixtures.json
           if-no-files-found: error
