@@ -1,0 +1,49 @@
+name: VERGE Trading Academy Android APK
+on:
+  push:
+    branches:
+      - ci/verge-trading-academy-apk-20261112
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Restore source
+        run: base64 -d verge-build/flutter-src.tar.xz.b64 | tar -xJf -
+      - name: Generate Android project
+        working-directory: flutter_app
+        run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
+      - name: Enable Android internet
+        working-directory: flutter_app
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/AndroidManifest.xml')
+          data=p.read_text()
+          if 'android.permission.INTERNET' not in data:
+              data=data.replace('<application','<uses-permission android:name="android.permission.INTERNET" />\n    <application',1)
+              p.write_text(data)
+          PY
+      - name: Packages
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Compile APK release (Supabase)
+        working-directory: flutter_app
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL=https://fcypamejorxoxvtcqubs.supabase.co \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_irzgokPHFHYBuS0XjzFwRQ_jEB0Yfe_
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verge-trading-academy-apk
+          path: flutter_app/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: warn
