@@ -1,0 +1,46 @@
+name: VERGE Trading Academy APK release
+on:
+  push:
+    branches: [verge-trading-academy-apk-build]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apk-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore isolated Flutter app
+        run: |
+          base64 --decode verge_build_source.b64 | tar -xJf -
+          test -f flutter_app/lib/main.dart
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate Android platform files
+        working-directory: flutter_app
+        run: |
+          flutter create . --project-name verge_trading_academy --platforms=android,ios,web
+          flutter pub get
+      - name: Analyze Flutter app
+        working-directory: flutter_app
+        continue-on-error: true
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - name: Build release APK with Supabase
+        working-directory: flutter_app
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL=https://fcypamejorxoxvtcqubs.supabase.co \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_irzgokPHFHYBuS0XjzFwRQ_jEB0Yfe_
+      - name: Verify APK
+        run: |
+          test -s flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          sha256sum flutter_app/build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-academy-android-release
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
