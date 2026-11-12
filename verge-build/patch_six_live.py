@@ -16,7 +16,7 @@ const tradeApiBase=String.fromEnvironment('TRADE_API_BASE_URL',defaultValue:'htt
 swap("dbConnected=data['database']=='configured';","dbConnected=sbUrl.isNotEmpty&&sbKey.isNotEmpty;")
 swap("Timer? demoTimer;","Timer? demoTimer;Timer? marketPollTimer;")
 swap("demoTimer?.cancel();super.dispose();","demoTimer?.cancel();marketPollTimer?.cancel();super.dispose();")
-swap("_connect();\n      if(accessToken!=null&&dbConnected)","if(sbUrl.isNotEmpty&&sbKey.isNotEmpty){_startMarketPolling();}else{_connect();}\n      if(accessToken!=null&&dbConnected)")
+swap("_connect();","if(sbUrl.isNotEmpty&&sbKey.isNotEmpty){_startMarketPolling();}else{_connect();}")
 swap("}catch(_){_startDemo();}\n    if(mounted)setState(()=>loading=false)","}catch(_){if(sbUrl.isNotEmpty&&sbKey.isNotEmpty){_startMarketPolling();}else{_startDemo();}}\n    if(mounted)setState(()=>loading=false)")
 hook="""  Future<void> _refreshMarketQuotes() async {
     try {
