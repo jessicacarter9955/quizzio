@@ -68,5 +68,8 @@ s=s.replace('$apiBase/v1/progress','$tradeApiBase/v1/progress')
 s=s.replace('Generated practice candles — not actual market prices','Verified historical data unavailable; no generated candles')
 s=s.replace("String lastPrice(String s){final n=prices[s]??0;return n<10?n.toStringAsFixed(5):dollar(n);}",
 "String lastPrice(String s){final n=prices[s]??0;if(n<=0)return '—';return n<10?n.toStringAsFixed(5):dollar(n);}")
+# All six screens, including Community, remain reachable on a phone.
+if '[0,1,2,3,5]' in s:
+    s=s.replace('[0,1,2,3,5]','[0,1,2,3,4,5]')
 p.write_text(s,encoding='utf-8')
 print('Verified real OHLC and authenticated paper trading patch applied')
