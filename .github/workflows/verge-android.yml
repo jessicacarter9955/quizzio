@@ -5,6 +5,7 @@ on:
       - ci/verge-trading-academy-apk-20261112
       - feat/verge-twelve-live-20261112
       - feat/verge-tradingview-dark-light-20261112
+      - feat/verge-public-web-six-live-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,6 +25,8 @@ jobs:
         run: python3 verge-build/patch_flutter.py
       - name: Apply TradingView dark light theme to Flutter and charts
         run: python3 verge-build/apply_tradingview_theme.py
+      - name: Fix six-symbol live quotes and authenticated paper trading API
+        run: python3 verge-build/patch_six_live.py
       - name: Generate Android project
         working-directory: flutter_app
         run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
@@ -46,11 +49,12 @@ jobs:
         run: |
           flutter build apk --release \
             --dart-define=API_BASE_URL=https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-market-api \
+            --dart-define=TRADE_API_BASE_URL=https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-api \
             --dart-define=SUPABASE_URL=https://fcypamejorxoxvtcqubs.supabase.co \
             --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_irzgokPHFHYBuS0XjzFwRQ_jEB0Yfe_
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: verge-tradingview-dark-light-apk
+          name: verge-trading-academy-six-real-quotes-apk
           path: flutter_app/build/app/outputs/flutter-apk/*.apk
           if-no-files-found: warn
