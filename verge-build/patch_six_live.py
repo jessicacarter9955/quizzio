@@ -17,7 +17,7 @@ swap("dbConnected=data['database']=='configured';","dbConnected=sbUrl.isNotEmpty
 swap("Timer? demoTimer;","Timer? demoTimer;Timer? marketPollTimer;")
 swap("demoTimer?.cancel();super.dispose();","demoTimer?.cancel();marketPollTimer?.cancel();super.dispose();")
 swap("_connect();","if(sbUrl.isNotEmpty&&sbKey.isNotEmpty){_startMarketPolling();}else{_connect();}")
-swap("}catch(_){_startDemo();}\n    if(mounted)setState(()=>loading=false)","}catch(_){if(sbUrl.isNotEmpty&&sbKey.isNotEmpty){_startMarketPolling();}else{_startDemo();}}\n    if(mounted)setState(()=>loading=false)")
+swap("void _startDemo(){","void _startDemo(){if(sbUrl.isNotEmpty&&sbKey.isNotEmpty){_startMarketPolling();return;}")
 hook="""  Future<void> _refreshMarketQuotes() async {
     try {
       final response=await http.get(Uri.parse('$apiBase/v1/quotes')).timeout(const Duration(seconds:10));
@@ -44,7 +44,9 @@ swap("  void _setupRealtime(){",hook+"  void _setupRealtime(){")
 for route in ("portfolio","orders","progress"):
     swap("'$apiBase/v1/"+route+"'","'$tradeApiBase/v1/"+route+"'")
 # The starting-price comparisons are illustrative, not exchange-day performance.
-swap("* Relative to demo opening references, not market daily change.","* Illustrative reference comparison, not official market daily change.")
-swap("Educational use only. Fees and slippage are simplified; demo prices are synthetic.","Educational paper trading only. Quotes marked Twelve Data are real provider data; fills and fees are simulated.")
+if "* Relative to demo opening references, not market daily change." in s:
+    swap("* Relative to demo opening references, not market daily change.","* Illustrative reference comparison, not official market daily change.")
+if "Educational use only. Fees and slippage are simplified; demo prices are synthetic." in s:
+    swap("Educational use only. Fees and slippage are simplified; demo prices are synthetic.","Educational paper trading only. Quotes marked Twelve Data are real provider data; fills and fees are simulated.")
 p.write_text(s,encoding="utf-8")
 print("VERGE six real quotes: market polling, secure paper trading, explicit source labels; source length:",len(s))
