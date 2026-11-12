@@ -42,7 +42,13 @@ hook="""  Future<void> _refreshMarketQuotes() async {
 swap("  void _setupRealtime(){",hook+"  void _setupRealtime(){")
 # Use the authenticated, transactional backend for student-specific operations.
 for route in ("portfolio","orders","progress"):
-    swap("'$apiBase/v1/"+route+"'","'$tradeApiBase/v1/"+route+"'")
+    needle="\'$apiBase/v1/"+route+"\'"
+    if needle in s:
+        swap(needle,"\'$tradeApiBase/v1/"+route+"\'")
+    elif route != "progress":
+        raise RuntimeError(f"Required student API route {route} not found")
+    else:
+        print("Lesson progress already uses the direct Supabase API")
 # The starting-price comparisons are illustrative, not exchange-day performance.
 if "* Relative to demo opening references, not market daily change." in s:
     swap("* Relative to demo opening references, not market daily change.","* Illustrative reference comparison, not official market daily change.")
