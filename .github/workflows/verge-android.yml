@@ -4,6 +4,7 @@ on:
     branches:
       - ci/verge-trading-academy-apk-20261112
       - feat/verge-twelve-live-20261112
+      - feat/verge-tradingview-dark-light-20261112
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +22,8 @@ jobs:
         run: base64 -d verge-build/flutter-src.tar.xz.b64 | tar -xJf -
       - name: Wire Supabase realtime and Twelve Data charts
         run: python3 verge-build/patch_flutter.py
+      - name: Apply TradingView dark light theme to Flutter and charts
+        run: python3 verge-build/apply_tradingview_theme.py
       - name: Generate Android project
         working-directory: flutter_app
         run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
@@ -48,6 +51,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: verge-trading-academy-live-apk
+          name: verge-tradingview-dark-light-apk
           path: flutter_app/build/app/outputs/flutter-apk/*.apk
           if-no-files-found: warn
