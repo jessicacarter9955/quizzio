@@ -43,7 +43,7 @@ splice('  Widget _watchlist()=>','\n  Widget _home()=>',"""  Widget _watchlist()
           Column(crossAxisAlignment:CrossAxisAlignment.end,children:[
             Text((prices[asset]??0)>0?lastPrice(asset):'—',style:TextStyle(fontWeight:FontWeight.w700)),
             _small(isReal?'Twelve Data · $transport':'Waiting for provider',color:isReal?rise:faint)])
-        ]))));
+        ])));
     }),const SizedBox(height:9),_small('Verified provider quotes; outside exchange hours prices may be delayed.')
   ]));""")
 needle="SizedBox(height:large?360:265,child:ChartView(key:ValueKey('chart-$symbol-$interval'),symbol:symbol,candles:candles,light:vergeLight))"
