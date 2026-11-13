@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Paper Trading">
+<rect width="512" height="512" rx="96" fill="#fff"/>
+<path d="M65 365 L148 281 L222 327 L306 190 L388 244 L458 100" fill="none" stroke="#2962FF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M389 103 L458 100 L452 169" fill="none" stroke="#2962FF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
