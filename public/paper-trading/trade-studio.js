@@ -12,9 +12,18 @@ const quoteAge=q=>q?.quoted_at?Math.max(0,Date.now()-Date.parse(q.quoted_at)):In
 const prettyAge=ms=>!Number.isFinite(ms)?'time unavailable':ms<60000?'under 1 min':ms<3600000?Math.round(ms/60000)+' min':ms<86400000?Math.round(ms/3600000)+' h':Math.round(ms/86400000)+' d';
 const isCore=s=>['AAPL','MSFT','NVDA','TSLA','BTC/USD','EUR/USD'].includes(s);
 const urlpath=(route)=>MARKET+'/'+route;
+function regularSessionOpen(symbol){
+ if(String(symbol).includes('/'))return true;
+ const fields=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());
+ const p=Object.fromEntries(fields.map(x=>[x.type,x.value]));
+ const time=(Number(p.hour)%24)*60+Number(p.minute);
+ return !['Sat','Sun'].includes(p.weekday)&&time>=570&&time<960;
+}
+window.tradingRegularSessionOpen=regularSessionOpen;
 function marketLabel(symbol){
  const q=state.prices[symbol],age=quoteAge(q),isCrypto=/\//.test(symbol);
  if(!q||!Number(q.price))return 'Price unavailable';
+ if(!regularSessionOpen(symbol))return 'US regular session closed · last quote '+fmtTime(q.quoted_at);
  if(age<120000)return (q.transport==='WS'?'Streaming':'Recently quoted')+' · '+fmtTime(q.quoted_at);
  if(age<900000)return 'Last market update '+prettyAge(age)+' ago';
  return (isCrypto?'Last available quote':'Last session / delayed')+' · '+fmtTime(q.quoted_at);
@@ -98,7 +107,7 @@ function riskFields(){
 }
 function tradeCard(){
  const owned=Number(holding().qty||0),avg=Number(holding().avg||0),last=priceOf(state.symbol),sell=state.side==='sell',quote=state.prices[state.symbol];
- const valid=quote?.source==='TWELVE_DATA'&&quoteAge(quote)<300000;
+ const valid=quote?.source==='TWELVE_DATA'&&quoteAge(quote)<300000&&regularSessionOpen(state.symbol);
  return '<div class="pt-order-title"><h2>Order ticket</h2><span class="pt-chip">'+(valid?'Quote available':'Market closed / stale quote')+'</span></div>'+
  '<div class="pt-order-toggle"><button class="'+(!sell?'active buy':'')+'" onclick="tradingChangeSide(\'buy\')">Buy</button>'+
  '<button class="'+(sell?'active sell':'')+'" onclick="tradingChangeSide(\'sell\')">Sell</button></div>'+
@@ -171,7 +180,7 @@ window.tradingSubmitOrder=async()=>{
  const symbol=state.symbol,side=state.side,qty=Number(state.qty),price=priceOf(symbol),quote=state.prices[symbol];
  if(!state.token)return window.loginModal();
  if(!Number.isFinite(qty)||qty<=0||qty>1000000)return toast('Enter a valid quantity');
- if(!Number.isFinite(price)||price<=0||quote?.source!=='TWELVE_DATA'||quoteAge(quote)>=300000)return toast('Market closed or provider quote is too old');
+ if(!Number.isFinite(price)||price<=0||quote?.source!=='TWELVE_DATA'||quoteAge(quote)>=300000||!regularSessionOpen(symbol))return toast('Market closed or provider quote is too old');
  if(side==='sell'&&qty>Number(holding().qty||0))return toast('You can only sell owned units. Use Sell max.');
  if(side==='buy'&&price*qty>state.portfolio.cash)return toast('Insufficient virtual buying power');
  let values=null;try{values=readRiskValues()}catch{}
