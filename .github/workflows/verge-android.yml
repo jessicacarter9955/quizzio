@@ -38,9 +38,19 @@ jobs:
           cat verge-build/paper-extras-b64/{0,1,2,3,4}.txt | base64 -d | xz -dc > flutter_app/lib/paper_student_extras.dart
           echo "8e8a12483d10e070bd19f4226fe6eff9cab2efebc1da09db79a6f2fd75d07d57  flutter_app/lib/paper_student_extras.dart" | sha256sum -c -
           python3 verge-build/patch_mobile_student_extras.py
+      - name: Enable native course screens, server-graded quizzes and simplified navigation
+        run: |
+          cat verge-build/mobile-learning-b64/{0,1,2,3,4,5}.txt | base64 -d | xz -dc > flutter_app/lib/paper_learning_mobile.dart
+          echo "e33c8f174beba253a2da253e2bd3aaebcf6c249bf2ebe463f2bf21206e79e196  flutter_app/lib/paper_learning_mobile.dart" | sha256sum -c -
+          base64 -d verge-build/patch_mobile_redesign.xz.b64 | xz -dc > /tmp/patch_mobile_redesign.py
+          echo "0b0c833b4ad67f7f715365e839b246edf10d0f279685d59e707359fd5a261419  /tmp/patch_mobile_redesign.py" | sha256sum -c -
+          python3 /tmp/patch_mobile_redesign.py
       - name: Generate Android project
         working-directory: flutter_app
         run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
+      - name: Install Inter font package
+        working-directory: flutter_app
+        run: flutter pub add google_fonts
       - name: Generate Paper Trading launcher icons (white + blue)
         run: python3 verge-build/build_paper_trading_icon.py
       - name: Enable Android internet
@@ -62,6 +72,7 @@ jobs:
           name: paper-trading-source-review
           path: |
             flutter_app/lib/main.dart
+            flutter_app/lib/paper_learning_mobile.dart
             flutter_app/assets/chart.html
           if-no-files-found: error
       - name: Dart source sanity check
