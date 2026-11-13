@@ -36,3 +36,18 @@ body.pt-advanced-open{overflow:hidden!important;touch-action:pan-x pan-y}
  .pt-advanced-close span{display:none}
  .pt-advanced-close{min-width:44px;min-height:44px}
 }
+
+/* Responsive chart action grouping: avoid Timeframe/Expand overlap. */
+.pt-card-head{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:9px 12px}
+.pt-card-head h2{flex:1;min-width:110px}
+.pt-card-head .timeframes{display:flex;align-items:center;gap:5px;margin-left:auto}
+.pt-card-head .timeframes .pill{min-width:37px;min-height:35px;padding:7px 9px}
+.pt-card-head .pt-advanced-expand{margin-left:0;flex:0 0 auto}
+.pt-trade-layout .pt-card-head{margin-bottom:16px}
+@media(max-width:540px){
+ .pt-card-head{gap:7px}
+ .pt-card-head h2{font-size:14px;min-width:90px}
+ .pt-card-head .timeframes{margin-left:0}
+ .pt-card-head .timeframes .pill{min-width:34px;padding:7px 7px}
+ .pt-card-head .pt-advanced-expand{min-width:37px}
+}
