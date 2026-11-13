@@ -221,6 +221,7 @@ window.paperUIAuthSubmit=async ev=>{
  }catch(e){if(status)status.textContent=e.message||'Sign in failed'}
  finally{if(button)button.disabled=false}
 };
+window.paperUIAuthError=message=>{const e=document.getElementById('pt-auth-message');if(e)e.textContent=message};
 window.paperUIBooted=()=>{if(!state.token)renderAuth();else authGate()?.remove()};
 window.paperUIAfterSignedIn=()=>{authGate()?.remove();authReady=false};
 window.paperUIAfterSignOut=()=>{authMode='login';renderAuth()};
@@ -233,4 +234,5 @@ window.paperUIAfterRender=()=>{
  }
 };
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&active!=null)exitLesson()});
+if(!state.token)renderAuth();
 })();
