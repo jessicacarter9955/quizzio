@@ -154,5 +154,28 @@ s=s.replace('Relative to demo opening','Comparative reference')
 if 'SAMPLE STUDENTS' in s or 'const localLessons=' in s or 'Charts by TradingView' in s:
     raise RuntimeError('Legacy sample content still present in Flutter UI')
 p.write_text(s,encoding='utf-8')
+# The earlier source rewrite removes the old polling helper; reintroduce a real-only market refresh.
+polling="""  Future<void> _refreshMarketQuotes() async{
+    try{
+      final response=await http.get(Uri.parse('$apiBase/v1/quotes')).timeout(const Duration(seconds:12));
+      if(response.statusCode!=200)return;
+      final body=jsonDecode(response.body);
+      if(body is! Map||body['quotes'] is! List)return;
+      for(final q in (body['quotes'] as List)){
+        if(q is Map&&q['source']=='TWELVE_DATA')_tick(Map<String,dynamic>.from(q));
+      }
+    }catch(_){/* Retain the last verified quote; never simulate market values. */}
+  }
+  void _startMarketPolling(){
+    marketPollTimer?.cancel();
+    _refreshMarketQuotes();
+    marketPollTimer=Timer.periodic(const Duration(seconds:15),(_)=>_refreshMarketQuotes());
+  }
+"""
+if '  void _setupRealtime(){' not in s:raise RuntimeError('Realtime source hook unavailable')
+s=s.replace('  void _setupRealtime(){',polling+'  void _setupRealtime(){',1)
+# Theme's dynamic stroke is not a compile-time constant.
+s=s.replace('const CircleAvatar(radius:34,backgroundColor:stroke,child:Icon(Icons.trending_up,color:lime,size:33))',
+            'CircleAvatar(radius:34,backgroundColor:stroke,child:const Icon(Icons.trending_up,color:lime,size:33))')
 s=s.replace('VERGE.','Paper Trading').replace('VERGE ·','Paper Trading ·').replace('TRADING ACADEMY','STUDENT SIMULATOR')
 print('Paper Trading production-source pass complete; size',len(s))
