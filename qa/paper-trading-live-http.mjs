@@ -1,6 +1,7 @@
 // Fast, network-only production verification. No browser, no simulated market data.
 // Each check calls the real Render/Supabase deployment (Deno API + Auth).
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { Script } from 'node:vm';
 const web='https://quizlab-responsive-web.onrender.com/paper-trading/';
 const db='https://fcypamejorxoxvtcqubs.supabase.co';
 const checks=[],startedAt=new Date().toISOString();
@@ -24,6 +25,14 @@ async function main(){
   add('Render page HTTP 200',site.status===200,site.status);
   add('Correct canonical page title',site.body.includes('<title>Paper Trading'),site.finalUrl);
   add('Page loads student-features module',site.body.includes('/paper-trading/student-features.js'));
+  const inline=[...site.body.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(x=>x[1]);
+  let syntaxError='';
+  try{for(const [i,source] of inline.entries())new Script(source,{filename:'inline-script-'+i+'.js'});}catch(e){syntaxError=e.message;}
+  add('All deployed inline JavaScript parses',inline.length>0&&!syntaxError,syntaxError||inline.length+' inline scripts');
+  let featureSyntax='';
+  try{new Script(js.body,{filename:'student-features.js'});}catch(e){featureSyntax=e.message;}
+  add('Deployed student module parses',!featureSyntax,featureSyntax);
+
   add('Student JavaScript and CSS deployed',js.status===200&&styles.status===200);
   add('White-and-blue icon deployed',icon.status===200&&icon.body.includes('#2962FF')&&icon.body.includes('#fff'));
   add('No sample traders or synthetic market generator',!site.body.includes('syntheticCandles')&&!site.body.includes('Olivia K.')&&!site.body.includes('James R.'));
