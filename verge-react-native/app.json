@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "VERGE Trading",
+    "slug": "verge-student-mobile",
+    "scheme": "verge",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#131722",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.verge.tradingstudent",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        }
+      }
+    },
+    "android": {
+      "package": "com.verge.tradingstudent",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#131722"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": []
+  }
+}
