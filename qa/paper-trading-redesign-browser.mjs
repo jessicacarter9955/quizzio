@@ -38,16 +38,16 @@ async function attempt(viewport,tag){
   await page.locator('.pt-course-tile').first().click();
   await page.locator('#pt-learning-shell').waitFor({timeout:10000});
   mark(tag+' first lesson screen',await page.locator('#pt-learning-shell h2').first().innerText()==='What you own');
-  for(let i=0;i<4;i++){
+  for(let i=0;i<6;i++){
     await page.locator('#pt-learning-shell .primary-button').last().click();
     await page.waitForFunction(next=>document.querySelector('.pt-learning-counter')?.textContent?.startsWith(String(next)),i+2,{timeout:12000});
   }
-  mark(tag+' four lesson screens persisted',await page.evaluate(()=>Number(document.querySelector('#pt-learning-shell .pt-learning-counter')?.textContent?.split('/')[0].trim())===5));
+  mark(tag+' six lesson screens persisted',await page.evaluate(()=>Number(document.querySelector('#pt-learning-shell .pt-learning-counter')?.textContent?.split('/')[0].trim())===7));
   const answers=[1,0,1];
   for(let i=0;i<3;i++){
     await page.locator('#pt-learning-shell .pt-answer').nth(answers[i]).click();
     await page.locator('#pt-learning-shell .primary-button').last().click();
-    if(i<2)await page.waitForFunction(n=>document.querySelector('.pt-learning-counter')?.textContent?.startsWith(String(n)),i+6,{timeout:15000});
+    if(i<2)await page.waitForFunction(n=>document.querySelector('.pt-learning-counter')?.textContent?.startsWith(String(n)),i+8,{timeout:15000});
   }
   await page.locator('#pt-learning-shell .pt-quiz-results').waitFor({timeout:20000});
   mark(tag+' server graded quiz',await page.locator('.pt-quiz-results strong').innerText()==='100%');
