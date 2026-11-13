@@ -20,6 +20,22 @@ jobs:
           test -s public/verge/index.html
           grep -q "Twelve Data" public/verge/index.html
           ! grep -q 'function syntheticCandles' public/verge/index.html
+      - name: Validate HTML inline JavaScript syntax and prohibit mock data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path('public/verge/index.html').read_text()
+          parts=re.findall(r'<script\\b[^>]*>(.*?)</script>',html,flags=re.S|re.I)
+          assert parts, 'No JavaScript in HTML'
+          for i,part in enumerate(parts):
+              Path(f'/tmp/verge-script-{i}.js').write_text(part)
+          print('Inline scripts:',len(parts))
+          assert 'TradingView' not in html
+          assert 'syntheticCandles' not in html
+          assert "const sample=" not in html
+          PY
+          for f in /tmp/verge-script-*.js; do node --check "$f"; done
       - uses: actions/upload-artifact@v4
         with:
           name: verge-live-web-qa-source
