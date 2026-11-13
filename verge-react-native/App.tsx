@@ -15,8 +15,7 @@ export default function App() {
 
   const back = useCallback(() => {
     // Close the actual TradingView full-screen modal before attempting WebView history.
-    ref.current?.injectJavaScript('if(window.tradingCloseAdvanced && document.getElementById("pt-advanced-overlay")){window.tradingCloseAdvanced()}else{window.ReactNativeWebView?.postMessage("back-not-handled")};true;');
-    if (canGoBack) ref.current?.goBack();
+    ref.current?.injectJavaScript('if(window.tradingCloseAdvanced && document.getElementById("pt-advanced-overlay")){window.tradingCloseAdvanced()}else if(history.length>1){history.back()};true;');
     return true;
   }, [canGoBack]);
 
