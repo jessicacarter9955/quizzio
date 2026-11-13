@@ -4,7 +4,7 @@ const browser=await chromium.launch({headless:true,args:['--no-sandbox','--disab
 const report={app:'Paper Trading (Flutter Web build of Android codebase)',screens:[],issues:[]};
 fs.mkdirSync('flutter-qa/screenshots',{recursive:true});
 for(const screen of [{tag:'mobile',width:390,height:844},{tag:'desktop',width:1280,height:800}]){
- const context=await browser.newContext({viewport:{width:screen.width,height:screen.height},deviceScaleFactor:1,recordVideo:{dir:'flutter-qa/videos',size:{width:screen.width,height:screen.height}}});
+ const context=await browser.newContext({viewport:{width:screen.width,height:screen.height},deviceScaleFactor:1,locale:'en-US',extraHTTPHeaders:{'Accept-Language':'en-US,en;q=0.9'},recordVideo:{dir:'flutter-qa/videos',size:{width:screen.width,height:screen.height}}});
  const page=await context.newPage();
  const errors=[];let quoteCalls=0,lessonsCalls=0;
  page.on('pageerror',err=>errors.push(err.message));
@@ -13,6 +13,11 @@ for(const screen of [{tag:'mobile',width:390,height:844},{tag:'desktop',width:12
   await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded',timeout:30000});
   await page.waitForFunction(()=>!!document.querySelector('flutter-view'),{timeout:30000});
   await page.waitForTimeout(9500);
+  const chartResource=await page.request.get('http://127.0.0.1:8765/chart.html');
+  const chartHtml=await chartResource.text();
+  const chartCorrect=chartHtml.includes('echarts@5.6.0')&&!chartHtml.includes('TradingView')&&!chartHtml.includes('lightweight-charts');
+  if(!chartCorrect)report.issues.push(screen.tag+' chart still contains old branded engine');
+
   await page.screenshot({path:'flutter-qa/screenshots/'+screen.tag+'-home.png',fullPage:true});
   const booted=await page.evaluate(()=>document.querySelector('flutter-view')?.getBoundingClientRect()?.height>200);
   report.screens.push({tag:screen.tag,booted,marketRequests:quoteCalls,lessonRequests:lessonsCalls,browserErrors:errors});
