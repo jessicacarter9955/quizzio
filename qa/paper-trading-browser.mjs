@@ -17,6 +17,7 @@ async function exercise(width,height,tag){
     await page.waitForFunction(()=>state.lessonData.length===6&&Object.values(state.prices).filter(x=>x.source==='TWELVE_DATA').length===6,{timeout:30000});
     check(tag+' six provider quotes from Supabase',await page.evaluate(()=>Object.values(state.prices).length===6&&Object.values(state.prices).every(q=>q.source==='TWELVE_DATA'&&Number(q.price)>0)));
     check(tag+' Supabase authentication config connected',await page.evaluate(()=>state.db===true&&state.supabaseUrl.includes('.supabase.co')&&state.supabaseKey.startsWith('sb_publishable_')));
+    check(tag+' active student feature hooks',await page.evaluate(()=>['paperTradingAfterRender','paperTradingLeaderPage','paperTradingLoadExtras','paperTradingLogin','paperTradingLogout','paperTradingAfterLoginModal','paperTradingRestoreSession'].every(k=>typeof window[k]==='function')));
     await page.waitForFunction(()=>state.candles.length>0&&state.chart!==null,{timeout:40000});
     await page.waitForSelector('#trade-chart canvas',{timeout:20000});
     check(tag+' real OHLC chart rendered',await page.evaluate(()=>state.candles.length>0&&state.chart!==null&&document.querySelector('#trade-chart canvas')!==null));
@@ -57,6 +58,8 @@ async function exercise(width,height,tag){
     await nav('Leaderboard').click();
     await page.waitForTimeout(400);
     check(tag+' classroom UI mounted',await page.locator('#pt-classrooms').count()===1);
+    check(tag+' guest classroom explanation mounted',(await page.locator('#pt-classrooms').innerText()).includes('Your classroom rankings'));
+
     check(tag+' guest classroom requires login',(await page.locator('#pt-classrooms').innerText()).includes('Sign in'));
     check(tag+' no invented leaderboard',!(await page.locator('#pt-classrooms').innerText()).includes('Olivia K.'));
 
