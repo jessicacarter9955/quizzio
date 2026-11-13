@@ -177,5 +177,32 @@ s=s.replace('  void _setupRealtime(){',polling+'  void _setupRealtime(){',1)
 s=s.replace('const CircleAvatar(radius:34,backgroundColor:stroke,child:Icon(Icons.trending_up,color:lime,size:33))',
             'CircleAvatar(radius:34,backgroundColor:stroke,child:const Icon(Icons.trending_up,color:lime,size:33))')
 s=s.replace('VERGE.','Paper Trading').replace('VERGE ·','Paper Trading ·').replace('TRADING ACADEMY','STUDENT SIMULATOR')
+# Remove dead mock connection and obsolete sample labels; Supabase is authoritative.
+s=s.replace("final demoOpening={","final initialQuoteValues={").replace("Map.of(demoOpening)","Map.of(initialQuoteValues)")
+s=s.replace("getBool('verge_tradingview_light')","getBool('paper_trading_light')").replace("setBool('verge_tradingview_light'","setBool('paper_trading_light'")
+s=s.replace("import 'package:web_socket_channel/web_socket_channel.dart';\n","")
+s=s.replace("WebSocketChannel? socket;StreamSubscription? socketSubscription;RealtimeChannel? marketChannel;Timer? demoTimer;Timer? marketPollTimer;int mockTick=0;",
+            "RealtimeChannel? marketChannel;Timer? marketPollTimer;")
+s=s.replace("socketSubscription?.cancel();socket?.sink.close();","").replace("demoTimer?.cancel();","").replace("demoTimer=null;","")
+start=s.find('  void _startDemo(){')
+end=s.find('  void _tick(',start)
+if start>=0 and end>start:s=s[:start]+s[end:]
+start=s.find('  Future<void> _save() async {')
+end=s.find('  void _show(',start)
+if start>=0 and end>start:s=s[:start]+s[end:]
+s=s.replace("No sample students, scores or rankings. Publishing requires actual enrolled users and classroom privacy rules.",
+            "Rankings appear only after classroom enrolment and privacy settings are configured.")
+s=s.replace("_heading(large?'Live market chart':'Market overview')","_heading(large?'Historical market chart':'Market overview')")
+s=s.replace("child:Text('V',style:TextStyle(color:dark,fontWeight:FontWeight.w900))",
+            "child:Icon(Icons.trending_up,color:lime,size:22)")
+s=s.replace("decoration:BoxDecoration(color:lime,borderRadius:BorderRadius.circular(9)),child:Icon(Icons.trending_up,color:lime,size:22)",
+            "decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(9)),child:Icon(Icons.trending_up,color:lime,size:22)")
+s=s.replace("auth.signUp(email:email.text.trim(),password:password.text)",
+            "auth.signUp(email:email.text.trim(),password:password.text,emailRedirectTo:'https://quizlab-responsive-web.onrender.com/paper-trading/')")
+# The app should not claim to sign in automatically when email confirmation is still required.
+s=s.replace("Sign up","Sign up")
+# Verify no user-facing vendor attribution or simulated market/leaderboard content survives.
+if "TradingView" in s or "demoOpening" in s or "SAMPLE STUDENTS" in s or "function syntheticCandles" in s:
+    raise RuntimeError('Mock/vendor strings are still in the final Flutter source')
 p.write_text(s,encoding='utf-8')
 print('Paper Trading production-source pass complete; size',len(s))
