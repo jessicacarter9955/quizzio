@@ -22,14 +22,30 @@ for(const screen of [{tag:'mobile',width:390,height:844},{tag:'desktop',width:12
   const booted=await page.evaluate(()=>document.querySelector('flutter-view')?.getBoundingClientRect()?.height>200);
   report.screens.push({tag:screen.tag,booted,marketRequests:quoteCalls,lessonRequests:lessonsCalls,browserErrors:errors});
   if(!booted||errors.length)report.issues.push(screen.tag+' UI startup: '+errors.join('; '));
-  // Flutter renders onto CanvasKit. Capture real clicks without claiming semantic test success.
+  // Exercise actual CanvasKit touch coordinates on the mobile auth-first screen.
   if(screen.tag==='mobile'){
-    const taps=[['trade',.26],['portfolio',.43],['learn',.61],['leaderboard',.78],['account',.94]];
-    for(const [label,x] of taps){
-      await page.mouse.click(Math.round(screen.width*x),screen.height-37);
-      await page.waitForTimeout(1000);
-      await page.screenshot({path:'flutter-qa/screenshots/mobile-'+label+'.png',fullPage:true});
-    }
+    let loginStatus='unverified';
+    try{
+      const responsePromise=page.waitForResponse(r=>r.url().includes('/auth/v1/token?grant_type=password'),{timeout:20000});
+      await page.mouse.click(195,490);
+      const response=await responsePromise;
+      loginStatus=response.ok()?'authenticated':'auth-http-'+response.status();
+      await page.waitForTimeout(5000);
+      await page.screenshot({path:'flutter-qa/screenshots/mobile-after-login.png',fullPage:true});
+      if(!response.ok())report.issues.push('Actual mobile Flutter login returned '+response.status());
+      else{
+        const tabs=[['home',.1],['trade',.3],['portfolio',.5],['learn',.7],['ranks',.9]];
+        for(const [label,x] of tabs){
+          await page.mouse.click(Math.round(screen.width*x),screen.height-33);
+          await page.waitForTimeout(1100);
+          await page.screenshot({path:'flutter-qa/screenshots/mobile-'+label+'-authenticated.png',fullPage:true});
+        }
+        await page.mouse.click(screen.width-39,28);
+        await page.waitForTimeout(900);
+        await page.screenshot({path:'flutter-qa/screenshots/mobile-account-authenticated.png',fullPage:true});
+      }
+    }catch(e){report.issues.push('Flutter mobile sign-in UI: '+String(e).slice(0,250));}
+    report.screens[report.screens.length-1].demoLogin=loginStatus;
   }
  }catch(e){report.issues.push(screen.tag+' failed: '+String(e).slice(0,300));}
  await page.close();await context.close();
