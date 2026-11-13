@@ -34,4 +34,8 @@ window.addEventListener('resize',()=>chart?.resize());
 render();
 </script></body></html>'''
 p.write_text(html,encoding='utf-8')
+web=Path('flutter_app/web/chart.html')
+web.parent.mkdir(parents=True,exist_ok=True)
+web.write_text(html,encoding='utf-8')
+print('Flutter Web root chart also replaced')
 print('Paper Trading charts now use ECharts 5.6.0, not the previous chart vendor')
