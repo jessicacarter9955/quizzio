@@ -28,14 +28,13 @@ async function loadExtras(){
  if(responses[2].status==='fulfilled')state.classrooms=Array.isArray(responses[2].value)?responses[2].value:[];
  state.extraStatus=responses.filter(x=>x.status==='rejected').map(x=>String(x.reason)).join(' · ');
 }
-const originalPortfolio=window.loadPortfolio;
-window.loadPortfolio=async function(){await originalPortfolio();await loadExtras()};
+window.paperTradingLoadExtras=loadExtras;
 async function favorite(symbol){
  if(!state.token)return window.loginModal();
  if(!['AAPL','MSFT','NVDA','TSLA','BTC/USD','EUR/USD'].includes(symbol))return;
  try{
   if(state.watchlist.includes(symbol))await api('/rest/v1/pt_watchlist?symbol=eq.'+encodeURIComponent(symbol),{method:'DELETE'});
-  else await api('/rest/v1/pt_watchlist',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({symbol})});
+  else {if(!state.studentId)throw Error('Student profile unavailable');await api('/rest/v1/pt_watchlist',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({symbol,user_id:state.studentId})});}
   await loadExtras();window.render();toast('Watchlist saved to Supabase');
  }catch(e){toast('Watchlist not saved: '+e.message)}
 }
@@ -104,7 +103,7 @@ function paintClasses(){
   box.append(actions);root.append(box);
  }
 }
-window.leaderPage=()=>intro('STUDENT PERFORMANCE','Classroom leaderboard','Real classroom members, virtual returns and completed lessons from Supabase.')+'<section id="pt-classrooms"></section>';
+window.paperTradingLeaderPage=()=>intro('STUDENT PERFORMANCE','Classroom leaderboard','Real classroom members, virtual returns and completed lessons from Supabase.')+'<section id="pt-classrooms"></section>';
 function paintProfile(){
  if(state.page!=='profile'||!state.token)return;
  const root=document.querySelector('#content');if(!root)return;
@@ -114,14 +113,14 @@ function paintProfile(){
  sec.append(button('Update password',async()=>{if(pass.control.value.length<8)return toast('Enter at least 8 characters');try{const r=await fetch(authBase()+'/user',{method:'PUT',headers:headers(),body:JSON.stringify({password:pass.control.value})});if(!r.ok)throw Error(await error(r));pass.control.value='';toast('Password changed in Supabase')}catch(e){toast(e.message)}},'primary-button'));
  root.append(c,sec);
 }
-const originalRender=window.render;window.render=function(){originalRender();paintWatch();paintClasses();paintProfile()};
-const originalLogin=window.loginModal;window.loginModal=function(){originalLogin();const modal=document.querySelector('#overlay .modal');if(modal){const recover=button('Forgot password?',()=>window.requestPasswordReset(),'text-link');recover.style.marginTop='12px';modal.append(recover)}};
+window.paperTradingAfterRender=()=>{paintWatch();paintClasses();paintProfile()};
+window.paperTradingAfterLoginModal=()=>{const modal=document.querySelector('#overlay .modal');if(modal&&!modal.querySelector('.pt-recovery')){const recover=button('Forgot password?',()=>window.requestPasswordReset(),'text-link pt-recovery');recover.style.marginTop='12px';modal.append(recover)}};
 window.requestPasswordReset=async()=>{
  const email=document.querySelector('#email')?.value?.trim()||prompt('Email address for password recovery:');if(!email)return;
  try{const url=authBase()+'/recover?redirect_to='+encodeURIComponent(LANDING);const r=await fetch(url,{method:'POST',headers:{apikey:state.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({email})});if(!r.ok)throw Error(await error(r));toast('If an account exists, a recovery email was requested.')}catch(e){toast('Reset failed: '+e.message)}
 };
 function setSession(d){state.token=d.access_token;state.account=d.user||null;safeSession.setItem('verge_token',d.access_token);if(d.refresh_token)safeSession.setItem(ACC,d.refresh_token);if(d.expires_at)safeSession.setItem('pt_auth_expires',String(d.expires_at))}
-window.submitLogin=async function(ev,signup=false){
+window.paperTradingLogin=async function(ev,signup=false){
  ev?.preventDefault();const email=document.querySelector('#email')?.value?.trim(),password=document.querySelector('#pw')?.value;
  if(!email||!password)return toast('Email and password required');const btn=document.querySelector('#overlay button[type=submit]');if(btn)btn.disabled=true;
  try{
@@ -133,11 +132,22 @@ window.submitLogin=async function(ev,signup=false){
   else throw Error('No session was returned');
  }catch(e){toast(e.message)}finally{if(btn)btn.disabled=false}
 };
-window.logout=async function(){
+window.paperTradingLogout=async function(){
  try{if(state.token){const r=await fetch(authBase()+'/logout',{method:'POST',headers:headers()});if(!r.ok&&r.status!==401)toast('Remote sign-out failed; local session cleared')}}catch{}
  state.token='';state.account=null;state.portfolio={cash:0,holdings:{},orders:[],done:[]};state.watchlist=[];state.classrooms=[];state.studentAlias='';state.studentId=null;
  for(const key of ['verge_token',ACC,'pt_auth_expires'])safeSession.removeItem(key);
  window.render();toast('Signed out');
+};
+window.paperTradingRestoreSession=async()=>{
+ const refresh=safeSession.getItem(ACC),expiry=Number(safeSession.getItem('pt_auth_expires')||0);
+ if(!refresh||!state.db||!state.supabaseKey)return;
+ if(state.token&&expiry>Date.now()/1000+120)return;
+ try{
+   const r=await fetch(authBase()+'/token?grant_type=refresh_token',{method:'POST',headers:{apikey:state.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:refresh})});
+   if(!r.ok)throw Error(await error(r));
+   const d=await r.json();if(!d.access_token)throw Error('Missing refreshed session');
+   setSession(d);
+ }catch(e){state.token='';state.account=null;for(const key of ['verge_token',ACC,'pt_auth_expires'])safeSession.removeItem(key);console.warn('Supabase session refresh was not possible:',e.message)}
 };
 (async()=>{try{if(state.token&&state.db)await loadExtras();window.render()}catch(e){console.warn('Student features:',e)}})();
 })();
