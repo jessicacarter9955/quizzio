@@ -1,0 +1,11 @@
+Paper Trading — third-party components
+
+Apache ECharts 5.6.0
+Copyright the Apache Software Foundation and ECharts contributors.
+License: Apache License, Version 2.0
+https://www.apache.org/licenses/LICENSE-2.0
+Source: https://github.com/apache/echarts
+
+This software is an educational paper-trading simulator and is not
+affiliated with the Apache Software Foundation, ECharts, Twelve Data,
+or any brokerage. Market-data rights are subject to the provider agreement.
