@@ -33,6 +33,11 @@ jobs:
         run: python3 verge-build/paper_trading_final.py
       - name: Replace chart engine and remove vendor branding
         run: python3 verge-build/replace_chart_engine.py
+      - name: Restore native student classrooms and favorites
+        run: |
+          cat verge-build/paper-extras-b64/{0,1,2,3,4}.txt | base64 -d | xz -dc > flutter_app/lib/paper_student_extras.dart
+          echo "8e8a12483d10e070bd19f4226fe6eff9cab2efebc1da09db79a6f2fd75d07d57  flutter_app/lib/paper_student_extras.dart" | sha256sum -c -
+          python3 verge-build/patch_mobile_student_extras.py
       - name: Generate Android project
         working-directory: flutter_app
         run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
