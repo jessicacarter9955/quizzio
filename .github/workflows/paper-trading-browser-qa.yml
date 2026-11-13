@@ -19,6 +19,8 @@ jobs:
         id: setup-chrome
       - name: Install browser QA library
         run: npm install --no-save playwright-core@1.55.0
+      - name: Install Playwright video recorder runtime
+        run: npx playwright install ffmpeg
       - name: Test actual published Paper Trading web on desktop/mobile viewports
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
