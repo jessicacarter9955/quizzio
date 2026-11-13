@@ -30,7 +30,7 @@ async function exercise(width,height,tag){
     const first=lessons?await page.locator('.lesson-card').first().innerText():'';
     check(tag+' course order first',first.includes('Welcome to the Markets'),first.slice(0,100));
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-learn.png',fullPage:true});
-    await nav('Community').click();
+    await nav('Leaderboard').click();
     await page.waitForTimeout(400);
     check(tag+' no invented leaderboard',(await page.locator('#content').innerText()).includes('No published rankings'));
     await nav('Trade').click();
@@ -45,6 +45,18 @@ async function exercise(width,height,tag){
     await nav('Portfolio').click();await page.waitForTimeout(700);
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-portfolio.png',fullPage:true});
     await nav('Account').click();await page.waitForTimeout(500);
+    await page.locator('#content button').filter({hasText:'Student sign in'}).first().click();
+    const signinModal=page.locator('#overlay');
+    check(tag+' login form opens',await signinModal.locator('input[type=email]').count()===1&&await signinModal.locator('input[type=password]').count()===1);
+    check(tag+' signup form reachable',await signinModal.getByText('Create a student account').count()===1);
+    await signinModal.locator('input[type=email]').fill('invalid-account-no-user@invalid.example');
+    await signinModal.locator('input[type=password]').fill('WrongPass123');
+    await signinModal.locator('button[type=submit]').click();
+    await page.waitForTimeout(1700);
+    const invalidMessage=await page.locator('#toast').innerText();
+    check(tag+' invalid password rejected',invalidMessage.length>0&&!page.url().includes('localhost'),invalidMessage.slice(0,140));
+    await page.locator('#overlay button.close').click();
+
     check(tag+' real auth entry',await page.getByText('Student sign in').count()>0);
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-account.png',fullPage:true});
     const before=await page.locator('html').getAttribute('data-theme');
