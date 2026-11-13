@@ -14,6 +14,12 @@ async function exercise(width,height,tag){
     await page.goto(url,{waitUntil:'domcontentloaded',timeout:65000});
     await page.waitForFunction(()=>document.querySelectorAll('.lesson-row').length>0,{timeout:40000});
     await page.waitForFunction(()=>[...document.querySelectorAll('.asset-price b')].some(x=>Number(x.textContent.replace(/[$,]/g,''))>100),{timeout:45000});
+    await page.waitForFunction(()=>state.lessonData.length===6&&Object.values(state.prices).filter(x=>x.source==='TWELVE_DATA').length===6,{timeout:30000});
+    check(tag+' six provider quotes from Supabase',await page.evaluate(()=>Object.values(state.prices).length===6&&Object.values(state.prices).every(q=>q.source==='TWELVE_DATA'&&Number(q.price)>0)));
+    check(tag+' Supabase authentication config connected',await page.evaluate(()=>state.db===true&&state.supabaseUrl.includes('.supabase.co')&&state.supabaseKey.startsWith('sb_publishable_')));
+    await page.waitForFunction(()=>state.candles.length>0&&state.chart!==null,{timeout:40000});
+    check(tag+' real OHLC chart rendered',await page.evaluate(()=>state.candles.length>0&&state.chart!==null&&document.querySelector('#trade-chart canvas')!==null));
+    check(tag+' OHLC internally consistent',await page.evaluate(()=>state.candles.every(c=>c.high>=Math.max(c.open,c.close)&&c.low<=Math.min(c.open,c.close)&&c.time>1500000000)));
     check(tag+' correct title',(await page.title()).startsWith('Paper Trading'),await page.title());
     const pageText=await page.locator('body').innerText();
     check(tag+' no fictional traders',!pageText.includes('Olivia K.')&&!pageText.includes('James R.'));
@@ -23,12 +29,25 @@ async function exercise(width,height,tag){
     check(tag+' 1D default',buttons.join('').includes('1D'));
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-overview.png',fullPage:true});
     const nav=(label)=>page.locator(width<700?'#nav-mobile button':'#nav-left button').filter({hasText:label}).first();
+    const rows=await page.locator('.market-table tbody tr').count();
+    check(tag+' six watchlist instruments',rows===6,'rows='+rows);
+    await page.locator('.market-table tbody tr').filter({hasText:'MSFT'}).first().click();
+    check(tag+' watchlist opens correct selected asset',await page.evaluate(()=>state.page==='trade'&&state.symbol==='MSFT'));
+    await nav('Overview').click();
     await nav('Learn').click();
     await page.waitForTimeout(900);
     const lessons=await page.locator('.lesson-card').count();
     check(tag+' six real lessons',lessons===6,'count='+lessons);
     const first=lessons?await page.locator('.lesson-card').first().innerText():'';
     check(tag+' course order first',first.includes('Welcome to the Markets'),first.slice(0,100));
+    const sequence=await page.locator('.lesson-card h3').allInnerTexts();
+    check(tag+' all six lessons ordered',sequence.length===6&&sequence[0]==='Welcome to the Markets'&&sequence[1]==='Understanding Candlesticks'&&sequence[5]==='Reviewing Performance');
+    await page.locator('.lesson-card').first().click();
+    check(tag+' lesson details open from Supabase',await page.locator('#overlay').getByText('Welcome to the Markets').count()===1);
+    const beforeDone=await page.evaluate(()=>state.portfolio.done.length);
+    await page.locator('#overlay').getByText('Mark as complete').click();
+    check(tag+' guest completion requires auth',await page.locator('#overlay input[type=email]').count()===1&&await page.evaluate(()=>state.portfolio.done.length)===beforeDone);
+    await page.locator('#overlay button.close').click();
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-learn.png',fullPage:true});
     await nav('Leaderboard').click();
     await page.waitForTimeout(400);
@@ -37,9 +56,27 @@ async function exercise(width,height,tag){
     await page.waitForTimeout(1600);
     const b=page.locator('.timeframes .pill');
     check(tag+' chart interval buttons',await b.count()===3);
+    check(tag+' six selectable symbols',await page.locator('.symbol-selector').count()===6);
+    await page.locator('.segmented').getByText('Sell').click();
+    check(tag+' sell selection changes order side',await page.evaluate(()=>state.side==='sell'));
+    await page.locator('.segmented').getByText('Buy').click();
+    check(tag+' buy selection changes order side',await page.evaluate(()=>state.side==='buy'));
+    await page.locator('#quantity').fill('3');
+    const notional=await page.locator('#order-notional').innerText();
+    check(tag+' quantity updates estimated notional',await page.evaluate(()=>state.qty===3),notional);
+    await page.locator('.order-panel .primary-button').click();
+    check(tag+' buying when logged out opens real auth',await page.locator('#overlay input[type=email]').count()===1);
+    await page.locator('#overlay button.close').click();
+    check(tag+' no fabricated cash for guest',(await page.locator('.order-panel').innerText()).includes('Available cash Sign in'));
+    
     for(const [i,name] of ['1D','1W','1M'].entries()){
        await b.nth(i).click();await page.waitForTimeout(2200);
        check(tag+' '+name+' interval activated',(await b.nth(i).getAttribute('class')||'').includes('active'));
+       await page.waitForFunction(label=>state.chart&&state.candles.length>0&&(document.querySelector('.chart-legend span')?.textContent||'').includes(label),name,{timeout:30000});
+       const chartDetails=await page.evaluate(()=>({n:state.candles.length,range:state.candles.length?state.candles.at(-1).time-state.candles[0].time:Infinity,chart:!!state.chart}));
+       const maxSeconds=[86400,7*86400,30*86400][i];
+       check(tag+' '+name+' real candles within actual period',chartDetails.n>0&&chartDetails.range<=maxSeconds,'count='+chartDetails.n+', spanSec='+chartDetails.range);
+       check(tag+' '+name+' chart mounted',chartDetails.chart);
     }
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-trade.png',fullPage:true});
     await nav('Portfolio').click();await page.waitForTimeout(700);
