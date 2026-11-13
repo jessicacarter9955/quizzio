@@ -1,0 +1,31 @@
+name: Paper Trading Browser QA and Walkthrough Recording
+on:
+  push:
+    branches: [quiz-lab-apk-builder]
+    paths:
+      - qa/paper-trading-browser.mjs
+      - .github/workflows/paper-trading-browser-qa.yml
+      - public/paper-trading/index.html
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+      - name: Install browser QA library
+        run: npm install --no-save playwright-core@1.55.0
+      - name: Test actual published Paper Trading web on desktop/mobile viewports
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: node qa/paper-trading-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paper-trading-web-browser-qa
+          path: paper-trading-qa/
+          if-no-files-found: warn
