@@ -29,6 +29,10 @@ async function exercise(width,height,tag){
     check(tag+' 1D default',buttons.join('').includes('1D'));
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-overview.png',fullPage:true});
     const nav=(label)=>page.locator(width<700?'#nav-mobile button':'#nav-left button').filter({hasText:label}).first();
+    check(tag+' real personal watchlist controls',await page.locator('.pt-fav').count()===6);
+    await page.locator('.pt-fav').first().click();
+    check(tag+' guest watchlist requires login',await page.locator('#overlay input[type=email]').count()===1);
+    await page.locator('#overlay button.close').click();
     const rows=await page.locator('.market-table tbody tr').count();
     check(tag+' six watchlist instruments',rows===6,'rows='+rows);
     await page.locator('.market-table tbody tr').filter({hasText:'MSFT'}).first().click();
@@ -51,7 +55,10 @@ async function exercise(width,height,tag){
     await page.screenshot({path:'paper-trading-qa/screenshots/'+tag+'-learn.png',fullPage:true});
     await nav('Leaderboard').click();
     await page.waitForTimeout(400);
-    check(tag+' no invented leaderboard',(await page.locator('#content').innerText()).includes('No published rankings'));
+    check(tag+' classroom UI mounted',await page.locator('#pt-classrooms').count()===1);
+    check(tag+' guest classroom requires login',(await page.locator('#pt-classrooms').innerText()).includes('Sign in'));
+    check(tag+' no invented leaderboard',!(await page.locator('#pt-classrooms').innerText()).includes('Olivia K.'));
+
     await nav('Trade').click();
     await page.waitForTimeout(1600);
     const b=page.locator('.timeframes .pill');
@@ -86,6 +93,7 @@ async function exercise(width,height,tag){
     const signinModal=page.locator('#overlay');
     check(tag+' login form opens',await signinModal.locator('input[type=email]').count()===1&&await signinModal.locator('input[type=password]').count()===1);
     check(tag+' signup form reachable',await signinModal.getByText('Create a student account').count()===1);
+    check(tag+' password recovery available',await signinModal.getByText('Forgot password?').count()===1);
     await signinModal.locator('input[type=email]').fill('invalid-account-no-user@invalid.example');
     await signinModal.locator('input[type=password]').fill('WrongPass123');
     await signinModal.locator('button[type=submit]').click();
