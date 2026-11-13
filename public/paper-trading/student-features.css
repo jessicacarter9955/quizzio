@@ -1,0 +1,17 @@
+.pt-extension{padding:22px;margin:18px 0;display:flex;flex-direction:column;gap:15px}
+.pt-extension h2{font-size:19px;margin:0}
+.pt-label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px;flex:1;min-width:160px}
+.pt-flex-form{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.pt-flex-form button{height:42px}
+.pt-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.pt-scroll{overflow-x:auto;max-width:100%}
+.pt-ranking{min-width:420px}
+.pt-own-rank{font-weight:700}
+.pt-invite{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--border);padding:12px;border-radius:8px}
+.pt-invite code{letter-spacing:1px;font-size:14px}
+.pt-warning{color:#e89453}
+.pt-fav-cell{width:40px;text-align:center}
+.pt-fav{background:none;border:0;font-size:22px;color:var(--blue,#2962ff);padding:5px;cursor:pointer}
+.pt-save-market{margin:12px 0;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--ink);padding:9px 14px;cursor:pointer}
+.pt-inline-control{background:transparent;border:1px solid var(--border);color:var(--blue,#2962ff);border-radius:8px;padding:5px 9px;margin-left:10px;font-size:11px;cursor:pointer}
+@media(max-width:690px){.pt-flex-form{flex-direction:column;align-items:stretch}.pt-label{width:100%}.pt-flex-form button{width:100%}.pt-invite{flex-direction:column;align-items:flex-start}}
