@@ -61,11 +61,11 @@ let timerToast;function toast(text){let t=$('#toast');t.textContent=text;t.class
 
 const css=(key)=>getComputedStyle(document.documentElement).getPropertyValue(key).trim();
 function syncThemeControls(){const light=document.documentElement.dataset.theme==='light';const icon=document.getElementById('theme-icon'),label=document.getElementById('theme-word'),button=document.getElementById('theme-toggle');if(icon)icon.textContent=light?'☾':'☀';if(label)label.textContent=light?'Dark':'Light';if(button){button.setAttribute('aria-pressed',String(light));button.title=light?'Switch to dark mode':'Switch to light mode';}const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=light?'#f8f9fd':'#131722';}
-function setVergeTheme(mode){document.documentElement.dataset.theme=mode==='light'?'light':'dark';try{localStorage.setItem('verge_theme',document.documentElement.dataset.theme)}catch(e){}syncThemeControls();if(state.chart){state.chart.remove();state.chart=null;state.series=null}if(state.resizeObserver){state.resizeObserver.disconnect();state.resizeObserver=null}if(['home','trade'].includes(state.page))requestAnimationFrame(drawChart);}
+function setVergeTheme(mode){document.documentElement.dataset.theme=mode==='light'?'light':'dark';try{localStorage.setItem('verge_theme',document.documentElement.dataset.theme)}catch(e){}syncThemeControls();if(state.chart){state.chart.dispose();state.chart=null;state.series=null}if(state.resizeObserver){state.resizeObserver.disconnect();state.resizeObserver=null}if(['home','trade'].includes(state.page))requestAnimationFrame(drawChart);}
 function toggleVergeTheme(){setVergeTheme(document.documentElement.dataset.theme==='light'?'dark':'light')}
 window.toggleVergeTheme=toggleVergeTheme;window.setVergeTheme=setVergeTheme;
 function setupNav(){const item=([key,label])=>`<button class="nav-item ${state.page===key?'active':''}" onclick="navigate('${key}')">${icon(key)}<span>${label}</span></button>`;$('#nav-left').innerHTML=tabs.map(item).join('');$('#nav-mobile').innerHTML=[tabs[0],tabs[1],tabs[2],tabs[3],tabs[4],tabs[5]].map(item).join('');$('#page-path').textContent=tabs.find(x=>x[0]===state.page)?.[1]||'Overview';$('#market-status').textContent=state.mode==='live'?'TWELVE DATA · DATA FEED':'NO VERIFIED MARKET DATA'}
-function navigate(page){if(state.chart){state.chart.remove?.();state.chart=null;state.series=null;}if(state.resizeObserver){state.resizeObserver.disconnect();state.resizeObserver=null;}state.page=page;window.scrollTo({top:0,behavior:'auto'});render()}
+function navigate(page){if(state.chart){state.chart.dispose?.();state.chart=null;state.series=null;}if(state.resizeObserver){state.resizeObserver.disconnect();state.resizeObserver=null;}state.page=page;window.scrollTo({top:0,behavior:'auto'});render()}
 function render(){setupNav();syncThemeControls();const route={home:homePage,trade:tradePage,portfolio:portfolioPage,learn:learnPage,leaderboard:leaderPage,profile:profilePage};$('#content').innerHTML=(route[state.page]||homePage)();if(['home','trade'].includes(state.page))requestAnimationFrame(drawChart)}
 const intro=(small,title,sub,button)=>`<section class="page-intro"><div><div class="eyebrow">${small}</div><h1>${title}</h1><p>${sub}</p></div>${button||''}</section>`;
 function stat(label,value,detail,symbol){return `<div class="card stat"><div class="stat-label">${label}<span class="stat-icon">${symbol}</span></div><div class="stat-value">${value}</div><div class="stat-bottom">${detail}</div></div>`}
@@ -132,17 +132,29 @@ async function drawChart(){
  }
  const legend=holder.closest('.chart-panel')?.querySelector('.chart-legend span:first-child');
  if(!candles.length){
-  if(state.chart){state.chart.remove?.();state.chart=null;state.series=null}
+  if(state.chart){state.chart.dispose?.();state.chart=null;state.series=null}
   state.candles=[];holder.textContent='No verified Twelve Data OHLC is available for this interval. No simulated graph is shown.';
   if(legend)legend.textContent='Historical data unavailable · No generated candles';
   console.warn('Market history unavailable',symbol,interval,error);return;
  }
  state.candles=candles;
  if(legend)legend.textContent='Twelve Data verified OHLC · '+periodDescription+(result?.stale?' · Cached (provider unavailable)':'');
- if(state.chart){state.chart.remove?.();state.chart=null;state.series=null}
+ if(state.chart){state.chart.dispose?.();state.chart=null;state.series=null}
  holder.style.display='block';holder.style.placeItems='';holder.style.color='';holder.textContent='';
-  if(!window.LightweightCharts){fallbackChart(holder,candles);return}
-  const chart=LightweightCharts.createChart(holder,{width:holder.clientWidth,height:holder.clientHeight,autoSize:true,layout:{background:{type:'solid',color:css('--panel')},textColor:css('--muted'),fontSize:11},grid:{vertLines:{color:css('--chart-grid')},horzLines:{color:css('--chart-grid')}},crosshair:{vertLine:{color:css('--muted')},horzLine:{color:css('--muted')}},timeScale:{timeVisible:true,secondsVisible:false,borderColor:css('--border'),rightOffset:7},rightPriceScale:{borderColor:css('--border'),scaleMargins:{top:0.12,bottom:0.1}},handleScroll:true,handleScale:true});state.chart=chart;state.series=chart.addSeries(LightweightCharts.CandlestickSeries,{upColor:css('--positive'),downColor:css('--negative'),wickUpColor:css('--positive'),wickDownColor:css('--negative'),borderVisible:false,priceLineVisible:false});state.series.setData(candles);chart.timeScale().fitContent();}
+  if(!window.echarts){fallbackChart(holder,candles);return}
+  const chart=echarts.init(holder,null,{renderer:'canvas'});state.chart=chart;state.series=null;
+  const labels=candles.map(c=>{const d=new Date(c.time*1000);return interval==='1day'?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):d.toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});});
+  chart.setOption({animation:false,backgroundColor:'transparent',
+    grid:{left:8,right:58,top:12,bottom:33},
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:css('--panel2'),textStyle:{color:css('--ink')},borderColor:css('--border')},
+    xAxis:{type:'category',data:labels,boundaryGap:true,axisLabel:{fontSize:10,color:css('--muted'),hideOverlap:true},axisLine:{lineStyle:{color:css('--border')}},splitLine:{show:true,lineStyle:{color:css('--chart-grid')}}},
+    yAxis:{scale:true,position:'right',axisLabel:{fontSize:10,color:css('--muted')},axisLine:{lineStyle:{color:css('--border')}},splitLine:{show:true,lineStyle:{color:css('--chart-grid')}}},
+    dataZoom:[{type:'inside',xAxisIndex:0,filterMode:'none'}],
+    series:[{name:symbol,type:'candlestick',data:candles.map(c=>[c.open,c.close,c.low,c.high]),
+      itemStyle:{color:css('--positive'),color0:css('--negative'),borderColor:css('--positive'),borderColor0:css('--negative')}}]
+  });
+  state.resizeObserver=new ResizeObserver(()=>{if(state.chart===chart)chart.resize()});state.resizeObserver.observe(holder);
+}
 function fallbackChart(holder,candles){
   holder.innerHTML='<canvas aria-label="Historical Twelve Data OHLC chart" style="width:100%;height:100%;display:block"></canvas>';
   const canvas=holder.querySelector('canvas');const ctx=canvas.getContext('2d');
@@ -175,4 +187,4 @@ async function boot(){const hashParams=new URLSearchParams(location.hash.replace
 window.navigate=navigate;window.toast=toast;window.setSide=setSide;window.setQty=setQty;window.setIntervalChart=setIntervalChart;window.selectSymbol=selectSymbol;window.placeOrder=placeOrder;window.showLesson=showLesson;window.completeLesson=completeLesson;window.closeModal=closeModal;window.resetDemo=resetDemo;window.loginModal=loginModal;window.submitLogin=submitLogin;window.logout=logout;
 boot();
 
-</script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script></body></html>
+</script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script></body></html>
