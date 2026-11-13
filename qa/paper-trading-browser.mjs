@@ -67,7 +67,7 @@ async function exercise(width,height,tag){
     await page.locator('.order-panel .primary-button').click();
     check(tag+' buying when logged out opens real auth',await page.locator('#overlay input[type=email]').count()===1);
     await page.locator('#overlay button.close').click();
-    check(tag+' no fabricated cash for guest',(await page.locator('.order-panel').innerText()).includes('Available cash Sign in'));
+    check(tag+' no fabricated cash for guest',(/Available cash\s+Sign in/).test(await page.locator('.order-panel').innerText()));
     
     for(const [i,name] of ['1D','1W','1M'].entries()){
        await b.nth(i).click();await page.waitForTimeout(2200);
