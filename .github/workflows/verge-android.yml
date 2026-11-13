@@ -23,7 +23,7 @@ jobs:
         run: base64 -d verge-build/flutter-src.tar.xz.b64 | tar -xJf -
       - name: Wire Supabase realtime and Twelve Data charts
         run: python3 verge-build/patch_flutter.py
-      - name: Apply TradingView dark light theme to Flutter and charts
+      - name: Apply neutral blue dark/light palette
         run: python3 verge-build/apply_tradingview_theme.py
       - name: Fix six-symbol live quotes and authenticated paper trading API
         run: python3 verge-build/patch_six_live.py
@@ -31,6 +31,8 @@ jobs:
         run: python3 verge-build/patch_verified_ohlc_flutter.py
       - name: Enforce Paper Trading domain data and exact learning order
         run: python3 verge-build/paper_trading_final.py
+      - name: Replace chart engine and remove vendor branding
+        run: python3 verge-build/replace_chart_engine.py
       - name: Generate Android project
         working-directory: flutter_app
         run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
