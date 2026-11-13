@@ -8,6 +8,9 @@ on:
       - public/paper-trading/index.html
       - public/paper-trading/student-features.js
       - public/paper-trading/student-features.css
+      - public/paper-trading/paper-ui.js
+      - public/paper-trading/paper-ui.css
+      - qa/paper-trading-redesign-browser.mjs
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,10 +28,11 @@ jobs:
         run: npx playwright install ffmpeg
       - name: Verify student-feature JavaScript syntax
         run: node --check public/paper-trading/student-features.js
+          node --check public/paper-trading/paper-ui.js
       - name: Test actual published Paper Trading web on desktop/mobile viewports
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: node qa/paper-trading-browser.mjs
+        run: node qa/paper-trading-redesign-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
