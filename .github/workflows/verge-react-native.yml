@@ -1,0 +1,52 @@
+name: VERGE React Native Android APK
+on:
+  push:
+    branches: [quiz-lab-apk-builder]
+    paths:
+      - 'verge-react-native/**'
+      - '.github/workflows/verge-react-native.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: verge-react-native/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Expo dependencies
+        working-directory: verge-react-native
+        run: |
+          npm install --no-audit --no-fund
+          npx expo install --fix
+      - name: Generate Android source from React Native project
+        working-directory: verge-react-native
+        run: npx expo prebuild --platform android --clean --non-interactive
+      - name: Compile installable release APK
+        working-directory: verge-react-native/android
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+      - name: Verify APK archive and signature
+        working-directory: verge-react-native
+        run: |
+          set -eu
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          unzip -tq "$APK" > /dev/null
+          SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          "$SIGNER" verify --verbose "$APK"
+          sha256sum "$APK"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verge-react-native-android-release
+          path: verge-react-native/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
