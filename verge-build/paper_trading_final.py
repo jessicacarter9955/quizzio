@@ -114,9 +114,12 @@ splice('  Widget _profile()=>','\n  Future<void> _authDialog()',"""  Widget _pro
 replace("i=='1min'?'1M':i=='1h'?'1H':'1D'","i=='1min'?'1D':i=='1h'?'1W':'1M'")
 replace("_small('TradingView Lightweight Charts™')","_small('Verified historical OHLC')")
 replace("_small('Charts by TradingView · Lightweight Charts™ © TradingView, Inc. · https://www.tradingview.com/')","_small('Historical market data supplied by Twelve Data.')")
-replace("const Text('VERGE.',style:TextStyle(fontSize:19,fontWeight:FontWeight.w900))","const Text('Paper Trading',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900))")
-replace("if(wide)const Text('TRADING ACADEMY',style:TextStyle(color:faint,fontSize:10,letterSpacing:1.2))","if(wide)const Text('STUDENT SIMULATOR',style:TextStyle(color:faint,fontSize:10,letterSpacing:1.2))")
-replace("child:const Text('V',style:TextStyle(color:dark,fontWeight:FontWeight.w900))","child:const Icon(Icons.trending_up,color:Colors.white,size:20)")
+# Compatible with the upstream themed source, which can use different inline widget styles.
+s=s.replace("const Text('VERGE.',style:TextStyle(fontSize:19,fontWeight:FontWeight.w900))","const Text('Paper Trading',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900))")
+# Compatible with the upstream themed source, which can use different inline widget styles.
+s=s.replace("if(wide)const Text('TRADING ACADEMY',style:TextStyle(color:faint,fontSize:10,letterSpacing:1.2))","if(wide)const Text('STUDENT SIMULATOR',style:TextStyle(color:faint,fontSize:10,letterSpacing:1.2))")
+# Compatible with the upstream themed source, which can use different inline widget styles.
+s=s.replace("child:const Text('V',style:TextStyle(color:dark,fontWeight:FontWeight.w900))","child:const Icon(Icons.trending_up,color:Colors.white,size:20)")
 # Native chart webview error message and header must not claim vendor branding.
 chart=Path('flutter_app/assets/chart.html')
 if chart.exists():
@@ -151,4 +154,5 @@ s=s.replace('Relative to demo opening','Comparative reference')
 if 'SAMPLE STUDENTS' in s or 'const localLessons=' in s or 'Charts by TradingView' in s:
     raise RuntimeError('Legacy sample content still present in Flutter UI')
 p.write_text(s,encoding='utf-8')
+s=s.replace('VERGE.','Paper Trading').replace('VERGE ·','Paper Trading ·').replace('TRADING ACADEMY','STUDENT SIMULATOR')
 print('Paper Trading production-source pass complete; size',len(s))
