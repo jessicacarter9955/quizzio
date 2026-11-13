@@ -1,12 +1,13 @@
-name: VERGE Web QA source snapshot
+name: Paper Trading Web QA source snapshot
 on:
   push:
     branches:
       - quiz-lab-apk-builder
     paths:
       - .github/workflows/verge-web-qa-export.yml
-      - public/verge/index.html
+      - public/paper-trading/index.html
       - public/verge/qa-fixtures.json
+      - public/paper-trading/index.html
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,21 +18,23 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify generated website
         run: |
-          test -s public/verge/index.html
-          grep -q "Twelve Data" public/verge/index.html
-          ! grep -q 'function syntheticCandles' public/verge/index.html
+          test -s public/paper-trading/index.html
+          grep -q "Twelve Data" public/paper-trading/index.html
+          ! grep -q 'function syntheticCandles' public/paper-trading/index.html
       - name: Validate HTML inline JavaScript syntax and prohibit mock data
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          html=Path('public/verge/index.html').read_text()
+          html=Path('public/paper-trading/index.html').read_text()
           parts=re.findall(r'<script\b[^>]*>(.*?)</script>',html,flags=re.S|re.I)
           assert parts, 'No JavaScript in HTML'
           for i,part in enumerate(parts):
               Path(f'/tmp/verge-script-{i}.js').write_text(part)
           print('Inline scripts:',len(parts))
           assert 'TradingView' not in html
+          assert 'lightweight-charts' not in html
+          assert 'echarts@5.6.0' in html
           assert 'syntheticCandles' not in html
           assert "const sample=" not in html
           PY
@@ -40,6 +43,7 @@ jobs:
         with:
           name: verge-live-web-qa-source
           path: |
-            public/verge/index.html
+            public/paper-trading/index.html
             public/verge/qa-fixtures.json
+            public/paper-trading/paper-trading-icon.svg
           if-no-files-found: error
