@@ -1,0 +1,107 @@
+
+/* Paper Trading — compact interface, Inter typography. */
+:root{--font:Inter,system-ui,sans-serif;--subfont:Inter,system-ui,sans-serif}
+body,button,input,select,textarea{font-family:Inter,system-ui,sans-serif!important}
+.sidebar{width:204px;padding:22px 10px}
+.main{margin-left:204px;width:calc(100% - 204px)}
+.topbar{height:56px;justify-content:flex-end;padding:0 clamp(18px,3%,40px);border-bottom:none}
+.top-actions{margin-left:auto}
+.content{padding-top:18px;max-width:1320px}
+.page-intro{margin-bottom:18px}
+.page-intro h1{font-size:clamp(23px,2.5vw,29px);margin:0;letter-spacing:-.75px;font-weight:650}
+.page-intro .eyebrow,.page-intro p{display:none}
+.nav-item{padding:12px 13px;font-size:13px;font-weight:600}
+.sidebar nav{padding-top:18px}
+.sidebar .nav-item{margin:4px 0}
+.avatar{width:38px;height:38px;border-radius:50%;font-size:14px;font-weight:750;border-color:var(--accent);color:var(--ink)}
+.bottom-attribution{opacity:.5;font-size:10px}
+.stat{min-height:103px}
+.stats-grid{gap:12px}
+.dashboard-grid{grid-template-columns:minmax(0,1.65fr) minmax(285px,.85fr)}
+.chart-panel{padding:20px}
+.panel-heading h2{font-size:16px;margin-bottom:0}
+.panel-heading p{display:none}
+.chart-legend span:last-child{display:none}
+.table-card h2{font-size:16px}
+.card{border-radius:14px}
+.pt-home-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(265px,.9fr);gap:15px;margin-top:16px}
+.pt-home-market{padding:20px;min-width:0}
+.pt-home-market .market-table{font-size:12px}
+.pt-home-side{padding:20px}
+.pt-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px}
+.pt-card-head h2{margin:0;font-size:16px;letter-spacing:-.2px}
+.pt-card-head button{border:0;background:transparent;color:var(--accent);font-weight:650;font-size:12px}
+.pt-home-charts{padding:20px}
+.pt-home-charts .chart{height:295px}
+.pt-home-charts .asset-current{margin-top:14px}
+.pt-logo{width:31px;height:31px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 31px;background:var(--panel2);vertical-align:middle;margin-right:9px;overflow:hidden}
+.pt-logo img{height:20px;width:20px;object-fit:contain;filter:brightness(0) invert(1)}
+:root[data-theme=light] .pt-logo img{filter:brightness(0)}
+.pt-logo em{font-style:normal;font-weight:750;font-size:17px;color:var(--accent)}
+.pt-ticker{display:flex;align-items:center;gap:0}
+.pt-ticker small{font-weight:400;color:var(--muted);display:block;font-size:10px;margin-top:2px}
+.pt-minimal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.pt-minimal-row:last-child{border-bottom:none}
+.pt-minimal-row .positive{font-weight:650}
+.pt-lesson-progress{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted)}
+.pt-progress-track{height:7px;background:var(--border);border-radius:99px;overflow:hidden;width:100%;margin:14px 0 24px}
+.pt-progress-track>span{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
+.pt-start-button{border:1px solid var(--border);background:var(--panel2);color:var(--ink);border-radius:9px;padding:11px 13px;font-size:12px;font-weight:650;width:100%;text-align:left;margin-top:6px}
+.pt-start-button:hover{border-color:var(--accent)}
+.pt-course-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:17px}
+.pt-course-summary h1{font-size:29px;margin:0}
+.pt-course-summary small{color:var(--muted);font-size:12px}
+.pt-course-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.pt-course-tile{background:var(--panel);border:1px solid var(--border);padding:22px;border-radius:15px;cursor:pointer;color:var(--ink);text-align:left;min-height:167px}
+.pt-course-tile:hover{border-color:var(--accent)}
+.pt-course-number{color:var(--accent);font-size:11px;font-weight:750}
+.pt-course-title{font-size:18px;font-weight:700;line-height:1.3;margin-top:14px}
+.pt-course-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:12px}
+.pt-course-progress{height:5px;border-radius:99px;overflow:hidden;background:var(--border);margin-top:18px}
+.pt-course-progress>span{display:block;background:var(--accent);height:100%}
+.pt-course-tile.completed{border-color:var(--positive)}
+.pt-learning-shell{position:fixed;inset:0;z-index:180;background:var(--bg);display:flex;flex-direction:column}
+.pt-learning-top{height:67px;display:flex;align-items:center;gap:17px;padding:13px max(20px,calc((100vw - 840px)/2));border-bottom:1px solid var(--border)}
+.pt-learning-close{border:1px solid var(--border);color:var(--ink);background:var(--panel);border-radius:9px;padding:8px 11px}
+.pt-learning-stepper{flex:1;background:var(--border);height:6px;border-radius:99px;overflow:hidden}
+.pt-learning-stepper>span{height:100%;display:block;background:var(--accent);transition:width .2s}
+.pt-learning-counter{font-size:11px;color:var(--muted);white-space:nowrap}
+.pt-learning-screen{width:min(760px,calc(100% - 36px));margin:0 auto;padding:clamp(20px,5vh,50px) 0;overflow:auto;flex:1}
+.pt-learning-eyebrow{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:1px}
+.pt-learning-screen h2{font-size:clamp(27px,4vw,42px);line-height:1.2;letter-spacing:-1px;margin:14px 0 26px}
+.pt-learning-screen p{font-size:16px;line-height:1.85;color:var(--ink);max-width:680px}
+.pt-learning-points{display:grid;gap:10px;margin:25px 0}
+.pt-learning-points>div{padding:13px 16px;border-radius:10px;background:var(--panel);border:1px solid var(--border);font-size:14px}
+.pt-learning-points>div::before{content:'✓';color:var(--accent);font-weight:bold;margin-right:10px}
+.pt-learning-example{background:var(--accent-soft);border-left:3px solid var(--accent);padding:19px;border-radius:9px;margin-top:24px;line-height:1.6;font-size:14px}
+.pt-learning-bottom{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px max(18px,calc((100vw - 760px)/2));border-top:1px solid var(--border)}
+.pt-learning-bottom button{min-width:116px}
+.pt-answers{display:grid;gap:10px;margin:24px 0}
+.pt-answer{border-radius:12px;border:1px solid var(--border);background:var(--panel);padding:17px 19px;text-align:left;color:var(--ink);font-size:14px;display:flex;gap:13px;align-items:center}
+.pt-answer:hover,.pt-answer.selected{border-color:var(--accent);background:var(--accent-soft)}
+.pt-answer span{height:25px;width:25px;flex:0 0 25px;border-radius:7px;background:var(--raised);display:grid;place-items:center}
+.pt-quiz-results{max-width:560px;margin:auto;text-align:center}
+.pt-quiz-results strong{font-size:55px}
+.pt-quiz-results .positive{color:var(--positive)}
+.pt-review{margin-top:18px;text-align:left;padding:14px 0;border-bottom:1px solid var(--border)}
+.pt-review b{display:block;margin-bottom:6px}
+.pt-review p{font-size:13px}
+.pt-auth-gate{position:fixed;inset:0;z-index:300;background:var(--bg);display:grid;place-items:center;padding:25px;overflow:auto}
+.pt-auth-card{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:clamp(24px,5vw,42px);width:min(448px,100%);box-shadow:0 18px 80px #0002}
+.pt-auth-symbol{width:50px;height:50px;border-radius:14px;background:white;display:grid;place-items:center;margin-bottom:25px}
+.pt-auth-symbol img{width:43px;height:43px}
+.pt-auth-card h1{font-size:26px;margin:0 0 6px;letter-spacing:-.8px}
+.pt-auth-card p{font-size:13px;line-height:1.5;color:var(--muted);margin:0 0 24px}
+.pt-auth-card label{display:block;font-size:12px;color:var(--muted);margin:17px 0 7px}
+.pt-auth-card input{width:100%;border:1px solid var(--border);background:var(--input);border-radius:10px;padding:14px 15px;color:var(--ink);font-size:14px}
+.pt-auth-card .primary-button{width:100%;font-size:14px;margin-top:23px}
+.pt-auth-links{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:23px}
+.pt-auth-links button{border:0;background:none;color:var(--accent);font-size:12px}
+.pt-auth-demo{display:flex;gap:8px;margin-top:18px}
+.pt-auth-demo button{flex:1;border:1px solid var(--border);border-radius:9px;background:var(--panel2);padding:10px 8px;font-size:12px;color:var(--ink)}
+.pt-auth-demo button.active{border-color:var(--accent);color:var(--accent)}
+.pt-auth-message{font-size:12px;color:var(--negative);margin-top:14px;min-height:15px}
+.pt-auth-theme{display:flex;justify-content:flex-end}
+.pt-auth-theme button{border:0;color:var(--muted);background:transparent}
+@media(max-width:1190px){.pt-home-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.sidebar{display:none}.main{margin:0;width:100%}.content{padding:12px 15px 83px}.topbar{height:56px;padding:0 18px}.mobile-nav{grid-template-columns:repeat(5,1fr)}.pt-course-grid{grid-template-columns:1fr}.pt-home-charts .chart{height:240px}.pt-learning-top{padding:12px 16px}.pt-learning-screen{width:calc(100% - 34px)}.pt-learning-bottom{padding:14px 18px}.pt-learning-screen p{font-size:14px;line-height:1.7}.pt-learning-screen h2{font-size:26px}.pt-learning-example{padding:13px}.pt-course-summary h1{font-size:25px}.pt-quiz-results strong{font-size:45px}.pt-home-market{overflow:auto}}
