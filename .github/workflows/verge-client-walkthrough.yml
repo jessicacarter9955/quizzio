@@ -1,0 +1,42 @@
+name: VERGE Client Demo Walkthrough Recordings
+on:
+  workflow_dispatch:
+  push:
+    branches: [quiz-lab-apk-builder]
+    paths:
+      - 'qa/verge-client-walkthrough.mjs'
+      - '.github/workflows/verge-client-walkthrough.yml'
+permissions:
+  contents: read
+jobs:
+  demo-walkthrough:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+      - name: Install Playwright and video recorder
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install ffmpeg
+      - name: Capture real app walkthrough with two student logins
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/verge-client-walkthrough.mjs
+      - name: Transcode recording to MP4 when ffmpeg is available
+        if: always()
+        run: |
+          if command -v ffmpeg >/dev/null 2>&1; then
+            for f in verge-walkthrough/videos/*.webm; do
+              test -f "$f" || continue
+              ffmpeg -hide_banner -loglevel error -y -i "$f" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${f%.webm}.mp4" || true
+            done
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verge-client-walkthrough-video-and-screenshots
+          path: verge-walkthrough/
+          if-no-files-found: warn
+          retention-days: 30
