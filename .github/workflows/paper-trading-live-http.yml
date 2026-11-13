@@ -1,0 +1,27 @@
+name: Paper Trading Production JS Smoke
+on:
+  push:
+    branches: [quiz-lab-apk-builder]
+    paths:
+      - qa/paper-trading-live-http.mjs
+      - .github/workflows/paper-trading-live-http.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-js-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify live Render site and Supabase over real HTTP
+        run: node qa/paper-trading-live-http.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paper-trading-production-js-test-report
+          path: paper-trading-http-qa/report.json
+          if-no-files-found: warn
