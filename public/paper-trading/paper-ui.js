@@ -7,6 +7,7 @@ const DEMOS=[
 ];
 const SYMBOLS={AAPL:['apple','A'],MSFT:['microsoft','M'],NVDA:['nvidia','N'],TSLA:['tesla','T'],'BTC/USD':['bitcoin','₿'],'EUR/USD':[null,'€']};
 const materials=new Map(),activities=new Map();
+window.paperUIStockLogo=logo;
 let active=null,answerChoices=[],step=0,lastResult=null,quizBusy=false,authMode='login',authReady=false;
 const safe=s=>escapeHtml(s??'');
 function logo(symbol){
@@ -82,11 +83,12 @@ window.paperUILearnPage=()=>{
  return '<div class="pt-course-summary"><h1>Learn</h1><small>'+completed+' of '+total+' lessons completed</small></div>'+
  '<div class="pt-progress-track"><span style="width:'+Math.round(completed/Math.max(total,1)*100)+'%"></span></div>'+
  '<section class="pt-course-grid">'+state.lessonData.map((l,i)=>{
-  const value=progress(l.id),completed=state.portfolio.done.includes(l.id);
+  const value=progress(l.id),completed=state.portfolio.done.includes(l.id),activity=activities.get(Number(l.id));
+  const quizDetail=activity?.quiz_attempts ? ('Best '+Number(activity.best_score||0)+'% · '+Number(activity.quiz_attempts)+' tries') : 'Quick quiz';
   return '<button class="pt-course-tile '+(completed?'completed':'')+'" onclick="showLesson('+Number(l.id)+')">'+
-    '<div class="pt-course-number">'+String(i+1).padStart(2,'0')+' / 06</div>'+
+    '<div class="pt-course-number">'+String(i+1).padStart(2,'0')+' / '+String(total).padStart(2,'0')+'</div>'+
     '<div class="pt-course-title">'+safe(l.title)+'</div>'+
-    '<div class="pt-course-meta"><span>'+Number(l.duration_minutes||10)+' min · 3-question quiz</span><span>'+(completed?'✓ Done':value+'%')+'</span></div>'+
+    '<div class="pt-course-meta"><span>'+Number(l.duration_minutes||10)+' min · '+quizDetail+'</span><span>'+(completed?'✓ Done':value+'%')+'</span></div>'+
     '<div class="pt-course-progress"><span style="width:'+value+'%"></span></div></button>';
  }).join('')+'</section>';
 };
@@ -180,7 +182,7 @@ function authFields(){
  const preset=DEMOS[0];
  return '<div class="pt-auth-card"><div class="pt-auth-symbol"><img src="/paper-trading/paper-trading-icon.svg" alt=""/></div>'+
  '<h1>'+(isLogin?'Student sign in':reset?'Reset password':'Create account')+'</h1>'+
- '<p>'+(isLogin?'Sign in to continue.':reset?'Use your real email address to receive a recovery link.':'Create your student account.')+'</p>'+
+ '<p>'+(isLogin?'':reset?'Enter your email to request a recovery link.':'Create your account.')+'</p>'+
  '<form onsubmit="paperUIAuthSubmit(event)"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required value="'+
    (isLogin?preset.email:'')+'" placeholder="you@example.com"/>'+
  (!reset?'<label for="pw">Password</label><input id="pw" name="pw" type="password" autocomplete="'+(isLogin?'current-password':'new-password')+
