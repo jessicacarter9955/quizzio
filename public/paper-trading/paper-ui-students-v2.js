@@ -54,7 +54,7 @@ function stats(){
 }
 function marketRows(){
  return assets.map(([symbol,name])=>{
-  const q=state.prices[symbol],updated=q?.quoted_at?new Date(q.quoted_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';
+  const q=state.prices[symbol],updated=q?.quoted_at?new Date(q.quoted_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}):'—';
   return '<tr onclick="selectSymbol(\''+symbol+'\',true)"><td class="symbol"><div class="pt-ticker">'+logo(symbol)+
    '<div><b>'+safe(symDisplay(symbol))+'</b><small>'+safe(name)+'</small></div></div></td>'+
    '<td>'+fmtPrice(priceOf(symbol))+'</td><td>'+updated+'</td>'+
