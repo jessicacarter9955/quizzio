@@ -50,7 +50,8 @@ const tabs=[['home','Home'],['trade','Trade'],['portfolio','Portfolio'],['learn'
 const safeLocal=(()=>{try{return localStorage}catch{return {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}}})();
 const safeSession=(()=>{try{return sessionStorage}catch{return {getItem:()=>null,setItem:()=>{},removeItem:()=>{}}}})();
 const localKey='paper_trading_preferences_v1';
-const state={page:'home',symbol:'AAPL',interval:'1min',side:'buy',qty:2,mode:'unavailable',db:false,token:safeSession.getItem('verge_token')||'',demoGuest:false,account:null,chart:null,series:null,candles:[],lessonData:[],
+const initialView=new URLSearchParams(location.search).get('view');
+const state={page:['home','trade','learn','widgets','leaderboard','portfolio'].includes(initialView)?initialView:'home',symbol:'AAPL',interval:'1min',side:'buy',qty:2,mode:'unavailable',db:false,token:safeSession.getItem('verge_token')||'',demoGuest:false,account:null,chart:null,series:null,candles:[],lessonData:[],
  prices:Object.fromEntries(assets.map(([symbol,, ,price])=>[symbol,{symbol,price:Number(price),source:'UNAVAILABLE',timestamp:null}])),
  portfolio:{cash:0,holdings:{},orders:[],done:[]},marketConnected:false};
 const persist=()=>{};
