@@ -46,7 +46,7 @@ function input(label,placeholder='',type='text'){
 }
 function card(title){const d=document.createElement('div');d.className='card pt-extension';const h=document.createElement('h2');h.textContent=title;d.append(h);return d}
 function paintWatch(){
- if(state.page==='home'){
+ if(state.page==='home'&&!document.querySelector('.pt-modern-home')){
   const table=document.querySelector('.market-table');if(!table)return;
   const heading=table.closest('.table-card')?.querySelector('h2');
   if(heading){
@@ -127,16 +127,16 @@ window.paperTradingLogin=async function(ev,signup=false){
   const endpoint=signup?'/signup?redirect_to='+encodeURIComponent(LANDING):'/token?grant_type=password';
   const r=await fetch(authBase()+endpoint,{method:'POST',headers:{apikey:state.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
   const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.msg||d.error_description||d.error||'Authentication failed');
-  if(d.access_token){setSession(d);await loadPortfolio();window.closeModal();window.render();toast('Signed in — your Supabase account is connected')}
+  if(d.access_token){setSession(d);await loadPortfolio();window.closeModal();window.paperUIAfterSignedIn?.();window.render();toast('Signed in')}
   else if(signup){window.closeModal();toast('Confirm your email to activate your account. Supabase must allow the app redirect URL.')}
   else throw Error('No session was returned');
- }catch(e){toast(e.message)}finally{if(btn)btn.disabled=false}
+ }catch(e){toast(e.message);window.paperUIAuthError?.(e.message)}finally{if(btn)btn.disabled=false}
 };
 window.paperTradingLogout=async function(){
  try{if(state.token){const r=await fetch(authBase()+'/logout',{method:'POST',headers:headers()});if(!r.ok&&r.status!==401)toast('Remote sign-out failed; local session cleared')}}catch{}
  state.token='';state.account=null;state.portfolio={cash:0,holdings:{},orders:[],done:[]};state.watchlist=[];state.classrooms=[];state.studentAlias='';state.studentId=null;
  for(const key of ['verge_token',ACC,'pt_auth_expires'])safeSession.removeItem(key);
- window.render();toast('Signed out');
+ window.render();window.paperUIAfterSignOut?.();toast('Signed out');
 };
 window.paperTradingRestoreSession=async()=>{
  const refresh=safeSession.getItem(ACC),expiry=Number(safeSession.getItem('pt_auth_expires')||0);
