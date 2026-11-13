@@ -18,6 +18,7 @@ async function exercise(width,height,tag){
     check(tag+' six provider quotes from Supabase',await page.evaluate(()=>Object.values(state.prices).length===6&&Object.values(state.prices).every(q=>q.source==='TWELVE_DATA'&&Number(q.price)>0)));
     check(tag+' Supabase authentication config connected',await page.evaluate(()=>state.db===true&&state.supabaseUrl.includes('.supabase.co')&&state.supabaseKey.startsWith('sb_publishable_')));
     await page.waitForFunction(()=>state.candles.length>0&&state.chart!==null,{timeout:40000});
+    await page.waitForSelector('#trade-chart canvas',{timeout:20000});
     check(tag+' real OHLC chart rendered',await page.evaluate(()=>state.candles.length>0&&state.chart!==null&&document.querySelector('#trade-chart canvas')!==null));
     check(tag+' OHLC internally consistent',await page.evaluate(()=>state.candles.every(c=>c.high>=Math.max(c.open,c.close)&&c.low<=Math.min(c.open,c.close)&&c.time>1500000000)));
     check(tag+' correct title',(await page.title()).startsWith('Paper Trading'),await page.title());
