@@ -26,7 +26,8 @@
     .top-actions{gap:10px}.theme-setting{margin:18px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--border);background:var(--panel2);padding:12px;border-radius:11px}
     .theme-setting span{font-size:13px;font-weight:600}
     @media(max-width:520px){.theme-toggle{min-width:35px;padding:0 9px}.theme-toggle .theme-word{display:none}.top-actions{gap:7px}}
-    </style><script>try{document.documentElement.dataset.theme=localStorage.getItem("verge_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta name="application-name" content="Paper Trading"/><meta name="description" content="Paper Trading — virtual portfolios, real provider market data, student lessons."/><link rel="icon" type="image/svg+xml" href="/paper-trading/paper-trading-icon.svg"/></head>
+    </style><script>try{document.documentElement.dataset.theme=localStorage.getItem("verge_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script><meta name="application-name" content="Paper Trading"/><meta name="description" content="Paper Trading — virtual portfolios, real provider market data, student lessons."/><link rel="icon" type="image/svg+xml" href="/paper-trading/paper-trading-icon.svg"/><link rel="stylesheet" href="/paper-trading/student-features.css">
+</head>
 <body><div class="shell">
 <aside class="sidebar"><div class="logo"><span class="logo-box" style="background:#fff"><img src="/paper-trading/paper-trading-icon.svg" width="36" height="36" alt="Paper Trading"/></span><span>PAPER<small>TRADING</small></span></div>
 <div class="workspace">WORKSPACE</div><nav id="nav-left"></nav>
@@ -187,4 +188,5 @@ async function boot(){const hashParams=new URLSearchParams(location.hash.replace
 window.navigate=navigate;window.toast=toast;window.setSide=setSide;window.setQty=setQty;window.setIntervalChart=setIntervalChart;window.selectSymbol=selectSymbol;window.placeOrder=placeOrder;window.showLesson=showLesson;window.completeLesson=completeLesson;window.closeModal=closeModal;window.loginModal=loginModal;window.submitLogin=submitLogin;window.logout=logout;
 boot();
 
-</script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script></body></html>
+</script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script><script src="/paper-trading/student-features.js"></script>
+</body></html>
