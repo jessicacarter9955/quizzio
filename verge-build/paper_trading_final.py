@@ -204,5 +204,27 @@ s=s.replace("Sign up","Sign up")
 # Verify no user-facing vendor attribution or simulated market/leaderboard content survives.
 if "TradingView" in s or "demoOpening" in s or "SAMPLE STUDENTS" in s or "function syntheticCandles" in s:
     raise RuntimeError('Mock/vendor strings are still in the final Flutter source')
+# Account-gated portfolio widgets: anonymous viewers must not see a fictional $0 balance.
+guest="""_card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+    _heading('Sign in to see your paper portfolio'),
+    SizedBox(height:10),
+    _small('Your cash balance, positions, orders and lesson progress are stored in your Supabase student account.'),
+    SizedBox(height:16),
+    FilledButton(onPressed:_authDialog,child:Text('Student sign in'))
+  ]))"""
+s=s.replace("_intro('THE TRADING CLASSROOM','Ready to trade smarter?','Build your skills with a virtual portfolio.'),_stats(),",
+            "_intro('THE TRADING CLASSROOM','Ready to trade smarter?','Build your skills with a virtual portfolio.'),(accessToken==null?"+guest+":_stats()),")
+s=s.replace("_intro('YOUR VIRTUAL CAPITAL','Paper portfolio','Follow your mock positions and practice history.'),_stats(),",
+            "_intro('YOUR VIRTUAL CAPITAL','Paper portfolio','Follow your simulated positions and practice history.'),(accessToken==null?"+guest+":_stats()),")
+s=s.replace("_sumRow('Cash available',dollar(cash))","_sumRow('Cash available',accessToken==null?'Sign in':dollar(cash))")
+s=s.replace("_sumRow('Owned units',(positions[symbol]?['qty']??0).toStringAsFixed(4))",
+            "_sumRow('Owned units',accessToken==null?'Sign in':(positions[symbol]?['qty']??0).toStringAsFixed(4))")
+s=s.replace("_small('No positions yet. Open the trading desk to place your first order.')",
+            "_small(accessToken==null?'Sign in to view your Supabase positions.':'No positions yet. Open the trading desk to place your first order.')")
+s=s.replace("_small('No orders have been placed.')",
+            "_small(accessToken==null?'Sign in to view your saved order history.':'No orders have been placed.')")
+s=s.replace("('Community',Icons.emoji_events_outlined)","('Ranks',Icons.emoji_events_outlined)")
+s=s.replace("const SizedBox(height:12),\n      _small('No sample students, scores or rankings. Publishing requires actual enrolled users and classroom privacy rules.')",
+            "const SizedBox(height:12),\n      _small('Rankings will appear only for enrolled classes, subject to privacy controls.')")
 p.write_text(s,encoding='utf-8')
 print('Paper Trading production-source pass complete; size',len(s))
