@@ -10,7 +10,7 @@ const siteOrigin=process.env.ALLOWED_ORIGIN||'https://quizlab-responsive-web.onr
 const channel='verge:market:quotes';
 const heartbeatMs=30000;
 const pollMs=Math.max(12000,Number(process.env.POLL_INTERVAL_MS)||15000);
-let producer=null,subscriber=null,lastPublished='',lastFetchAt=null,upstreamError=null;
+let producer=null,subscriber=null,lastPublished='',lastFingerprint='',lastFetchAt=null,upstreamError=null;
 const sockets=new Set();
 let connected=false,subscribed=false;
 const now=()=>new Date().toISOString();
@@ -70,9 +70,10 @@ async function pull(){
   })).sort((a,b)=>a.symbol.localeCompare(b.symbol));
   const state=JSON.stringify(records);
   lastFetchAt=now();upstreamError=null;
-  if(state!==lastPublished){
-   lastPublished=state;
-   await producer.publish(channel,JSON.stringify({event:'snapshot',data:records,as_of:lastFetchAt}));
+  if(state!==lastFingerprint){
+   lastFingerprint=state;
+   lastPublished=JSON.stringify({event:'snapshot',data:records,as_of:lastFetchAt});
+   await producer.publish(channel,lastPublished);
   }
  }catch(error){upstreamError=String(error?.message||error).slice(0,130)}
  finally{clearTimeout(timeout)}
@@ -86,6 +87,7 @@ async function startRedis(){
  subscriber=producer.duplicate();
  for(const client of [producer,subscriber]){
   client.on('error',error=>{connected=false;console.error('Redis connection error',error.message)});
+  client.on('ready',()=>{connected=Boolean(producer?.isReady&&subscriber?.isReady)});
  }
  try{
   await Promise.all([producer.connect(),subscriber.connect()]);
