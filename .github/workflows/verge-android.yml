@@ -1,4 +1,4 @@
-name: VERGE Trading Academy Android APK
+name: Paper Trading Android APK
 on:
   push:
     branches:
@@ -29,9 +29,13 @@ jobs:
         run: python3 verge-build/patch_six_live.py
       - name: Remove synthetic OHLC and enforce authenticated paper trading
         run: python3 verge-build/patch_verified_ohlc_flutter.py
+      - name: Enforce Paper Trading domain data and exact learning order
+        run: python3 verge-build/paper_trading_final.py
       - name: Generate Android project
         working-directory: flutter_app
         run: flutter create . --project-name verge_trading_academy --platforms=android,ios,web
+      - name: Generate Paper Trading launcher icons (white + blue)
+        run: python3 verge-build/build_paper_trading_icon.py
       - name: Enable Android internet
         working-directory: flutter_app
         run: |
@@ -46,6 +50,13 @@ jobs:
       - name: Packages
         working-directory: flutter_app
         run: flutter pub get
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-trading-source-review
+          path: |
+            flutter_app/lib/main.dart
+            flutter_app/assets/chart.html
+          if-no-files-found: error
       - name: Dart source sanity check
         working-directory: flutter_app
         run: flutter analyze --no-fatal-infos --no-fatal-warnings lib
@@ -61,7 +72,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: verge-flutter-web-qa
+          name: paper-trading-flutter-web-qa
           path: flutter_app/build/web/
           if-no-files-found: error
       - name: Compile APK release (Supabase)
@@ -75,7 +86,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: verge-trading-academy-verified-charts-apk
+          name: paper-trading-android-release-apk
           path: flutter_app/build/app/outputs/flutter-apk/*.apk
           if-no-files-found: warn
 
