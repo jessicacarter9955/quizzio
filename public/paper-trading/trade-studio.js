@@ -7,7 +7,7 @@ const searchState={term:'',items:[],busy:false,error:''};
 let searchTimer=null,activeQuoteRequest=0,risks=[],riskLoadedFor='',chartRefreshId=null;
 const baseHome=window.paperUIHomePage;
 const esc=x=>escapeHtml(x??'');
-const fmtTime=x=>x?new Date(x).toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Unavailable';
+const fmtTime=x=>x?new Date(x).toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}):'Unavailable';
 const quoteAge=q=>q?.quoted_at?Math.max(0,Date.now()-Date.parse(q.quoted_at)):Infinity;
 const prettyAge=ms=>!Number.isFinite(ms)?'time unavailable':ms<60000?'under 1 min':ms<3600000?Math.round(ms/60000)+' min':ms<86400000?Math.round(ms/3600000)+' h':Math.round(ms/86400000)+' d';
 const isCore=s=>['AAPL','MSFT','NVDA','TSLA','BTC/USD','EUR/USD'].includes(s);
@@ -22,7 +22,7 @@ function marketLabel(symbol){
 window.tradingMarketLabel=marketLabel;
 function searchBox(){
  return '<div class="pt-search-wrap"><label class="pt-sr-only" for="pt-market-search">Find stocks and ETFs</label>'+
- '<input id="pt-market-search" type="search" value="'+esc(searchState.term)+'" placeholder="⌕  Search companies or tickers (AAPL, AMD, SPY…)" autocomplete="off" oninput="tradingSearch(this.value)" />'+
+ '<input id="pt-market-search" type="search" value="'+esc(searchState.term||state.symbol)+'" onfocus="this.select()" placeholder="⌕  Search companies or tickers (AAPL, AMD, SPY…)" autocomplete="off" oninput="tradingSearch(this.value)" />'+
  (searchState.term?'<button type="button" aria-label="Clear search" class="pt-search-clear" onclick="tradingClearSearch()">×</button>':'')+
  '<div id="pt-search-results" class="pt-search-results" role="listbox">'+searchResultsMarkup()+'</div></div>';
 }
@@ -81,7 +81,7 @@ function chartMeta(){
  const quote=state.prices[state.symbol];
  return '<div class="pt-chart-meta"><span>'+esc(marketLabel(state.symbol))+'</span>'+
  '<span>'+({ '1min':'1D = last 24 hours · 1-minute bars', '1h':'1W = last 7 calendar days · hourly bars', '1day':'1M = last 30 calendar days · daily bars' }[state.interval]||'')+'</span>'+
- '<span>Gaps = no trades or closed market</span></div>';
+ '<span>Chart & quote times: your local timezone · US equities 09:30–16:00 New York (market holidays excluded) · closed hours have no bars</span></div>';
 }
 function holding(){
  return state.portfolio.holdings[state.symbol]||{qty:0,avg:0};
@@ -260,7 +260,7 @@ async function chartPage(){
  if(legend)legend.textContent='Provider candles · last '+fmtTime(new Date(latest*1000).toISOString())+(parsed.stale?' · cached history':'');
  const note=panel?.querySelector('.pt-chart-meta');
  if(note)note.innerHTML='<span>'+esc(marketLabel(symbol))+'</span><span>Latest candle '+fmtTime(new Date(latest*1000).toISOString())+'</span>'+
-  '<span>'+(interval==='1min'?'Past 24 hours':interval==='1h'?'Past 7 days':'Past 30 days')+' · closed hours contain no price bars</span>';
+  '<span>'+(interval==='1min'?'Past 24 hours':interval==='1h'?'Past 7 days':'Past 30 days')+' · local time · closed hours have no bars</span>';
 }
 window.tradingDrawChart=chartPage;
 const priorRender=window.paperUIAfterRender;
