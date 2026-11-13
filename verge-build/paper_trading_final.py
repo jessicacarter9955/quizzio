@@ -153,7 +153,6 @@ s=s.replace('Generated practice candles','Historical OHLC unavailable')
 s=s.replace('Relative to demo opening','Comparative reference')
 if 'SAMPLE STUDENTS' in s or 'const localLessons=' in s or 'Charts by TradingView' in s:
     raise RuntimeError('Legacy sample content still present in Flutter UI')
-p.write_text(s,encoding='utf-8')
 # The earlier source rewrite removes the old polling helper; reintroduce a real-only market refresh.
 polling="""  Future<void> _refreshMarketQuotes() async{
     try{
@@ -178,4 +177,5 @@ s=s.replace('  void _setupRealtime(){',polling+'  void _setupRealtime(){',1)
 s=s.replace('const CircleAvatar(radius:34,backgroundColor:stroke,child:Icon(Icons.trending_up,color:lime,size:33))',
             'CircleAvatar(radius:34,backgroundColor:stroke,child:const Icon(Icons.trending_up,color:lime,size:33))')
 s=s.replace('VERGE.','Paper Trading').replace('VERGE ·','Paper Trading ·').replace('TRADING ACADEMY','STUDENT SIMULATOR')
+p.write_text(s,encoding='utf-8')
 print('Paper Trading production-source pass complete; size',len(s))
