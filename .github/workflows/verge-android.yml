@@ -75,6 +75,16 @@ jobs:
             flutter_app/lib/paper_learning_mobile.dart
             flutter_app/assets/chart.html
           if-no-files-found: error
+      - name: Use compatible Inter font family on Flutter 3.50
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('flutter_app/lib/main.dart')
+          s=p.read_text()
+          old="fontFamily:'Inter',textTheme:GoogleFonts.interTextTheme(),"
+          assert s.count(old)==1, 'Expected Inter theme substitution once'
+          p.write_text(s.replace(old,"fontFamily:GoogleFonts.inter().fontFamily,"))
+          PY
       - name: Dart source sanity check
         working-directory: flutter_app
         run: flutter analyze --no-fatal-infos --no-fatal-warnings lib
