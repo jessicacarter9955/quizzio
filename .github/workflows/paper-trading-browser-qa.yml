@@ -27,7 +27,8 @@ jobs:
       - name: Install Playwright video recorder runtime
         run: npx playwright install ffmpeg
       - name: Verify student-feature JavaScript syntax
-        run: node --check public/paper-trading/student-features.js
+        run: |
+          node --check public/paper-trading/student-features.js
           node --check public/paper-trading/paper-ui.js
       - name: Test actual published Paper Trading web on desktop/mobile viewports
         env:
