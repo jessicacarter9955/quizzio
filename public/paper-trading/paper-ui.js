@@ -2,8 +2,8 @@
 (function(){
 'use strict';
 const DEMOS=[
- {email:'demo1@papertrading.invalid',password:'demo1234',name:'Demo 1'},
- {email:'demo2@papertrading.invalid',password:'demo1234',name:'Demo 2'}
+ {email:'demo1@example.com',password:'demo1234',name:'Student 1'},
+ {email:'demo2@example.com',password:'demo1234',name:'Student 2'}
 ];
 const SYMBOLS={AAPL:['apple','A'],MSFT:['microsoft','M'],NVDA:['nvidia','N'],TSLA:['tesla','T'],'BTC/USD':['bitcoin','₿'],'EUR/USD':[null,'€']};
 const materials=new Map(),activities=new Map();
@@ -214,7 +214,7 @@ window.paperUIAuthSubmit=async ev=>{
    const r=await fetch(state.supabaseUrl+'/auth/v1/recover?redirect_to='+encodeURIComponent('https://quizlab-responsive-web.onrender.com/paper-trading/'),
     {method:'POST',headers:{apikey:state.supabaseKey,'Content-Type':'application/json'},body:JSON.stringify({email})});
    if(!r.ok){const d=await r.json().catch(()=>({}));throw Error(d.msg||d.error_description||'Recovery unavailable')}
-   if(status)status.textContent='Check your inbox. Demo .invalid addresses cannot receive mail.';
+   if(status)status.textContent='If this address has an inbox, check it for your recovery link.';
    return;
   }
   await window.paperTradingLogin(ev,authMode==='signup');
