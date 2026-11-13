@@ -188,10 +188,10 @@ function authFields(){
  (!reset?'<label for="pw">Password</label><input id="pw" name="pw" type="password" autocomplete="'+(isLogin?'current-password':'new-password')+
     '" required minlength="8" value="'+(isLogin?preset.password:'')+'" placeholder="8+ characters"/>':'')+
  '<button type="submit" class="primary-button">'+(isLogin?'Sign in':reset?'Send reset link':'Sign up')+'</button>'+
- '</form>'+(isLogin?demoButtons():'')+
- '<div class="pt-auth-message" id="pt-auth-message" role="status"></div>'+
+ '</form><div class="pt-auth-message" id="pt-auth-message" role="status"></div>'+
  '<div class="pt-auth-links">'+(isLogin?'<button type="button" onclick="paperUIAuthMode(\'signup\')">New student? Sign up</button><button type="button" onclick="paperUIAuthMode(\'reset\')">Forgot password?</button>':
-  '<button type="button" onclick="paperUIAuthMode(\'login\')">Back to sign in</button>')+'</div></div>';
+  '<button type="button" onclick="paperUIAuthMode(\'login\')">Back to sign in</button>')+'</div>'+
+ (isLogin?demoButtons():'')+'</div>';
 }
 function renderAuth(){
  if(state.token){authGate()?.remove();return}
