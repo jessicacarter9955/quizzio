@@ -6,6 +6,8 @@ on:
       - qa/paper-trading-browser.mjs
       - .github/workflows/paper-trading-browser-qa.yml
       - public/paper-trading/index.html
+      - public/paper-trading/student-features.js
+      - public/paper-trading/student-features.css
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +23,8 @@ jobs:
         run: npm install --no-save playwright@1.55.0
       - name: Install Playwright video recorder runtime
         run: npx playwright install ffmpeg
+      - name: Verify student-feature JavaScript syntax
+        run: node --check public/paper-trading/student-features.js
       - name: Test actual published Paper Trading web on desktop/mobile viewports
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
