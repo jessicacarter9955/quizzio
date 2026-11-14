@@ -251,15 +251,16 @@ async function chartPage(){
  });
  const series=chart.addSeries(light.CandlestickSeries,{upColor:'#15a790',downColor:'#ee6b72',borderUpColor:'#15a790',borderDownColor:'#ee6b72',wickUpColor:'#15a790',wickDownColor:'#ee6b72',
   priceFormat:{type:'price',precision:priceOf(symbol)<10?5:2,minMove:priceOf(symbol)<10?0.00001:0.01}});
- // Whitespace bars extend the calendar axis after the closing bell; no fabricated OHLC prices.
+ // Plot only real provider candles. Never append a future/empty timestamp to the chart:
+ // doing so creates a misleading crosshair date that does not correspond to a trade.
  const latest=candles[candles.length-1].time;
- const frame=Math.floor(now/(interval==='1min'?60:interval==='1h'?3600:86400))*(interval==='1min'?60:interval==='1h'?3600:86400);
- const data=frame>latest?[...candles,{time:frame}]:candles;
- series.setData(data);
+ series.setData(candles);
  const rule=riskFor(symbol);
  if(rule?.stop_loss)series.createPriceLine({price:Number(rule.stop_loss),color:'#ee6b72',lineWidth:2,lineStyle:light.LineStyle.Dashed,axisLabelVisible:true,title:'Stop'});
  if(rule?.take_profit)series.createPriceLine({price:Number(rule.take_profit),color:'#15a790',lineWidth:2,lineStyle:light.LineStyle.Dashed,axisLabelVisible:true,title:'Target'});
- try{chart.timeScale().setVisibleRange({from:start,to:Math.max(now,frame)});}catch{chart.timeScale().fitContent()}
+ // The candle query is already filtered to a true 24h/7d/30d calendar window.
+ // Fit only the observed points, because OHLC charts must never invent empty future bars.
+ chart.timeScale().fitContent();
  state.chart={dispose:()=>chart.remove()};state.series=series;
  if(state.resizeObserver)state.resizeObserver.disconnect();
  state.resizeObserver=new ResizeObserver(()=>{if(state.chart?.dispose)chart.resize(Math.max(1,holder.clientWidth),Math.max(1,holder.clientHeight))});
