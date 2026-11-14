@@ -141,7 +141,7 @@ function drawLesson(){
   '<main class="pt-learning-screen">'+body+'</main><footer class="pt-learning-bottom">'+foot+'</footer>';
  node.querySelector('.pt-learning-screen')?.scrollTo(0,0);
 }
-window.paperUIShowLesson=async id=>{
+window.paperUIShowLesson=async id=>{document.getElementById('toast')?.classList.remove('show');
  if(!state.token)return window.paperUILoginModal();
  if(!courseData(id))try{await window.paperUILoadLearning()}catch(e){toast('Lessons unavailable: '+e.message);return}
  const m=courseData(id);if(!m||!Array.isArray(m.slides)||!m.slides.length)return toast('Lesson content unavailable');

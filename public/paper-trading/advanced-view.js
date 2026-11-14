@@ -16,7 +16,10 @@ function tvSymbol(s){
 }
 window.tradingViewSymbol=tvSymbol;
 function mountWidget(host,symbol){
- host.textContent='';
+ host.innerHTML='<div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading advanced TradingView chart…</span></div>';
+ const hide=()=>host.querySelector('.pt-widget-loader')?.remove();
+ let observed=false;const observer=new MutationObserver(()=>{const frame=host.querySelector('iframe');if(frame&&!observed){observed=true;frame.addEventListener('load',()=>{hide();observer.disconnect()},{once:true});setTimeout(hide,6500)}});observer.observe(host,{childList:true,subtree:true});
+ setTimeout(()=>{const text=host.querySelector('.pt-widget-loader span:last-child');if(text){text.textContent='TradingView is taking longer than expected. Check network access or use the regular chart.';}observer.disconnect()},17000);
  const wrapper=document.createElement('div');
  wrapper.className='tradingview-widget-container pt-tv-embed';
  const body=document.createElement('div');
@@ -48,7 +51,7 @@ function mountWidget(host,symbol){
  script.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
  script.textContent=JSON.stringify(settings);
  script.onerror=()=>{
-  if(host.isConnected)host.insertAdjacentHTML('beforeend','<p class="pt-tv-error">TradingView could not load. Check your connection or content blocker.</p>');
+  hide();observer.disconnect();if(host.isConnected)host.insertAdjacentHTML('beforeend','<p class="pt-tv-error">TradingView could not load. Check your connection or content blocker.</p>');
  };
  wrapper.appendChild(script);
 }
