@@ -140,3 +140,15 @@ html,body{max-width:100%;overflow-x:clip}
  .pt-header-icon{width:36px;min-width:36px;flex-basis:36px}
  .top-actions{gap:5px}
 }
+
+/* QA correction: ranking values must be visible rather than clipped inside a wide native table. */
+@media(max-width:720px){
+ .pt-scroll:has(table.pt-ranking){overflow-x:visible!important;max-width:100%;width:100%}
+ table.pt-ranking{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important}
+ table.pt-ranking thead{display:none!important}
+ table.pt-ranking tbody{display:block!important;max-width:100%!important;min-width:0!important;width:100%!important}
+ table.pt-ranking tbody tr{display:flex!important;flex-direction:column!important;gap:0;width:100%!important;max-width:100%!important;min-width:0!important;padding:10px 0;border-bottom:1px solid var(--border)}
+ table.pt-ranking td{display:flex!important;width:100%!important;max-width:100%!important;min-width:0!important;align-items:baseline;justify-content:space-between;gap:8px;padding:6px 0!important;text-align:right!important;white-space:normal!important;overflow-wrap:anywhere!important;border:0!important}
+ table.pt-ranking td::before{flex:0 0 90px;text-align:left;white-space:nowrap;color:var(--muted);font-weight:500}
+ #toast{top:65px!important;bottom:auto!important;left:12px;right:12px;max-width:calc(100% - 24px)}
+}
