@@ -270,7 +270,7 @@ async function chartPage(){
  if(legend)legend.textContent='Provider candles · last '+fmtTime(new Date(latest*1000).toISOString())+(parsed.stale?' · cached history':'');
  const note=panel?.querySelector('.pt-chart-meta');
  if(note)note.innerHTML='<span>'+esc(marketLabel(symbol))+'</span><span>Latest candle '+fmtTime(new Date(latest*1000).toISOString())+'</span>'+
-  '<span>'+(interval==='1min'?'Past 24 hours':interval==='1h'?'Past 7 days':'Past 30 days')+' · local time · closed hours have no bars</span>';
+  '<span>'+(interval==='1min'?'Past 24 hours':interval==='1h'?'Past 7 days':'Past 30 days')+' · your timezone · quote and chart candles can differ after hours</span>';
 }
 window.tradingDrawChart=chartPage;
 const priorRender=window.paperUIAfterRender;
