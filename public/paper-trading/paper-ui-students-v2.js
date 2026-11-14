@@ -208,9 +208,9 @@ window.paperUILoginModal=()=>{authMode='login';renderAuth()};
 window.paperUIAuthSubmit=async ev=>{
  ev?.preventDefault();
  const status=document.getElementById('pt-auth-message'),button=document.querySelector('#pt-auth-gate button[type=submit]');
- if(!state.db){if(status)status.textContent='Connecting to authentication…';return}
  if(button)button.disabled=true;
  try{
+  if(!state.db){if(status)status.textContent='Connecting to authentication…';if(!await window.paperTradingRefreshConfig?.())throw Error('Authentication service is not ready. Check your connection and retry.');if(status)status.textContent='';}
   if(authMode==='reset'){
    const email=document.getElementById('email')?.value?.trim();
    if(!email)throw Error('Enter an email');

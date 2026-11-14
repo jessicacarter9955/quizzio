@@ -177,15 +177,26 @@ function acceptQuote(q){
  if(p)p.textContent=fmtPrice(q.price);if(total)total.textContent=money(q.price*state.qty);if(asset)asset.textContent=fmtPrice(q.price);const status=$('.asset-price span');if(status&&window.tradingMarketLabel)status.textContent=window.tradingMarketLabel(q.symbol);
 }
 function connectStream(){if(!location.host)return;let socket;const connect=()=>{socket=new WebSocket((location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/ws/quotes');socket.onmessage=e=>{try{const msg=JSON.parse(e.data);for(const q of msg.event==='snapshot'?msg.data:[msg.data])acceptQuote(q);if(state.page==='home'||state.page==='portfolio')render()}catch{}};socket.onclose=()=>setTimeout(connect,5000);socket.onerror=()=>socket.close()};connect()}
+window.paperTradingRefreshConfig=async()=>{
+ const apply=o=>{if(!o?.supabaseUrl||!o?.supabasePublishableKey)return false;state.db=true;state.supabaseUrl=o.supabaseUrl;state.supabaseKey=o.supabasePublishableKey;return true;};
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const r=await fetch('https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-api/v1/config',{cache:'no-store'});
+   if(r.ok){const o=await r.json();if(apply(o)){try{safeLocal.setItem('verge_public_cfg_v1',JSON.stringify(o))}catch{}return true;}}
+  }catch(e){console.warn('Public authentication config temporarily unavailable')}
+  if(attempt<2)await new Promise(resolve=>setTimeout(resolve,400*(attempt+1)));
+ }
+ try{return apply(JSON.parse(safeLocal.getItem('verge_public_cfg_v1')||'null'))}catch{return false}
+};
 async function boot(){const hashParams=new URLSearchParams(location.hash.replace(/^#/,''));
  const emailToken=hashParams.get('access_token');
  if(emailToken){state.token=emailToken;state.demoGuest=false;safeSession.removeItem('verge_demo_guest');safeSession.setItem('verge_token',state.token);history.replaceState(null,'',location.pathname+location.search);}
- try{const cfg=await fetch('https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-api/v1/config');if(cfg.ok){const o=await cfg.json();state.db=!!(o.supabaseUrl&&o.supabasePublishableKey);state.supabaseUrl=o.supabaseUrl;state.supabaseKey=o.supabasePublishableKey;}}catch{}
+ await window.paperTradingRefreshConfig();
  await window.paperTradingRestoreSession?.();
  try{const [r,lessons]=await Promise.all([fetch('https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-market-api/v1/quotes'),fetch('https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-api/v1/lessons')]);if(r.ok){const d=await r.json();state.mode=d.mode;for(const q of d.quotes)acceptQuote(q)}if(lessons.ok){const d=await lessons.json();if(d.lessons?.length)state.lessonData=[...d.lessons].sort((a,b)=>Number(a.sort_order??a.id)-Number(b.sort_order??b.id))}}catch{}
  if(state.token&&state.db){try{await loadPortfolio()}catch{safeSession.removeItem('verge_token');state.token=''}}render();window.paperUIBooted?.();async function pullMarketQuotes(){try{const response=await fetch('https://fcypamejorxoxvtcqubs.supabase.co/functions/v1/verge-market-api/v1/quotes',{cache:'no-store'});if(!response.ok)return;const data=await response.json();for(const q of (data.quotes||[]))acceptQuote({...q,timestamp:Math.floor(Date.parse(q.quoted_at||new Date().toISOString())/1000)});if(state.page==='portfolio')render();}catch(e){console.warn('Market quote refresh unavailable');}}setInterval(pullMarketQuotes,12000);pullMarketQuotes()}
 window.navigate=navigate;window.toast=toast;window.setSide=setSide;window.setQty=setQty;window.setIntervalChart=setIntervalChart;window.selectSymbol=selectSymbol;window.placeOrder=placeOrder;window.showLesson=showLesson;window.completeLesson=completeLesson;window.closeModal=closeModal;window.loginModal=loginModal;window.submitLogin=submitLogin;window.logout=logout;
 boot();
 
-</script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script><script src="/paper-trading/student-features.js?v=20261114-3"></script><script src="/paper-trading/paper-ui-students-v2.js?v=20261114-3"></script><script src="/paper-trading/trade-studio-nov14.js?v=20261114-3"></script><script src="/paper-trading/advanced-view.js?v=20261114-6"></script><script src="/paper-trading/tradingview-gallery.js?v=20261114-3"></script><script src="/paper-trading/mobile-fixes-nov14.js?v=20261114-6"></script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.0.9/dist/lightweight-charts.standalone.production.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script>
+</script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script><script src="/paper-trading/student-features.js?v=20261114-3"></script><script src="/paper-trading/paper-ui-students-v2.js?v=20261114-7"></script><script src="/paper-trading/trade-studio-nov14.js?v=20261114-3"></script><script src="/paper-trading/advanced-view.js?v=20261114-6"></script><script src="/paper-trading/tradingview-gallery.js?v=20261114-3"></script><script src="/paper-trading/mobile-fixes-nov14.js?v=20261114-6"></script><script>(function(){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.0.9/dist/lightweight-charts.standalone.production.js";s.onload=function(){if(window.navigate)window.navigate(state.page)};document.head.appendChild(s)})();</script>
 </body></html>
