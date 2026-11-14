@@ -94,7 +94,7 @@ function renderGallery(){
  '<div class="pt-gallery-preview-column"><div class="pt-gallery-preview-head">'+
  '<div><h2>'+escapeValue(widget.title)+'</h2><p>'+escapeValue(widget.description)+'</p></div>'+
  '<a href="'+widget.doc+'" target="_blank" rel="noopener noreferrer">Official TradingView setup ↗</a></div>'+
- '<div id="pt-gallery-widget" class="pt-gallery-widget"><span>Loading '+escapeValue(widget.title)+'…</span></div>'+
+ '<div id="pt-gallery-widget" class="pt-gallery-widget"><div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading '+escapeValue(widget.title)+'…</span></div></div>'+
  (widget.kind==='broker'?'<p class="pt-widget-notice">A broker ID approved by TradingView is required for a specific client broker preview.</p>':
  '<p class="pt-widget-notice">Live third-party widget preview; data and features may depend on market permissions.</p>')+
  '</div></div></section>';
@@ -104,11 +104,14 @@ function mountPreview(){
  const host=document.getElementById('pt-gallery-widget');
  if(!host||state.page!=='widgets')return;
  const item=current(),serial=++previewSerial;
- host.textContent='';
+ host.innerHTML='<div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading '+escapeValue(item.title)+'…</span></div>';
+ const hideLoading=()=>{if(serial===previewSerial)host.querySelector('.pt-widget-loader')?.remove()};
+ let seen=false;const observer=new MutationObserver(()=>{if(serial!==previewSerial){observer.disconnect();return}const frame=host.querySelector('iframe');if(frame&&!seen){seen=true;frame.addEventListener('load',()=>{hideLoading();observer.disconnect()},{once:true});setTimeout(hideLoading,5500)}});observer.observe(host,{childList:true,subtree:true});
+ setTimeout(()=>{if(serial===previewSerial){const node=host.querySelector('.pt-widget-loader span:last-child');if(node)node.textContent='This widget is taking longer than expected. Check your connection or open the official preview.';}observer.disconnect()},16000);
  if(!canShow(item)){
   host.innerHTML='<p class="pt-widget-notice">Choose the client’s broker ID to preview the live broker widget. <a href="'+item.doc+
    '" target="_blank" rel="noopener noreferrer">Open the official demo ↗</a></p>';
-  return;
+  hideLoading();observer.disconnect();return;
  }
  if(item.kind==='web'){
    const tag='tv-'+item.script;
@@ -123,7 +126,8 @@ function mountPreview(){
    host.appendChild(element);
    const script=document.createElement('script');script.type='module';
    script.src='https://www.tradingview-widget.com/w/en/'+tag+'.js';
-   script.onerror=()=>{if(serial===previewSerial&&element.isConnected)
+   script.addEventListener('load',()=>setTimeout(hideLoading,4000),{once:true});
+   script.onerror=()=>{hideLoading();if(serial===previewSerial&&element.isConnected)
        host.insertAdjacentHTML('beforeend','<p class="pt-widget-notice">This component cannot load here. <a href="'+item.doc+'" target="_blank" rel="noopener noreferrer">View live official widget ↗</a></p>')};
    host.appendChild(script);
    return;
@@ -138,7 +142,7 @@ function mountPreview(){
  const script=document.createElement('script');script.async=true;script.type='text/javascript';
  script.src='https://s3.tradingview.com/external-embedding/embed-widget-'+item.script+'.js';
  script.textContent=JSON.stringify(settings(item));
- script.onerror=()=>{if(serial===previewSerial&&container.isConnected)
+ script.onerror=()=>{hideLoading();if(serial===previewSerial&&container.isConnected)
     host.insertAdjacentHTML('beforeend','<p class="pt-widget-notice">Preview unavailable. <a href="'+item.doc+'" target="_blank" rel="noopener noreferrer">Open TradingView demo ↗</a></p>')};
  container.appendChild(script);
 }
@@ -146,9 +150,9 @@ window.tradingWidgetsShow=id=>{
  if(!WIDGETS.some(x=>x.id===id))return;
  active=id;window.render();
 };
-window.tradingWidgetsGroup=g=>{if(!groups.includes(g))return;group=g;window.render()};
+window.tradingWidgetsGroup=g=>{if(!groups.includes(g))return;group=g;const matches=itemList();if(!matches.some(w=>w.id===active))active=matches[0]?.id||'';window.render()};
 window.tradingWidgetsFilter=value=>{
- term=String(value||'');
+ term=String(value||'');const matches=itemList();if(matches.length&&!matches.some(w=>w.id===active)){active=matches[0].id;window.render();return;}
  const target=document.getElementById('pt-gallery-list');
  if(target)target.innerHTML=renderCards();
 };

@@ -78,10 +78,6 @@ function classForm(label,buttonText,action){
 function paintClasses(){
  const root=document.querySelector('#pt-classrooms');if(!root)return;root.replaceChildren();
  if(!state.token){const c=card('Your classroom rankings');const p=document.createElement('p');p.textContent='Sign in to create a classroom, join a teacher and see real results.';c.append(p,button('Student sign in',()=>window.loginModal(),'primary-button'));root.append(c);return}
- const manage=card('Classroom management');
- manage.append(classForm('Classroom name','Create classroom',p_title=>rpc('pt_classroom_create',{p_title})));
- manage.append(classForm('Invite code','Join classroom',p_code=>rpc('pt_classroom_join',{p_code})));
- root.append(manage);
  if(state.extraStatus){const e=document.createElement('p');e.className='pt-warning';e.textContent='Error loading student data: '+state.extraStatus;root.append(e)}
  if(!state.classrooms.length){root.append(card('No classes yet'));return}
  for(const c of state.classrooms){
@@ -104,6 +100,13 @@ function paintClasses(){
  }
 }
 window.paperTradingLeaderPage=()=>intro('STUDENT PERFORMANCE','Classroom leaderboard','Real classroom members, virtual returns and completed lessons from Supabase.')+'<section id="pt-classrooms"></section>';
+window.paperTradingOpenClassroomManager=()=>{
+ if(!state.token)return window.loginModal();
+ const overlay=document.getElementById('overlay');if(!overlay)return;
+ overlay.innerHTML='<div class="modal-root pt-classroom-modal-backdrop" onclick="closeModal(event)"><section class="modal pt-classroom-dialog" role="dialog" aria-modal="true" aria-labelledby="pt-classroom-dialog-title" onclick="event.stopPropagation()"><header class="modal-header"><h2 id="pt-classroom-dialog-title">Classroom management</h2><button class="close pt-classroom-close" aria-label="Close classroom management" onclick="closeModal()">×</button></header><p>Create a classroom as a teacher, or join using an invitation code.</p><div id="pt-classroom-form-host"></div><button class="secondary-button" type="button" onclick="closeModal();navigate(\'leaderboard\')">View rankings</button></section></div>';
+ const root=overlay.querySelector('#pt-classroom-form-host');root.append(classForm('Classroom name','Create classroom',p_title=>rpc('pt_classroom_create',{p_title})),classForm('Invite code','Join classroom',p_code=>rpc('pt_classroom_join',{p_code})));
+ overlay.querySelector('.pt-classroom-close')?.focus();
+};
 function paintProfile(){
  if(state.page!=='profile'||!state.token)return;
  const root=document.querySelector('#content');if(!root)return;

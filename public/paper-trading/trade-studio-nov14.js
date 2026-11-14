@@ -107,7 +107,8 @@ function riskFields(){
 }
 function tradeCard(){
  const owned=Number(holding().qty||0),avg=Number(holding().avg||0),last=priceOf(state.symbol),sell=state.side==='sell',quote=state.prices[state.symbol];
- const valid=quote?.source==='TWELVE_DATA'&&quoteAge(quote)<300000&&regularSessionOpen(state.symbol);
+ const marketOpen=regularSessionOpen(state.symbol),freshQuote=quote?.source==='TWELVE_DATA'&&quoteAge(quote)<300000,valid=freshQuote&&marketOpen;
+ const blocked=marketOpen?'Trading is unavailable: the provider quote is missing or older than 5 minutes.':'US stock market orders are accepted Mon–Fri, 09:30–16:00 New York time, except holidays. Your shares remain in the portfolio and can be sold once the session reopens.';
  return '<div class="pt-order-title"><h2>Order ticket</h2><span class="pt-chip">'+(valid?'Quote available':'Market closed / stale quote')+'</span></div>'+
  '<div class="pt-order-toggle"><button class="'+(!sell?'active buy':'')+'" onclick="tradingChangeSide(\'buy\')">Buy</button>'+
  '<button class="'+(sell?'active sell':'')+'" onclick="tradingChangeSide(\'sell\')">Sell</button></div>'+
@@ -122,7 +123,7 @@ function tradeCard(){
  (sell&&owned?'<div class="pt-order-own"><span>Estimated P&L</span><strong>'+money((last-avg)*Math.min(state.qty,owned))+'</strong></div>':'')+
  '<button class="primary-button pt-submit" '+(!valid||sell&&!owned?'disabled':'')+' onclick="tradingSubmitOrder()">'+
  (sell?'Sell':'Buy')+' '+esc(symDisplay(state.symbol))+' · Paper order</button>'+
- '<p class="pt-risk-note">Market orders execute only with a recent exchange quote. No real money.</p>'+
+ (valid?'':'<p class="pt-trade-unavailable" role="status">'+esc(blocked)+'</p>')+'<p class="pt-risk-note">Market orders execute only with a recent exchange quote. No real money.</p>'+
  riskFields();
 }
 window.paperUITradePage=()=>{

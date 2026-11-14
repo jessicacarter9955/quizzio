@@ -64,7 +64,10 @@ function marketRows(){
 }
 window.paperUIHomePage=()=>{
  const count=state.portfolio.done.length,total=state.lessonData.length;
- const next=state.lessonData.find(l=>!state.portfolio.done.includes(l.id))||state.lessonData[0];
+ const ongoing=state.lessonData.find(l=>!state.portfolio.done.includes(l.id)&&(Number(activities.get(Number(l.id))?.slide_index||0)>0||Number(activities.get(Number(l.id))?.quiz_attempts||0)>0));
+ const next=ongoing||state.lessonData.find(l=>!state.portfolio.done.includes(l.id))||state.lessonData[0];
+ const activity=next?activities.get(Number(next.id)):null,material=next?materials.get(Number(next.id)):null;
+ const isQuiz=!!(activity&&material&&Number(activity.slide_index)>=material.slides.length),nextType=isQuiz?'Quiz':'Lesson';
  return '<section class="pt-modern-home"><section class="page-intro"><h1>Home</h1></section>'+stats()+
  '<section class="pt-home-grid"><div class="card pt-home-charts chart-panel">'+
  '<div class="pt-card-head"><h2>Chart</h2><div class="timeframes">'+intervalButtons()+'</div></div>'+
@@ -72,7 +75,7 @@ window.paperUIHomePage=()=>{
  '<aside class="card pt-home-side"><div class="pt-card-head"><h2>Learning</h2><button onclick="navigate(\'learn\')">View all</button></div>'+
  '<div class="pt-lesson-progress"><b>'+count+' / '+total+' complete</b><span>'+Math.round(count/Math.max(total,1)*100)+'%</span></div>'+
  '<div class="pt-progress-track"><span style="width:'+Math.round(count/Math.max(total,1)*100)+'%"></span></div>'+
- (next?'<button class="pt-start-button" onclick="showLesson('+Number(next.id)+')">'+safe(next.title)+' <span style="float:right">→</span></button>':'')+
+ (next?'<div class="pt-next-lesson-meta"><span>'+(ongoing?'Continue':'Start')+'</span><small>'+nextType+'</small></div><button class="pt-start-button" onclick="showLesson('+Number(next.id)+')">'+safe(next.title)+' <span style="float:right">→</span></button>':'')+
  '<button class="pt-start-button" onclick="navigate(\'portfolio\')">View portfolio <span style="float:right">→</span></button></aside></section>'+
  '<section class="card pt-home-market" style="margin-top:15px"><div class="pt-card-head"><h2>Markets</h2><button onclick="navigate(\'trade\')">Trade →</button></div>'+
  '<div style="overflow-x:auto"><table class="market-table"><thead><tr><th>Asset</th><th>Price</th><th>Updated</th><th></th></tr></thead>'+
@@ -85,7 +88,7 @@ window.paperUILearnPage=()=>{
  '<section class="pt-course-grid">'+state.lessonData.map((l,i)=>{
   const value=progress(l.id),completed=state.portfolio.done.includes(l.id),activity=activities.get(Number(l.id));
   const quizDetail=activity?.quiz_attempts ? ('Best '+Number(activity.best_score||0)+'% · '+Number(activity.quiz_attempts)+' tries') : 'Quick quiz';
-  return '<button class="pt-course-tile '+(completed?'completed':'')+'" onclick="showLesson('+Number(l.id)+')">'+
+  return '<button class="pt-course-tile '+(completed?'completed':'')+'" onclick="showLesson('+Number(l.id)+')">'+'<span class="pt-course-type">'+(completed?'Completed':value>0||activity?.quiz_attempts?'Continue':'Start')+' · '+(activity&&materials.get(Number(l.id))&&Number(activity.slide_index)>=materials.get(Number(l.id)).slides.length?'Quiz':'Lesson')+'</span>'+
     '<div class="pt-course-number">'+String(i+1).padStart(2,'0')+' / '+String(total).padStart(2,'0')+'</div>'+
     '<div class="pt-course-title">'+safe(l.title)+'</div>'+
     '<div class="pt-course-meta"><span>'+Number(l.duration_minutes||10)+' min · '+quizDetail+'</span><span>'+(completed?'✓ Done':value+'%')+'</span></div>'+
