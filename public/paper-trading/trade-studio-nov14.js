@@ -89,7 +89,7 @@ window.tradingRefreshInstrument=()=>{if(!isCore(state.symbol))return loadInstrum
 function chartMeta(){
  const quote=state.prices[state.symbol];
  return '<div class="pt-chart-meta"><span>'+esc(marketLabel(state.symbol))+'</span>'+
- '<span>'+({ '1min':'1D = last 24 hours · 1-minute bars', '1h':'1W = last 7 calendar days · hourly bars', '1day':'1M = last 30 calendar days · daily bars' }[state.interval]||'')+'</span>'+
+ '<span>'+({ '1min':'1D = last actual trading session · minute bars', '1h':'1W = five trading days · daily bars', '1day':'1M = 22 trading days · daily bars' }[state.interval]||'')+'</span>'+
  '<span>Chart & quote times: your local timezone · US equities 09:30–16:00 New York (market holidays excluded) · closed hours have no bars</span></div>';
 }
 function holding(){
@@ -221,9 +221,9 @@ window.paperTradingAfterRender=()=>{
 };
 async function chartPage(){
  const holder=document.getElementById('trade-chart');if(!holder||!window.LightweightCharts)return;
- const symbol=state.symbol,interval=state.interval,secs=interval==='1min'?86400:interval==='1h'?604800:2592000;
+ const symbol=state.symbol,interval=state.interval,providerInterval=interval==='1h'?'1day':interval;
  holder.textContent='Loading price history…';
- const query=urlpath('candles/'+encodeURIComponent(symbol)+'?interval='+encodeURIComponent(interval));
+ const query=urlpath('candles/'+encodeURIComponent(symbol)+'?interval='+encodeURIComponent(providerInterval));
  let parsed;
  try{
   const r=await fetch(query,{headers:state.token?{Authorization:'Bearer '+state.token}:{},cache:'no-store'});
@@ -231,11 +231,26 @@ async function chartPage(){
  }catch(e){if(document.getElementById('trade-chart')===holder)holder.textContent='Provider history unavailable: '+e.message;return}
  if(document.getElementById('trade-chart')!==holder||state.symbol!==symbol||state.interval!==interval)return;
  const raw=Array.isArray(parsed.candles)?parsed.candles:[];
- // Rolling calendar windows from wall-clock now: 24h / 7d / 30d, not last close or N trading sessions.
- const now=Math.floor(Date.now()/1000),start=now-secs;
- const candles=raw.filter(v=>Number(v.time)>=start&&Number(v.time)<=now&&Number(v.open)>0&&Number(v.high)>=Number(v.low))
-   .map(v=>({time:Number(v.time),open:Number(v.open),high:Number(v.high),low:Number(v.low),close:Number(v.close)})).sort((a,b)=>a.time-b.time);
- if(!candles.length){holder.textContent='No market candles in the selected calendar window. Try a longer timeframe.';return;}
+ const all=raw.map(v=>({time:Number(v.time),open:Number(v.open),high:Number(v.high),low:Number(v.low),close:Number(v.close)}))
+  .filter(v=>[v.time,v.open,v.high,v.low,v.close].every(Number.isFinite)&&v.time>0&&v.open>0&&v.close>0&&v.low>0&&v.high>=Math.max(v.open,v.close,v.low)&&v.low<=Math.min(v.open,v.close,v.high))
+  .sort((a,b)=>a.time-b.time).filter((v,k,a)=>k===0||a[k-1].time!==v.time);
+ let candles=[];
+ if(interval==='1min'){
+  if(symbol.includes('/')){
+   const last=all[all.length-1]?.time||0;
+   candles=all.filter(v=>v.time>=last-86400);
+  }else{
+   const ny=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+   const fields=t=>Object.fromEntries(ny.formatToParts(new Date(t*1000)).map(p=>[p.type,p.value]));
+   const session=all.filter(v=>{const p=fields(v.time),min=(Number(p.hour)%24)*60+Number(p.minute);return min>=570&&min<960;});
+   const key=t=>{const p=fields(t);return p.year+'-'+p.month+'-'+p.day;};
+   const day=session.length?key(session[session.length-1].time):'';
+   candles=session.filter(v=>key(v.time)===day);
+  }
+ }else{
+  candles=all.slice(-(interval==='1h'?5:22));
+ }
+ if(!candles.length){holder.textContent='No verified market candles are available for this period. No synthetic candles are shown.';return;}
  state.candles=candles;
  if(state.chart){state.chart.dispose?.();state.chart=null}
  holder.textContent='';
@@ -245,7 +260,7 @@ async function chartPage(){
  const chart=light.createChart(holder,{width:holder.clientWidth||660,height:holder.clientHeight||300,
   layout:{background:{type:light.ColorType.Solid,color:color('--panel')||'#1e222d'},textColor:color('--muted')||'#999',attributionLogo:true},
   grid:{vertLines:{color:color('--chart-grid')||'#303543'},horzLines:{color:color('--chart-grid')||'#303543'}},
-  timeScale:{timeVisible:interval!=='1day',secondsVisible:false,rightOffset:0,fixLeftEdge:false,fixRightEdge:false},
+  timeScale:{timeVisible:interval==='1min',secondsVisible:false,rightOffset:0,fixLeftEdge:false,fixRightEdge:false},
   crosshair:{mode:light.CrosshairMode.Normal},
   rightPriceScale:{borderColor:color('--border')||'#333'},
   localization:{locale:navigator.language||'en-US'},
@@ -255,6 +270,7 @@ async function chartPage(){
  // Plot only real provider candles. Never append a future/empty timestamp to the chart:
  // doing so creates a misleading crosshair date that does not correspond to a trade.
  const latest=candles[candles.length-1].time;
+ const latestLabel=interval==='1min'?fmtTime(new Date(latest*1000).toISOString()):new Date(latest*1000).toISOString().slice(0,10);
  series.setData(candles);
  const rule=riskFor(symbol);
  if(rule?.stop_loss)series.createPriceLine({price:Number(rule.stop_loss),color:'#ee6b72',lineWidth:2,lineStyle:light.LineStyle.Dashed,axisLabelVisible:true,title:'Stop'});
@@ -268,10 +284,10 @@ async function chartPage(){
  state.resizeObserver.observe(holder);
  const panel=holder.closest('.chart-panel');
  const legend=panel?.querySelector('.chart-legend span:first-child');
- if(legend)legend.textContent='Provider candles · last '+fmtTime(new Date(latest*1000).toISOString())+(parsed.stale?' · cached history':'');
+ if(legend)legend.textContent='Real '+(interval==='1min'?'minute':'daily')+' candles · last '+latestLabel+(parsed.stale?' · cached history':'');
  const note=panel?.querySelector('.pt-chart-meta');
- if(note)note.innerHTML='<span>'+esc(marketLabel(symbol))+'</span><span>Latest candle '+fmtTime(new Date(latest*1000).toISOString())+'</span>'+
-  '<span>'+(interval==='1min'?'Past 24 hours':interval==='1h'?'Past 7 days':'Past 30 days')+' · your timezone · quote and chart candles can differ after hours</span>';
+ if(note)note.innerHTML='<span>'+esc(marketLabel(symbol))+'</span><span>Latest candle '+esc(latestLabel)+'</span>'+
+  '<span>'+(interval==='1min'?'Latest available trading session':interval==='1h'?'Five daily trading sessions':'22 daily trading sessions')+' · '+(interval==='1min'?'times in your timezone':'calendar dates, no hourly labels')+' · quotes can differ after hours</span>';
 }
 window.tradingDrawChart=chartPage;
 const priorRender=window.paperUIAfterRender;
