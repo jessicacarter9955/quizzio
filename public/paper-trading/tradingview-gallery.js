@@ -32,11 +32,10 @@ const WIDGETS=[
  ['broker-reviews','Broker Reviews','Brokers','brokers/reviews','broker-reviews','broker','Recent verified broker reviews'],
  ['economic-map','Economic Map','Economics','economics/economic-map','economic-map','web','World economic indicators']
 ].map(v=>({id:v[0],title:v[1],group:v[2],doc:ROOT+v[3]+'/',script:v[4],kind:v[5],description:v[6]}));
-let group='All',term='',active='advanced-chart',selected=new Set(),loaded=false,loading=false,loadedFor='',previewSerial=0;
+let group='All',term='',active='advanced-chart',previewSerial=0;
 const groups=['All',...new Set(WIDGETS.map(x=>x.group))];
 const escapeValue=s=>escapeHtml(String(s??''));
 const current=()=>WIDGETS.find(x=>x.id===active)||WIDGETS[0];
-const count=()=>selected.size;
 const symbol=()=>window.tradingViewSymbol?window.tradingViewSymbol(state.symbol):'NASDAQ:AAPL';
 const theme=()=>document.documentElement.dataset.theme==='light'?'light':'dark';
 function settings(item){
@@ -76,27 +75,25 @@ function itemList(){
 function renderCards(){
  const list=itemList();
  return list.length?list.map(w=>'<article class="pt-gallery-item'+(w.id===active?' active':'')+'" data-widget-id="'+w.id+'">'+
- '<button class="pt-widget-tile" type="button" onclick="tradingWidgetsShow(\''+w.id+'\')" aria-label="Preview '+escapeValue(w.title)+'">'+
+ '<button class="pt-widget-tile" type="button" onclick="tradingWidgetsShow(\''+w.id+'\')" aria-label="Show live preview of '+escapeValue(w.title)+'">'+
  '<span class="pt-widget-tile-name">'+escapeValue(w.title)+'</span><span class="pt-widget-tile-desc">'+escapeValue(w.description)+'</span>'+
- '<small>'+escapeValue(w.group)+'</small></button>'+
- '<label class="pt-widget-check"><input type="checkbox" aria-label="Include '+escapeValue(w.title)+' in client shortlist"'+(selected.has(w.id)?' checked':'')+
- ' onchange="tradingWidgetsToggle(\''+w.id+'\',this.checked)"><span>Select</span></label></article>').join(''):
+ '<small>'+escapeValue(w.group)+(w.id===active?' · Previewing':'')+'</small></button></article>').join(''):
  '<p class="pt-gallery-empty">No matching widgets. Change the filter.</p>';
 }
 function renderGallery(){
  const widget=current();
  return '<section class="pt-widget-gallery">'+
- '<div class="pt-gallery-header"><div><h1>TradingView widgets</h1><p>'+WIDGETS.length+' widgets · preview and select for the client</p></div>'+
- '<button class="pt-gallery-copy" onclick="tradingWidgetsCopy()" type="button">Copy shortlist ('+count()+')</button></div>'+
+ '<div class="pt-gallery-header"><div><h1>TradingView widgets</h1><p>'+WIDGETS.length+' widgets · select any tile to see its live preview</p></div></div>'+
  '<div class="pt-gallery-groups">'+groups.map(x=>'<button type="button" class="'+(group===x?'active':'')+'" onclick="tradingWidgetsGroup(\''+x+'\')">'+escapeValue(x)+'</button>').join('')+'</div>'+
  '<div class="pt-gallery-filter"><label for="pt-gallery-search">Filter widgets</label><input id="pt-gallery-search" type="search" oninput="tradingWidgetsFilter(this.value)" value="'+escapeValue(term)+'" placeholder="Search widgets…"></div>'+
  '<div class="pt-gallery-layout"><div id="pt-gallery-list" class="pt-gallery-list">'+renderCards()+'</div>'+
  '<div class="pt-gallery-preview-column"><div class="pt-gallery-preview-head">'+
  '<div><h2>'+escapeValue(widget.title)+'</h2><p>'+escapeValue(widget.description)+'</p></div>'+
- '<a href="'+widget.doc+'" target="_blank" rel="noopener noreferrer">Official TradingView setup ↗</a></div>'+
- '<div id="pt-gallery-widget" class="pt-gallery-widget"><div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading '+escapeValue(widget.title)+'…</span></div></div>'+
- (widget.kind==='broker'?'<p class="pt-widget-notice">A broker ID approved by TradingView is required for a specific client broker preview.</p>':
- '<p class="pt-widget-notice">Live third-party widget preview; data and features may depend on market permissions.</p>')+
+ '<a href="'+widget.doc+'" target="_blank" rel="noopener noreferrer">Official TradingView demo ↗</a></div>'+
+ '<div id="pt-gallery-widget" class="pt-gallery-widget" aria-live="polite"><div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading '+escapeValue(widget.title)+'…</span></div></div>'+
+ '<div class="pt-gallery-preview-actions"><button type="button" class="secondary-button" onclick="tradingWidgetsRetry()">↻ Reload preview</button><a href="'+widget.doc+'" target="_blank" rel="noopener noreferrer">Open official preview ↗</a></div>'+
+ (widget.kind==='broker'?'<p class="pt-widget-notice">Broker widgets require a TradingView-authorized broker ID and cannot be rendered as live broker data without it.</p>':
+ '<p class="pt-widget-notice">Live widget provided by TradingView. Some external content may be unavailable in Android WebView.</p>')+
  '</div></div></section>';
 }
 window.tradingWidgetGalleryPage=renderGallery;
@@ -104,31 +101,44 @@ function mountPreview(){
  const host=document.getElementById('pt-gallery-widget');
  if(!host||state.page!=='widgets')return;
  const item=current(),serial=++previewSerial;
+ const fallback=(why)=>{
+  if(serial!==previewSerial||!host.isConnected)return;
+  host.innerHTML='<div class="pt-widget-unavailable" role="status"><strong>Preview unavailable</strong><p>'+escapeValue(why)+'</p><button type="button" class="secondary-button" onclick="tradingWidgetsRetry()">Retry loading</button><a href="'+item.doc+'" target="_blank" rel="noopener noreferrer">Open this widget on TradingView ↗</a></div>';
+ };
  host.innerHTML='<div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading '+escapeValue(item.title)+'…</span></div>';
- const hideLoading=()=>{if(serial===previewSerial)host.querySelector('.pt-widget-loader')?.remove()};
- let seen=false;const observer=new MutationObserver(()=>{if(serial!==previewSerial){observer.disconnect();return}const frame=host.querySelector('iframe');if(frame&&!seen){seen=true;frame.addEventListener('load',()=>{hideLoading();observer.disconnect()},{once:true});setTimeout(hideLoading,5500)}});observer.observe(host,{childList:true,subtree:true});
- setTimeout(()=>{if(serial===previewSerial){const node=host.querySelector('.pt-widget-loader span:last-child');if(node)node.textContent='This widget is taking longer than expected. Check your connection or open the official preview.';}observer.disconnect()},16000);
- if(!canShow(item)){
-  host.innerHTML='<p class="pt-widget-notice">Choose the client’s broker ID to preview the live broker widget. <a href="'+item.doc+
-   '" target="_blank" rel="noopener noreferrer">Open the official demo ↗</a></p>';
-  hideLoading();observer.disconnect();return;
+ const done=()=>{if(serial===previewSerial&&host.isConnected)host.querySelector('.pt-widget-loader')?.remove()};
+ const loadingText=(message)=>{if(serial===previewSerial){const node=host.querySelector('.pt-widget-loader span:last-child');if(node)node.textContent=message;}};
+ setTimeout(()=>loadingText('Still loading '+item.title+' from TradingView…'),6500);
+ // Never leave a blank rectangle: if a third-party embed cannot initialize, show a retry and its official preview.
+ const timeout=setTimeout(()=>{
+  if(serial!==previewSerial)return;
+  if(host.querySelector('.pt-widget-loader'))fallback('The external widget did not initialize within 22 seconds. It may be blocked by the Android WebView, a network filter, or provider permissions.');
+ },22000);
+ const finish=()=>{if(serial!==previewSerial)return;clearTimeout(timeout);done()};
+ if(item.kind==='broker'){
+  clearTimeout(timeout);
+  fallback('A TradingView-approved broker ID is needed to display real broker ratings or reviews. The official demo is available below.');
+  return;
  }
- if(item.kind==='web'){
-   const tag='tv-'+item.script;
+ if(item.kind==='web'||item.id==='forex-cross-rates'||item.id==='forex-heatmap'){
+   const componentName=({'mini-chart':'mini-chart','forex-cross-rates':'forex-table','forex-heatmap':'forex-table'})[item.id]||item.script;
+   const tag='tv-'+componentName;
    const element=document.createElement(tag);
    element.className='pt-tv-web-component';
    element.setAttribute('theme',theme());
    element.setAttribute('lang','en');
-   if(item.id==='ticker-tag'||item.id==='mini-chart')element.setAttribute('symbol',symbol());
-   if(item.id==='market-summary'||item.id==='market-overview'||item.id==='market-data')element.setAttribute('symbols','NASDAQ:AAPL,NASDAQ:NVDA,NASDAQ:MSFT,NASDAQ:TSLA');
-   if(item.id==='seasonal-chart')element.setAttribute('symbol',symbol());
-   if(item.id==='forex-table')element.setAttribute('currencies','USD,EUR,GBP,JPY,CHF,AUD,CAD,NZD');
+   if(['mini-chart','ticker-tag','seasonal-chart'].includes(item.id))element.setAttribute('symbol',symbol());
+   if(['market-summary','market-overview','market-data'].includes(item.id))element.setAttribute('symbols','NASDAQ:AAPL,NASDAQ:NVDA,NASDAQ:MSFT,NASDAQ:TSLA');
+   if(['forex-table','forex-cross-rates','forex-heatmap'].includes(item.id))element.setAttribute('currencies','USD,EUR,GBP,JPY,CHF,AUD,CAD,NZD');
    host.appendChild(element);
    const script=document.createElement('script');script.type='module';
-   script.src='https://www.tradingview-widget.com/w/en/'+tag+'.js';
-   script.addEventListener('load',()=>setTimeout(hideLoading,4000),{once:true});
-   script.onerror=()=>{hideLoading();if(serial===previewSerial&&element.isConnected)
-       host.insertAdjacentHTML('beforeend','<p class="pt-widget-notice">This component cannot load here. <a href="'+item.doc+'" target="_blank" rel="noopener noreferrer">View live official widget ↗</a></p>')};
+   script.src='https://widgets.tradingview-widget.com/w/en/'+tag+'.js';
+   script.onerror=()=>fallback('The TradingView module could not load on this device or network.');
+   script.onload=()=>{
+    if(typeof customElements!=='undefined'&&customElements.whenDefined){
+      customElements.whenDefined(tag).then(()=>setTimeout(finish,400)).catch(()=>fallback('This TradingView web component could not initialize.'));
+    }else setTimeout(finish,1000);
+   };
    host.appendChild(script);
    return;
  }
@@ -139,13 +149,19 @@ function mountPreview(){
  const anchor=document.createElement('a');anchor.href=item.doc;anchor.target='_blank';anchor.rel='noopener nofollow';
  anchor.textContent=item.title+' by TradingView';footer.appendChild(anchor);container.appendChild(footer);
  host.appendChild(container);
+ const observer=new MutationObserver(()=>{
+  if(serial!==previewSerial){observer.disconnect();return;}
+  const frame=host.querySelector('iframe');
+  if(frame){observer.disconnect();frame.addEventListener('load',finish,{once:true});setTimeout(finish,3500);}
+ });
+ observer.observe(host,{childList:true,subtree:true});
  const script=document.createElement('script');script.async=true;script.type='text/javascript';
  script.src='https://s3.tradingview.com/external-embedding/embed-widget-'+item.script+'.js';
  script.textContent=JSON.stringify(settings(item));
- script.onerror=()=>{hideLoading();if(serial===previewSerial&&container.isConnected)
-    host.insertAdjacentHTML('beforeend','<p class="pt-widget-notice">Preview unavailable. <a href="'+item.doc+'" target="_blank" rel="noopener noreferrer">Open TradingView demo ↗</a></p>')};
+ script.onerror=()=>{observer.disconnect();fallback('The external TradingView embed script failed to load. Try opening the official demo.')};
  container.appendChild(script);
 }
+window.tradingWidgetsRetry=()=>mountPreview();
 window.tradingWidgetsShow=id=>{
  if(!WIDGETS.some(x=>x.id===id))return;
  active=id;window.render();
@@ -156,58 +172,11 @@ window.tradingWidgetsFilter=value=>{
  const target=document.getElementById('pt-gallery-list');
  if(target)target.innerHTML=renderCards();
 };
-function selectedList(){
- return WIDGETS.filter(w=>selected.has(w.id)).map(w=>w.title+' — '+w.doc);
-}
-window.tradingWidgetsCopy=async()=>{
- const note=selectedList().length?'Selected TradingView widgets:\n\n'+selectedList().join('\n'):'No widgets selected yet.';
- try{await navigator.clipboard.writeText(note);toast('Client shortlist copied')}catch{
-  const area=document.createElement('textarea');area.value=note;area.style.position='fixed';area.style.left='-9999px';
-  document.body.appendChild(area);area.select();
-  const ok=document.execCommand('copy');area.remove();
-  toast(ok?'Client shortlist copied':'Copy not available');
- }
-};
-window.tradingWidgetsToggle=async(id,checked)=>{
- if(!WIDGETS.some(x=>x.id===id))return;
- const before=new Set(selected);
- if(checked)selected.add(id);else selected.delete(id);
- const button=document.querySelector('.pt-gallery-copy');if(button)button.textContent='Copy shortlist ('+count()+')';
- if(!state.token||!state.db||!state.supabaseKey||!state.account?.id){
-  selected=before;toast('Sign in to save widget preferences');return;
- }
- const headers={apikey:state.supabaseKey,Authorization:'Bearer '+state.token,'Content-Type':'application/json'};
- try{
-  const path=state.supabaseUrl+'/rest/v1/pt_widget_preferences';
-  const r=checked?await fetch(path,{method:'POST',headers:{...headers,Prefer:'resolution=merge-duplicates,return=minimal'},
-   body:JSON.stringify({user_id:state.account.id,widget_key:id,selected:true})}):
-   await fetch(path+'?widget_key=eq.'+encodeURIComponent(id),{method:'DELETE',headers});
-  if(!r.ok)throw Error('Save failed ('+r.status+')');
-  toast('Widget choices saved to Supabase');
- }catch(e){
-  selected=before;toast('Not saved: '+e.message);const box=document.querySelector('[data-widget-id="'+id+'"] input');
-  if(box)box.checked=before.has(id);
- }
-};
-async function loadChoices(){
- if(!state.token||!state.db||!state.supabaseKey||loading)return;
- loading=true;
- try{
-  const r=await fetch(state.supabaseUrl+'/rest/v1/pt_widget_preferences?select=widget_key&selected=eq.true',{headers:{
-   apikey:state.supabaseKey,Authorization:'Bearer '+state.token},cache:'no-store'});
-  if(!r.ok)throw Error('Could not load widget choices');
-  selected=new Set((await r.json()).map(x=>x.widget_key).filter(k=>WIDGETS.some(w=>w.id===k)));
-  loaded=true;loadedFor=state.token;
-  if(state.page==='widgets')window.render();
- }catch(e){loaded=false;loadedFor='';toast(e.message)}
- finally{loading=false}
-}
 const earlier=window.paperTradingAfterRender;
 window.paperTradingAfterRender=()=>{
  earlier?.();
  if(state.page!=='widgets')return;
  mountPreview();
- if(!loading&&(!loaded||loadedFor!==state.token))loadChoices();
 };
 window.tradingWidgetCatalog=WIDGETS.map(({id,title,group,doc,kind})=>({id,title,group,doc,kind}));
 })();
