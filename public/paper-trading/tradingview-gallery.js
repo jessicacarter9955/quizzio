@@ -10,28 +10,28 @@ const WIDGETS=[
  ['market-summary','Market Summary','Watchlists','watchlists/market-summary','market-summary','web','Watchlist with multi-symbol chart'],
  ['market-overview','Market Overview','Watchlists','watchlists/market-overview','market-overview','iframe','Quick market indices and movers'],
  ['market-data','Market Data','Watchlists','watchlists/market-data','market-quotes','iframe','Tables of live market metrics'],
+ ['world-market-summary','World Market Summary','Watchlists','watchlists/world-market-summary','world-market-summary','web','Global index performance by country'],
+ ['stock-market','Stock Market','Watchlists','watchlists/stock-market','hotlists','iframe','Top gaining, losing and active stocks'],
  ['ticker-tape','Ticker Tape','Tickers','tickers/ticker-tape','ticker-tape','iframe','Scrolling multi-symbol prices'],
  ['ticker-tag','Ticker Tag','Tickers','tickers/ticker-tag','ticker-tag','web','Compact interactive inline price'],
  ['single-ticker','Single Ticker','Tickers','tickers/single-ticker','single-quote','iframe','Price of one instrument'],
- ['tickers','Tickers','Tickers','tickers/tickers','ticker','iframe','Non-scrolling multi-symbol strip'],
+ ['tickers','Tickers','Tickers','tickers/tickers','tickers','web','Multi-symbol strip with prices and daily change'],
  ['stock-heatmap','Stock Heatmap','Heatmaps','heatmaps/stock-heatmap','stock-heatmap','iframe','Sectors and market-cap heatmap'],
  ['crypto-heatmap','Crypto Coins Heatmap','Heatmaps','heatmaps/crypto-coins-heatmap','crypto-coins-heatmap','iframe','Crypto market heatmap'],
  ['etf-heatmap','ETF Heatmap','Heatmaps','heatmaps/etf-heatmap','etf-heatmap','iframe','ETF comparison heatmap'],
  ['forex-table','Forex Table','Heatmaps','heatmaps/forex-table','forex-table','web','Forex cross-pair table'],
- ['forex-cross-rates','Forex Cross Rates','Heatmaps','heatmaps/forex-cross-rates','forex-cross-rates','iframe','Foreign-exchange cross rates'],
- ['forex-heatmap','Forex Heatmap','Heatmaps','heatmaps/forex-heatmap','forex-heat-map','iframe','Currency strength heatmap'],
+ ['forex-cross-rates','Forex Cross Rates','Heatmaps','heatmaps/forex-cross-rates','forex-table','web','Foreign-exchange cross rates'],
+ ['forex-heatmap','Forex Heatmap','Heatmaps','heatmaps/forex-heatmap','forex-table','web','Currency strength heatmap'],
  ['screener','Screener','Screeners','screeners/screener','screener','iframe','Filter stocks and technicals'],
- ['crypto-market','Cryptocurrency Market','Screeners','screeners/cryptocurrency-market','crypto-mkt-screener','iframe','Market cap ranked crypto'],
+ ['crypto-market','Crypto Screener','Screeners','screeners/crypto-mkt-screener','screener','web','Rank crypto coins by market metrics'],
  ['symbol-info','Symbol Info','Symbol Details','symbol-details/symbol-info','symbol-info','iframe','Company snapshot and price'],
  ['technical-analysis','Technical Analysis','Symbol Details','symbol-details/technical-analysis','technical-analysis','iframe','Technical rating across indicators'],
  ['fundamental-data','Fundamental Data','Symbol Details','symbol-details/fundamental-data','financials','iframe','Fundamental financial ratios'],
  ['company-profile','Company Profile','Symbol Details','symbol-details/company-profile','symbol-profile','iframe','Company description and sector'],
- ['top-stories','Top Stories','News','news/top-stories','timeline','iframe','News about stocks and markets'],
+ ['news-feed','News Feed','News','news/news-feed','news-feed','web','Market headlines and symbol news'],
  ['economic-calendar','Economic Calendar','Calendars','calendars/economic-calendar','events','iframe','Important economic releases'],
- ['broker-rating','Broker Rating','Brokers','brokers/rating','broker-rating','broker','Broker review scores'],
- ['broker-reviews','Broker Reviews','Brokers','brokers/reviews','broker-reviews','broker','Recent verified broker reviews'],
  ['economic-map','Economic Map','Economics','economics/economic-map','economic-map','web','World economic indicators']
-].map(v=>({id:v[0],title:v[1],group:v[2],doc:ROOT+v[3]+'/',script:v[4],kind:v[5],description:v[6]}));
+ ].map(v=>({id:v[0],title:v[1],group:v[2],doc:ROOT+v[3]+'/',script:v[4],kind:v[5],description:v[6]}));.map(v=>({id:v[0],title:v[1],group:v[2],doc:ROOT+v[3]+'/',script:v[4],kind:v[5],description:v[6]}));
 let group='All',term='',active='advanced-chart',previewSerial=0;
 const groups=['All',...new Set(WIDGETS.map(x=>x.group))];
 const escapeValue=s=>escapeHtml(String(s??''));
@@ -67,7 +67,6 @@ function settings(item){
   default:return {...base};
  }
 }
-function canShow(item){return item.kind!=='broker'}
 function itemList(){
  const q=term.toLowerCase().trim();
  return WIDGETS.filter(x=>(group==='All'||x.group===group)&&(!q||[x.title,x.group,x.description].join(' ').toLowerCase().includes(q)));
@@ -128,16 +127,41 @@ function mountPreview(){
    element.setAttribute('theme',theme());
    element.setAttribute('lang','en');
    if(['mini-chart','ticker-tag','seasonal-chart'].includes(item.id))element.setAttribute('symbol',symbol());
-   if(['market-summary','market-overview','market-data'].includes(item.id))element.setAttribute('symbols','NASDAQ:AAPL,NASDAQ:NVDA,NASDAQ:MSFT,NASDAQ:TSLA');
+   if(item.id==='market-summary')element.setAttribute('symbols','NASDAQ:AAPL,NASDAQ:NVDA,NASDAQ:MSFT,NASDAQ:TSLA');
+   if(item.id==='tickers'){
+     element.setAttribute('symbols','NASDAQ:AAPL,NASDAQ:NVDA,NASDAQ:MSFT,NASDAQ:TSLA,COINBASE:BTCUSD,FOREXCOM:EURUSD');
+     element.setAttribute('direction','horizontal');
+     element.setAttribute('ticker-size','normal');
+     element.setAttribute('show-hover','true');
+   }
+   if(item.id==='crypto-market'){
+     element.setAttribute('screener-type','crypto-coins');
+     element.setAttribute('columns','overview');
+     element.setAttribute('display-currency','USD');
+   }
    if(['forex-table','forex-cross-rates','forex-heatmap'].includes(item.id))element.setAttribute('currencies','USD,EUR,GBP,JPY,CHF,AUD,CAD,NZD');
+   if(item.id==='forex-cross-rates')element.setAttribute('displayed-value','exchangeRate');
+   if(item.id==='forex-heatmap'){element.setAttribute('displayed-value','dailyChange');element.setAttribute('heatmap','');}
    host.appendChild(element);
    const script=document.createElement('script');script.type='module';
    script.src='https://widgets.tradingview-widget.com/w/en/'+tag+'.js';
    script.onerror=()=>fallback('The external market component could not load on this device or network.');
+   const componentStarted=Date.now();
+   const waitForComponent=()=>{
+    if(serial!==previewSerial||!host.isConnected)return;
+    const root=element.shadowRoot;
+    const frame=root?.querySelector('iframe');
+    const hasContent=!!frame||!!(root&&(root.childElementCount>0||String(root.textContent||'').trim().length>0))||element.children.length>0;
+    const box=element.getBoundingClientRect();
+    const visible=box.width>100&&box.height>100;
+    if(visible&&(hasContent||Date.now()-componentStarted>=4200)){finish();return;}
+    if(Date.now()-componentStarted>=18000){fallback('The market component loaded its script but did not render visible content. Retry when the provider is available.');return;}
+    setTimeout(waitForComponent,300);
+   };
    script.onload=()=>{
     if(typeof customElements!=='undefined'&&customElements.whenDefined){
-      customElements.whenDefined(tag).then(()=>setTimeout(finish,400)).catch(()=>fallback('This market widget could not initialize.'));
-    }else setTimeout(finish,1000);
+      customElements.whenDefined(tag).then(()=>setTimeout(waitForComponent,350)).catch(()=>fallback('This market widget could not initialize.'));
+    }else setTimeout(waitForComponent,1000);
    };
    host.appendChild(script);
    return;
@@ -152,7 +176,10 @@ function mountPreview(){
  const observer=new MutationObserver(()=>{
   if(serial!==previewSerial){observer.disconnect();return;}
   const frame=host.querySelector('iframe');
-  if(frame){observer.disconnect();frame.addEventListener('load',finish,{once:true});setTimeout(finish,3500);}
+  if(frame&&!frame.dataset.vergeLoadWatch){
+   frame.dataset.vergeLoadWatch='1';
+   frame.addEventListener('load',()=>{observer.disconnect();if(serial===previewSerial)setTimeout(finish,1200)},{once:true});
+  }
  });
  observer.observe(host,{childList:true,subtree:true});
  const script=document.createElement('script');script.async=true;script.type='text/javascript';
