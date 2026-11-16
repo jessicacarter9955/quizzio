@@ -196,3 +196,37 @@ html,body{max-width:100%;overflow-x:clip}
  .pt-gallery-preview-actions{gap:10px}
  .pt-gallery-widget{min-height:300px}
 }
+
+
+/* 2026-11-16: keep selected widget and working preview simultaneously visible on portrait phones.
+   The earlier mobile grid made the preview appear >2000px below the selected tile. */
+@media (max-width:760px){
+ .pt-gallery-layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+ #pt-gallery-list.pt-gallery-list{
+   display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+   grid-template-columns:none!important;align-items:stretch!important;
+   width:100%!important;max-width:100%!important;min-height:0!important;max-height:158px!important;
+   overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain!important;
+   scroll-snap-type:x proximity!important;scroll-padding-inline:8px;
+   padding:2px 4px 9px!important;gap:9px!important;box-sizing:border-box!important;
+   scrollbar-width:thin
+ }
+ #pt-gallery-list .pt-gallery-item{
+   display:flex!important;flex:0 0 clamp(150px,43vw,190px)!important;
+   width:clamp(150px,43vw,190px)!important;min-width:0!important;
+   height:126px!important;min-height:126px!important;max-height:126px!important;
+   scroll-snap-align:center!important;box-sizing:border-box!important
+ }
+ #pt-gallery-list .pt-widget-tile{
+   min-height:0!important;height:100%!important;box-sizing:border-box!important;
+   padding:11px!important;justify-content:flex-start!important
+ }
+ #pt-gallery-list .pt-widget-tile-desc{line-height:1.35!important;font-size:10px!important;max-height:43px;overflow:hidden}
+ #pt-gallery-list .pt-widget-tile small{margin-top:auto!important;padding-top:5px!important}
+ .pt-gallery-preview-column{margin-top:0!important;padding:12px!important;max-width:100%!important}
+ .pt-gallery-preview-head{margin-bottom:9px!important}
+ .pt-gallery-preview-head h2{font-size:16px!important}
+ #pt-gallery-widget.pt-gallery-widget{height:clamp(290px,45vh,410px)!important;min-height:290px!important;max-height:410px!important}
+ .pt-gallery-preview-actions{margin:9px 0!important}
+ .pt-gallery-groups{overflow-x:auto;flex-wrap:nowrap!important}
+}
