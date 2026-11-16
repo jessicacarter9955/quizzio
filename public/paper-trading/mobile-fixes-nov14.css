@@ -163,3 +163,36 @@ html,body{max-width:100%;overflow-x:clip}
  body.pt-advanced-open .mobile-nav{z-index:240!important}
  body.pt-advanced-open .pt-advanced-frame{min-height:0!important}
 }
+
+
+/* 2026-11-16: compact bottom navigation, edge-to-edge classroom manager, visible widget loading states. */
+.pt-gallery-preview-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:13px 0}
+.pt-gallery-preview-actions .secondary-button{padding:9px 12px}
+.pt-gallery-preview-actions>a,.pt-widget-unavailable>a{color:var(--accent);font-size:12px;font-weight:600}
+.pt-widget-unavailable{min-height:190px;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:20px;text-align:center;background:var(--panel);color:var(--ink);border:1px dashed var(--border);border-radius:12px}
+.pt-widget-unavailable strong{font-size:17px}
+.pt-widget-unavailable p{font-size:13px;line-height:1.5;max-width:450px;color:var(--muted);margin:0}
+.pt-gallery-widget .pt-tv-web-component{display:block;min-width:0;width:100%;min-height:220px;height:100%}
+.pt-gallery-widget{isolation:isolate}
+.pt-gallery-widget>.pt-widget-loader{z-index:5;pointer-events:none}
+.pt-widget-tile{cursor:pointer}
+.pt-widget-tile:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+@media(max-width:720px){
+ :root{--pt-nav-height:58px}
+ .mobile-nav{min-height:0!important;height:auto!important;padding:3px 4px max(3px,env(safe-area-inset-bottom))!important;align-items:center!important;gap:0!important;box-shadow:0 -1px 5px #0000000a!important;backdrop-filter:none!important}
+ .mobile-nav .nav-item{height:49px!important;min-height:49px!important;min-width:0!important;margin:0!important;padding:4px 1px!important;gap:3px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;line-height:1!important;border-radius:8px!important}
+ .mobile-nav .nav-item svg{height:18px!important;width:18px!important;flex:none}
+ .mobile-nav .nav-item span{font-size:10px!important;line-height:1!important;font-weight:600!important;white-space:nowrap!important}
+ .content{padding-bottom:calc(var(--pt-nav-height) + 8px)!important}
+ .bottom-attribution{padding-bottom:calc(var(--pt-nav-height) + 8px)!important}
+ .pt-classroom-modal-backdrop{position:fixed!important;inset:0 0 var(--pt-nav-height) 0!important;z-index:220!important;background:var(--bg)!important;padding:0!important;margin:0!important;display:flex!important;align-items:stretch!important;justify-content:stretch!important;overflow:hidden!important}
+ .pt-classroom-modal-backdrop .pt-classroom-dialog{box-sizing:border-box!important;width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--bg)!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:20px 18px 34px!important}
+ .pt-classroom-dialog .modal-header{position:sticky;top:-20px;background:var(--bg);z-index:2;gap:12px;align-items:center;padding:0 0 16px!important}
+ .pt-classroom-dialog .modal-header h2{font-size:clamp(21px,6vw,27px)!important;line-height:1.2!important;max-width:calc(100% - 55px);margin:0!important}
+ .pt-classroom-dialog .pt-flex-form{display:flex;flex-direction:column;gap:8px;margin-bottom:20px!important}
+ .pt-classroom-dialog .form-input{min-height:46px!important}
+ .pt-classroom-dialog .primary-button{width:100%;min-height:46px}
+ .pt-classroom-dialog>p{line-height:1.5}
+ .pt-gallery-preview-actions{gap:10px}
+ .pt-gallery-widget{min-height:300px}
+}
