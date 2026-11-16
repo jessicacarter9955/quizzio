@@ -16,10 +16,10 @@ function tvSymbol(s){
 }
 window.tradingViewSymbol=tvSymbol;
 function mountWidget(host,symbol){
- host.innerHTML='<div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading advanced TradingView chart…</span></div>';
+ host.innerHTML='<div class="pt-widget-loader" role="status"><span class="pt-loading-spinner" aria-hidden="true"></span><span>Loading advanced market chart…</span></div>';
  const hide=()=>host.querySelector('.pt-widget-loader')?.remove();
  let observed=false;const observer=new MutationObserver(()=>{const frame=host.querySelector('iframe');if(frame&&!observed){observed=true;frame.addEventListener('load',()=>{hide();observer.disconnect()},{once:true});setTimeout(hide,6500)}});observer.observe(host,{childList:true,subtree:true});
- setTimeout(()=>{const text=host.querySelector('.pt-widget-loader span:last-child');if(text){text.textContent='TradingView is taking longer than expected. Check network access or use the regular chart.';}observer.disconnect()},17000);
+ setTimeout(()=>{const text=host.querySelector('.pt-widget-loader span:last-child');if(text){text.textContent='Advanced chart is taking longer than expected. Check network access or use the regular chart.';}observer.disconnect()},17000);
  const wrapper=document.createElement('div');
  wrapper.className='tradingview-widget-container pt-tv-embed';
  const body=document.createElement('div');
@@ -51,7 +51,7 @@ function mountWidget(host,symbol){
  script.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
  script.textContent=JSON.stringify(settings);
  script.onerror=()=>{
-  hide();observer.disconnect();if(host.isConnected)host.insertAdjacentHTML('beforeend','<p class="pt-tv-error">TradingView could not load. Check your connection or content blocker.</p>');
+  hide();observer.disconnect();if(host.isConnected)host.insertAdjacentHTML('beforeend','<p class="pt-tv-error">Advanced chart could not load. Check your connection or content blocker.</p>');
  };
  wrapper.appendChild(script);
 }
@@ -62,11 +62,11 @@ window.tradingOpenAdvanced=()=>{
  overlay=document.createElement('section');
  overlay.id='pt-advanced-overlay';overlay.className='pt-advanced-overlay';
  overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
- overlay.setAttribute('aria-label','Advanced TradingView chart');
+ overlay.setAttribute('aria-label','Advanced market chart');
  overlay.innerHTML='<header class="pt-advanced-header"><div class="pt-advanced-label"><strong>Advanced Chart</strong><span id="pt-tv-selected-symbol"></span></div>'+
- '<span class="pt-advanced-note">Chart symbol may differ from the paper-order ticker. TradingView data and availability vary by market.</span>'+
+ '<span class="pt-advanced-note">Chart symbol may differ from the paper-order ticker. Data availability varies by market.</span>'+
  '<button type="button" class="pt-advanced-close" id="pt-advanced-close" aria-label="Close advanced chart" title="Close advanced chart"><span>Close</span><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></header>'+
- '<div class="pt-advanced-frame" id="pt-advanced-frame"><p class="pt-tv-loading">Loading TradingView chart…</p></div>';
+ '<div class="pt-advanced-frame" id="pt-advanced-frame"><p class="pt-tv-loading">Loading advanced market chart…</p></div>';
  document.body.appendChild(overlay);
  document.body.classList.add('pt-advanced-open');
  overlay.querySelector('#pt-tv-selected-symbol').textContent=symbol;
@@ -100,8 +100,8 @@ window.paperUIAfterRender=function(){
  const button=document.createElement('button');
  button.type='button';button.className='pt-advanced-expand';
  button.innerHTML=icon+'<span>Advanced chart</span>';
- button.setAttribute('title','Expand chart with TradingView drawing tools');
- button.setAttribute('aria-label','Expand to TradingView advanced chart');
+ button.setAttribute('title','Expand chart with advanced drawing tools');
+ button.setAttribute('aria-label','Expand to advanced chart');
  button.addEventListener('click',window.tradingOpenAdvanced);
  bar.appendChild(button);
 };
