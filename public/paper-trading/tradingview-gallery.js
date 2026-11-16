@@ -165,6 +165,7 @@ window.tradingWidgetsRetry=()=>mountPreview();
 window.tradingWidgetsShow=id=>{
  if(!WIDGETS.some(x=>x.id===id))return;
  active=id;window.render();
+ if(window.matchMedia('(max-width:720px)').matches){requestAnimationFrame(()=>document.querySelector('.pt-gallery-preview-column')?.scrollIntoView({behavior:'smooth',block:'start'}));}
 };
 window.tradingWidgetsGroup=g=>{if(!groups.includes(g))return;group=g;const matches=itemList();if(!matches.some(w=>w.id===active))active=matches[0]?.id||'';window.render()};
 window.tradingWidgetsFilter=value=>{
