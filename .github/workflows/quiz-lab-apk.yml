@@ -16,6 +16,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Validate web preview JavaScript syntax
+        run: node --check web-v2-app.js
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
