@@ -1,0 +1,23 @@
+name: Wordweaver Pattern Feature CI
+
+on:
+  push:
+    branches:
+      - wordweaver-pattern-favorites-difficulty
+
+jobs:
+  flutter-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Analyze Flutter
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - name: Test Flutter
+        run: flutter test
+      - name: Build web release
+        run: flutter build web --release --base-href /quizzio/

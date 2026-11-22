@@ -1,9 +1,13 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:wordweaver/models/saved_word.dart';
+import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/models/quiz_question.dart';
 import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/quiz_service.dart';
 import 'package:wordweaver/services/saved_words_service.dart';
+import 'package:wordweaver/services/word_difficulty_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/screens/quiz_page.dart';
 import 'package:wordweaver/l10n/app_localizations.dart';
@@ -21,12 +25,15 @@ class _MyListPageState extends State<MyListPage> {
   late final TopicService _topicService;
   late final QuizService _quizService;
   final FlutterTts _tts = FlutterTts();
+  late final WordDifficultyService _difficultyService;
+  final Set<WordDifficulty> _difficultyFilters = {};
   String _topicFilter = 'all';
 
   @override
   void initState() {
     super.initState();
     _savedService = SavedWordsService();
+    _difficultyService = WordDifficultyService();
     _languageService = LanguageService();
     _topicService = TopicService();
     _quizService = QuizService();
@@ -40,7 +47,7 @@ class _MyListPageState extends State<MyListPage> {
     }
   }
 
-  Future<void> _startQuizFromList(BuildContext context, List words) async {
+  Future<void> _startQuizFromList(BuildContext context, List<SavedWord> words) async {
     final l10n = AppLocalizations.of(context);
     final pair = _languageService.currentLanguagePair;
     if (pair == null) {
@@ -71,12 +78,19 @@ class _MyListPageState extends State<MyListPage> {
 
     final shuffledWords = List.of(words)..shuffle();
     final answerOptionCount = _quizService.answerOptionCount;
-    final maxQuestions = _quizService.questionCount;
     final questions = <QuizQuestion>[];
 
-    for (final base in shuffledWords) {
-      final others = shuffledWords.where((w) => w.id != base.id).toList();
-      final sameTopic = others.where((w) => w.topic == base.topic).toList();
+    for (final saved in shuffledWords) {
+      final base = VocabularyWord(
+        id: saved.id,
+        sourceWord: saved.sourceWord,
+        targetWord: saved.targetWord,
+        languagePairKey: saved.languagePairKey,
+        topic: saved.topic,
+        createdAt: saved.addedAt,
+      );
+      final others = shuffledWords.where((w) => w.id != saved.id).toList();
+      final sameTopic = others.where((w) => w.topic == saved.topic).toList();
 
       final candidates = <String>[];
       if (sameTopic.isNotEmpty) {
@@ -106,7 +120,6 @@ class _MyListPageState extends State<MyListPage> {
         ),
       );
 
-      if (questions.length >= maxQuestions) break;
     }
 
     if (questions.isEmpty) {
@@ -134,6 +147,101 @@ class _MyListPageState extends State<MyListPage> {
       ),
     );
   }
+
+  bool _matchesDifficulty(SavedWord word) =>
+      !kIsWeb || _difficultyFilters.isEmpty ||
+      _difficultyFilters.contains(_difficultyService.getDifficultyForParts(
+        languagePairKey: word.languagePairKey,
+        sourceWord: word.sourceWord,
+        targetWord: word.targetWord,
+      ));
+
+  String _difficultyLabel(WordDifficulty difficulty) => switch (difficulty) {
+    WordDifficulty.easy => 'Easy',
+    WordDifficulty.medium => 'Medium',
+    WordDifficulty.hard => 'Hard',
+  };
+
+
+  Color _difficultyColor(WordDifficulty? difficulty) => switch (difficulty) {
+    WordDifficulty.easy => Colors.green,
+    WordDifficulty.medium => Colors.amber,
+    WordDifficulty.hard => Colors.red,
+    null => Theme.of(context).colorScheme.outline,
+  };
+
+
+  Widget _difficultyFilterControls() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('Difficulty', style: Theme.of(context).textTheme.labelLarge),
+      const SizedBox(height: 4),
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          FilterChip(
+            label: const Text('All'),
+            selected: _difficultyFilters.isEmpty,
+            onSelected: (_) => setState(() => _difficultyFilters.clear()),
+          ),
+          for (final difficulty in WordDifficulty.values)
+            FilterChip(
+              avatar: Icon(Icons.circle, size: 12, color: _difficultyColor(difficulty)),
+              label: Text(_difficultyLabel(difficulty)),
+              selected: _difficultyFilters.contains(difficulty),
+              onSelected: (selected) => setState(() {
+                if (selected) {
+                  _difficultyFilters.add(difficulty);
+                } else {
+                  _difficultyFilters.remove(difficulty);
+                }
+              }),
+            ),
+        ],
+      ),
+    ],
+  );
+
+
+  Widget _difficultyMenu(SavedWord word) {
+    final difficulty = _difficultyService.getDifficultyForParts(
+      languagePairKey: word.languagePairKey,
+      sourceWord: word.sourceWord,
+      targetWord: word.targetWord,
+    );
+    return PopupMenuButton<String>(
+      tooltip: 'Set difficulty',
+      icon: Icon(difficulty == null ? Icons.circle_outlined : Icons.circle,
+          size: 18, color: _difficultyColor(difficulty)),
+      onSelected: (value) {
+        final rating = value == 'clear' ? null : WordDifficulty.values.firstWhere(
+          (option) => option.name == value,
+        );
+        _difficultyService.setDifficultyForParts(
+          languagePairKey: word.languagePairKey,
+          sourceWord: word.sourceWord,
+          targetWord: word.targetWord,
+          difficulty: rating,
+        );
+      },
+      itemBuilder: (_) => [
+        for (final option in WordDifficulty.values)
+          PopupMenuItem<String>(
+            value: option.name,
+            child: Row(children: [
+              Icon(Icons.circle, size: 14, color: _difficultyColor(option)),
+              const SizedBox(width: 8),
+              Text(_difficultyLabel(option)),
+            ]),
+          ),
+        const PopupMenuItem<String>(
+          value: 'clear', child: Text('Clear difficulty'),
+        ),
+      ],
+    );
+  }
+
 
   @override
   void dispose() {
@@ -174,6 +282,7 @@ class _MyListPageState extends State<MyListPage> {
         child: ListenableBuilder(
           listenable: Listenable.merge([
             _savedService,
+            _difficultyService,
             _languageService,
             _topicService,
           ]),
@@ -226,9 +335,10 @@ class _MyListPageState extends State<MyListPage> {
             final topicsInList =
                 filteredByPair.map((w) => w.topic).toSet().toList()..sort();
 
-            final words = (_topicFilter == 'all')
+            final topicWords = (_topicFilter == 'all')
                 ? filteredByPair
                 : filteredByPair.where((w) => w.topic == _topicFilter).toList();
+            final words = topicWords.where(_matchesDifficulty).toList();
 
             words.sort(
               (a, b) => a.targetWord.toLowerCase().compareTo(
@@ -285,9 +395,14 @@ class _MyListPageState extends State<MyListPage> {
                     ],
                   ),
                 ),
+                if (kIsWeb)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                    child: _difficultyFilterControls(),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                  child: SizedBox(
+                  child: SizedBox 
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: pair != null && words.length > 1
@@ -382,9 +497,10 @@ class _MyListPageState extends State<MyListPage> {
                               onPressed: () => _speak(w.targetWord),
                               tooltip: l10n.myListPlayPronunciation,
                             ),
+                            if (kIsWeb) _difficultyMenu(w),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline),
-                              color: Theme.of(
+                              icon: Icon(kIsWeb ? Icons.star : Icons.delete_outline),
+                              color: kIsWeb ? Colors.amber : Theme.of(
                                 context,
                               ).colorScheme.onSurface.withValues(alpha: 0.7),
                               onPressed: () async {

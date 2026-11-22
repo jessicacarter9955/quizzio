@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:wordweaver/models/language_pair.dart';
 import 'package:wordweaver/models/topic.dart';
@@ -52,6 +53,7 @@ class _QuizPageState extends State<QuizPage> {
   late final SavedWordsService _savedWordsService;
   late final SpeechService _speechService;
   bool _isSpeechListening = false;
+  bool _currentWordSaved = false;
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   Future<void> _prepareQuiz() async {
+    await _savedWordsService.ready;
     final grammar = GrammarPracticeService();
     await grammar.ready;
     if (!mounted) return;
@@ -89,6 +92,7 @@ class _QuizPageState extends State<QuizPage> {
             : widget.initialQuestions;
         if (questions != null && questions!.isNotEmpty) {
           final q = questions![0];
+          _currentWordSaved = kIsWeb && _savedWordsService.isSavedWord(q.word);
           _currentShuffledAnswers = [q.correctAnswer, ...q.wrongAnswers]
             ..shuffle();
         } else {
@@ -110,6 +114,7 @@ class _QuizPageState extends State<QuizPage> {
       questions = generated;
       if (questions != null && questions!.isNotEmpty) {
         final q = questions![0];
+        _currentWordSaved = kIsWeb && _savedWordsService.isSavedWord(q.word);
         _currentShuffledAnswers = [q.correctAnswer, ...q.wrongAnswers]
           ..shuffle();
       } else {
@@ -223,6 +228,19 @@ class _QuizPageState extends State<QuizPage> {
   Future<void> _saveCurrentWord() async {
     if (questions == null || questions!.isEmpty) return;
     final q = questions![currentQuestionIndex];
+    if (kIsWeb) {
+      final saved = await _savedWordsService.toggleWord(q.word);
+      if (!mounted) return;
+      setState(() => _currentWordSaved = saved);
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(saved ? l10n.commonAddedToMyList : l10n.myListRemovedFromList),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     await _savedWordsService.addWord(
       sourceWord: q.word.sourceWord,
       targetWord: q.word.targetWord,
@@ -271,6 +289,7 @@ class _QuizPageState extends State<QuizPage> {
         selectedAnswer = null;
         hasAnswered = false;
         final q = questions![currentQuestionIndex];
+        _currentWordSaved = kIsWeb && _savedWordsService.isSavedWord(q.word);
         _currentShuffledAnswers = [q.correctAnswer, ...q.wrongAnswers]
           ..shuffle();
       });
@@ -454,9 +473,13 @@ class _QuizPageState extends State<QuizPage> {
                       onPressed: hasAnswered ? null : _startSpeechAnswer,
                     ),
                   IconButton(
-                    icon: const Icon(Icons.bookmark_add_outlined),
+                    icon: Icon(kIsWeb && _currentWordSaved
+                        ? Icons.bookmark
+                        : Icons.bookmark_add_outlined),
                     color: Theme.of(context).colorScheme.primary,
-                    tooltip: l10n.commonAddToMyList,
+                    tooltip: kIsWeb && _currentWordSaved
+                        ? l10n.myListRemoveFromList
+                        : l10n.commonAddToMyList,
                     onPressed: _saveCurrentWord,
                   ),
                 ],

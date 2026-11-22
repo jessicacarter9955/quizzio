@@ -3,16 +3,19 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordweaver/models/saved_word.dart';
+import 'package:wordweaver/models/vocabulary_word.dart';
 
 class SavedWordsService extends ChangeNotifier {
   static final SavedWordsService _instance = SavedWordsService._internal();
   factory SavedWordsService() => _instance;
 
   SavedWordsService._internal() {
-    _loadSavedWords();
+    _ready = _loadSavedWords();
   }
 
   static const _storageKey = 'saved_words';
+  late final Future<void> _ready;
+  Future<void> get ready => _ready;
 
   List<SavedWord> _savedWords = [];
   List<SavedWord> get savedWords => List.unmodifiable(_savedWords);
@@ -66,6 +69,7 @@ class SavedWordsService extends ChangeNotifier {
     required String languagePairKey,
     required String topic,
   }) async {
+    await ready;
     if (_exists(languagePairKey, topic, sourceWord, targetWord)) {
       return;
     }
@@ -83,6 +87,41 @@ class SavedWordsService extends ChangeNotifier {
     await _save();
     notifyListeners();
   }
+
+  bool isSavedWord(VocabularyWord word) => isSavedParts(
+    languagePairKey: word.languagePairKey,
+    sourceWord: word.sourceWord,
+    targetWord: word.targetWord,
+  );
+
+  bool isSavedParts({
+    required String languagePairKey,
+    required String sourceWord,
+    required String targetWord,
+  }) => _savedWords.any((w) =>
+      w.languagePairKey == languagePairKey &&
+      w.sourceWord == sourceWord && w.targetWord == targetWord);
+
+
+  Future<bool> toggleWord(VocabularyWord word) async {
+    await ready;
+    if (isSavedWord(word)) {
+      _savedWords.removeWhere((w) =>
+          w.languagePairKey == word.languagePairKey &&
+          w.sourceWord == word.sourceWord && w.targetWord == word.targetWord);
+      await _save();
+      notifyListeners();
+      return false;
+    }
+    await addWord(
+      sourceWord: word.sourceWord,
+      targetWord: word.targetWord,
+      languagePairKey: word.languagePairKey,
+      topic: word.topic,
+    );
+    return true;
+  }
+
 
   Future<void> removeWord(String id) async {
     _savedWords.removeWhere((w) => w.id == id);

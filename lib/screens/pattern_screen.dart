@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wordweaver/models/language_pair.dart';
@@ -7,6 +8,8 @@ import 'package:wordweaver/models/quiz_question.dart';
 import 'package:wordweaver/services/language_service.dart';
 import 'package:wordweaver/services/pattern_catalog.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
+import 'package:wordweaver/services/saved_words_service.dart';
+import 'package:wordweaver/services/word_difficulty_service.dart';
 import 'package:wordweaver/services/topic_service.dart';
 import 'package:wordweaver/services/quiz_selection.dart';
 import 'package:wordweaver/services/vocabulary_service.dart';
@@ -32,7 +35,10 @@ class _PatternScreenState extends State<PatternScreen> {
   String _branch = '';
   List<VocabularyWord> _words = [];
   final Map<String, List<VocabularyWord>> _checked = {};
-  final TextEditingController _maxController = TextEditingController(text: '50');
+  final TextEditingController _maxController = TextEditingController(text: kIsWeb ? '' : '50');
+  final Set<WordDifficulty> _difficultyFilters = {};
+  final WordDifficultyService _difficultyService = WordDifficultyService();
+  final SavedWordsService _savedService = SavedWordsService();
   bool _all = true;
   bool _loading = true;
   String? _error;
@@ -41,6 +47,9 @@ class _PatternScreenState extends State<PatternScreen> {
   @override
   void initState() {
     super.initState();
+    _difficultyService.ready.then((_) {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
@@ -91,10 +100,101 @@ class _PatternScreenState extends State<PatternScreen> {
 
   String _groupId(PatternGroup group) => '${_pair?.key}:${_mode.name}:${group.key}';
 
-  List<VocabularyWord> get _selection => PatternEngine.selectedWords(
-    _checked,
-    maximum: _all ? null : int.tryParse(_maxController.text),
+  bool _matchesDifficulty(VocabularyWord word) =>
+      !kIsWeb || _difficultyFilters.isEmpty ||
+      _difficultyFilters.contains(_difficultyService.getDifficulty(word));
+
+  List<VocabularyWord> get _selection {
+    final filtered = PatternEngine.selectedWords(_checked)
+        .where(_matchesDifficulty)
+        .toList();
+    if (_all) return filtered;
+    final maximum = int.tryParse(_maxController.text);
+    if (maximum == null || maximum < 1) return [];
+    return filtered.take(maximum).toList();
+  }
+
+
+  String _difficultyLabel(WordDifficulty difficulty) => switch (difficulty) {
+    WordDifficulty.easy => 'Easy',
+    WordDifficulty.medium => 'Medium',
+    WordDifficulty.hard => 'Hard',
+  };
+
+
+  Color _difficultyColor(WordDifficulty? difficulty) => switch (difficulty) {
+    WordDifficulty.easy => Colors.green,
+    WordDifficulty.medium => Colors.amber,
+    WordDifficulty.hard => Colors.red,
+    null => Theme.of(context).colorScheme.outline,
+  };
+
+
+  Widget _difficultyMenu(VocabularyWord word) {
+    final difficulty = _difficultyService.getDifficulty(word);
+    return PopupMenuButton<String>(
+      tooltip: 'Set difficulty',
+      icon: Icon(difficulty == null ? Icons.circle_outlined : Icons.circle,
+          size: 18, color: _difficultyColor(difficulty)),
+      onSelected: (value) {
+        final rating = value == 'clear' ? null : WordDifficulty.values.firstWhere(
+          (option) => option.name == value,
+        );
+        _difficultyService.setDifficulty(word, rating);
+      },
+      itemBuilder: (_) => [
+        for (final option in WordDifficulty.values)
+          PopupMenuItem<String>(
+            value: option.name,
+            child: Row(children: [
+              Icon(Icons.circle, size: 14, color: _difficultyColor(option)),
+              const SizedBox(width: 8),
+              Text(_difficultyLabel(option)),
+            ]),
+          ),
+        const PopupMenuItem<String>(
+          value: 'clear', child: Text('Clear difficulty'),
+        ),
+      ],
+    );
+  }
+
+
+  Widget _difficultyFilterControls() => Wrap(
+    spacing: 6,
+    runSpacing: 6,
+    children: [
+      FilterChip(
+        label: const Text('All'),
+        selected: _difficultyFilters.isEmpty,
+        onSelected: (_) => setState(() => _difficultyFilters.clear()),
+      ),
+      for (final difficulty in WordDifficulty.values)
+        FilterChip(
+          avatar: Icon(Icons.circle, size: 12, color: _difficultyColor(difficulty)),
+          label: Text(_difficultyLabel(difficulty)),
+          selected: _difficultyFilters.contains(difficulty),
+          onSelected: (selected) => setState(() {
+            if (selected) {
+              _difficultyFilters.add(difficulty);
+            } else {
+              _difficultyFilters.remove(difficulty);
+            }
+          }),
+        ),
+    ],
   );
+
+  Future<void> _toggleSavedWord(VocabularyWord word) async {
+    final saved = await _savedService.toggleWord(word);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(saved ? 'Saved to My List' : 'Removed from My List'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   void _openGroup(PatternGroup group) {
     if (_mode == PatternMode.prefix || _mode == PatternMode.suffix) {
@@ -179,10 +279,10 @@ class _PatternScreenState extends State<PatternScreen> {
     ));
   }
 
-  void _showGroupTable(PatternGroup group) {
+  Future<void> _showGroupTable(PatternGroup group) async {
     final sorted = [...group.words]
       ..sort((a, b) => a.sourceWord.compareTo(b.sourceWord));
-    showModalBottomSheet<void>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
@@ -208,32 +308,52 @@ class _PatternScreenState extends State<PatternScreen> {
               ),
             ]),
             const SizedBox(height: 10),
-            Expanded(child: ListView.separated(
-              controller: controller,
-              itemCount: sorted.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (_, i) {
-                final w = sorted[i];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(w.sourceWord),
-                  subtitle: Text(w.topic),
-                  trailing: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 150),
-                    child: Text(
-                      w.targetWord,
-                      textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.bodyMedium,
+            Expanded(child: ListenableBuilder(
+              listenable: Listenable.merge([_savedService, _difficultyService]),
+              builder: (context, _) => ListView.separated(
+                controller: controller,
+                itemCount: sorted.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (_, i) {
+                  final w = sorted[i];
+                  if (kIsWeb) {
+                    final saved = _savedService.isSavedWord(w);
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(w.sourceWord),
+                      subtitle: Text('${w.topic} · ${w.targetWord}',
+                          maxLines: 2, overflow: TextOverflow.ellipsis),
+                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                        IconButton(
+                          icon: Icon(saved ? Icons.star : Icons.star_border),
+                          color: saved ? Colors.amber : Theme.of(context).colorScheme.outline,
+                          tooltip: saved ? 'Remove from My List' : 'Save to My List',
+                          onPressed: () => _toggleSavedWord(w),
+                        ),
+                        _difficultyMenu(w),
+                      ]),
+                    );
+                  }
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(w.sourceWord),
+                    subtitle: Text(w.topic),
+                    trailing: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 150),
+                      child: Text(w.targetWord, textAlign: TextAlign.right,
+                          style: Theme.of(context).textTheme.bodyMedium),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             )),
           ]),
         ),
       ),
     );
+    if (mounted) setState(() {});
   }
+
 
   Widget _groupCard(PatternGroup group) {
     final theme = Theme.of(context);
@@ -321,11 +441,11 @@ class _PatternScreenState extends State<PatternScreen> {
                 onSelected: (_) => setState(() => _all = false)),
               if (!_all) ...[
                 const SizedBox(width: 8),
-                SizedBox(width: 74, child: TextField(
+                SizedBox(width: 100, child: TextField(
                   controller: _maxController,
                   decoration: const InputDecoration(
-                    isDense: true, labelText: 'Max', border: OutlineInputBorder(),
-                  ),
+                    isDense: true, labelText: 'Max', hintText: 'e.g. 100',
+                    border: OutlineInputBorder(),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (_) => setState(() {}),
@@ -359,7 +479,11 @@ class _PatternScreenState extends State<PatternScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final pool = _pool;
+    final rawPool = _pool;
+    final pool = kIsWeb && _difficultyFilters.isNotEmpty
+        ? rawPool.where((w) => _difficultyFilters.contains(
+            _difficultyService.getDifficulty(w))).toList()
+        : rawPool;
     final depth = _branch.runes.length + 1;
     final groups = PatternEngine.group(
       pool, _mode, branch: _branch, depth: depth,
@@ -398,6 +522,12 @@ class _PatternScreenState extends State<PatternScreen> {
                           }),
                         ),
                     ]),
+                    if (kIsWeb) ...[
+                      const SizedBox(height: 12),
+                      Text('Difficulty filters', style: theme.textTheme.titleSmall),
+                      const SizedBox(height: 6),
+                      _difficultyFilterControls(),
+                    ],
                     if (_branch.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Align(alignment: Alignment.centerLeft,
