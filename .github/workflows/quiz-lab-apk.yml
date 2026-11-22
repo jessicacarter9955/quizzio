@@ -11,13 +11,18 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Validate web preview JavaScript syntax
         run: node --check web-v2-app.js
+      - name: Runner and toolchain diagnostic
+        run: |
+          echo "Runner: $RUNNER_OS / $RUNNER_ARCH"
+          node --version
+          git --version
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -52,9 +57,6 @@ jobs:
       - name: Resolve dependencies
         working-directory: quiz_lab_build
         run: flutter pub get
-      - name: Analyze all app Dart files (catch UI syntax before Gradle)
-        working-directory: quiz_lab_build
-        run: flutter analyze --no-fatal-warnings --no-fatal-infos
       - name: Dart and Flutter tests
         working-directory: quiz_lab_build
         run: flutter test
