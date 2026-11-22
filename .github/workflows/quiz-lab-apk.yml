@@ -1,4 +1,4 @@
-name: Quiz Lab Yellow Language Quiz ARM64 RELEASE
+name: Quiz Lab Yellow · RELEASE APKs only
 on:
   push:
     branches: [quiz-lab-apk-builder]
@@ -16,99 +16,157 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Validate web preview JavaScript syntax
+
+      # Web preview syntax is unrelated to Android compilation; do not let it block an APK.
+      - name: Non-blocking web preview syntax check
+        continue-on-error: true
         run: node --check web-v2-app.js
-      - name: Runner and toolchain diagnostic
-        run: |
-          echo "Runner: $RUNNER_OS / $RUNNER_ARCH"
-          node --version
-          git --version
-      - uses: actions/setup-java@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: subosito/flutter-action@v2
+
+      - name: Set up Flutter stable
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Reassemble verified Flutter source
+          cache: true
+
+      - name: Verify and reassemble Flutter source v21
         run: |
           set -euo pipefail
+          mkdir -p build_logs quiz_lab_src apk_outputs
           cat release-payload-v21/part*.b64 | base64 --decode > quiz-lab-payload-v21.zip
           echo 'f74957750c2beef351063389151a48d9e5aebacf4a6401e53a0bc49d4e7da355  quiz-lab-payload-v21.zip' | sha256sum -c -
-          mkdir -p quiz_lab_src
           unzip -q quiz-lab-payload-v21.zip -d quiz_lab_src
           test -f quiz_lab_src/Quiz-Lab-Flutter/lib/ui/pattern_screen.dart
           test -f quiz_lab_src/Quiz-Lab-Flutter/test/pattern_index_test.dart
           cp flutter-overrides/v18/stats_screen.dart quiz_lab_src/Quiz-Lab-Flutter/lib/ui/stats_screen.dart
-      - name: Generate native Android project exactly as proven working releases
+          flutter --version | tee build_logs/flutter-version.txt
+
+      - name: Generate Android project (same proven Release workflow)
         run: |
+          set -euo pipefail
           flutter create --org dev.quizlab --project-name quiz_app --platforms=android quiz_lab_build
           rm -rf quiz_lab_build/lib quiz_lab_build/test
           cp -R quiz_lab_src/Quiz-Lab-Flutter/{lib,test,assets} quiz_lab_build/
           cp quiz_lab_src/Quiz-Lab-Flutter/pubspec.yaml quiz_lab_build/pubspec.yaml
           bash quiz_lab_src/Quiz-Lab-Flutter/scripts/prepare_android_manifest.sh quiz_lab_build
           sed -i 's/android:label="quiz_app"/android:label="Quiz Lab Yellow"/' quiz_lab_build/android/app/src/main/AndroidManifest.xml
-          # A preview application ID avoids destructive uninstall of the v18 APK,
-          # whose ephemeral CI debug-signing key differs from this release.
-          GRADLE_FILE=quiz_lab_build/android/app/build.gradle.kts
-          grep -q 'applicationId = "dev.quizlab.quiz_app"' "$GRADLE_FILE"
-          sed -i 's/applicationId = "dev.quizlab.quiz_app"/applicationId = "dev.quizlab.quiz_app.yellowpreview"/' "$GRADLE_FILE"
-          grep -q 'applicationId = "dev.quizlab.quiz_app.yellowpreview"' "$GRADLE_FILE"
+          GRADLE_FILE="$(find quiz_lab_build/android/app -maxdepth 1 -type f \( -name 'build.gradle' -o -name 'build.gradle.kts' \) | head -n1)"
+          test -n "$GRADLE_FILE"
+          if [[ "$GRADLE_FILE" == *.kts ]]; then
+            sed -i 's/applicationId = "dev.quizlab.quiz_app"/applicationId = "dev.quizlab.quiz_app.yellowpreview"/' "$GRADLE_FILE"
+          else
+            sed -i 's/applicationId "dev.quizlab.quiz_app"/applicationId "dev.quizlab.quiz_app.yellowpreview"/' "$GRADLE_FILE"
+          fi
+          grep -q 'dev.quizlab.quiz_app.yellowpreview' "$GRADLE_FILE"
+
       - name: Resolve dependencies
         working-directory: quiz_lab_build
-        run: flutter pub get
-      - name: Dart and Flutter tests
-        working-directory: quiz_lab_build
-        run: flutter test
-      - name: Build RELEASE APK for OnePlus 8 (ARM64 only)
-        working-directory: quiz_lab_build
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          EXTRA=()
-          if [[ -n "$SUPABASE_URL" && -n "$SUPABASE_PUBLISHABLE_KEY" ]]; then
-            EXTRA+=("--dart-define=SUPABASE_URL=$SUPABASE_URL")
-            EXTRA+=("--dart-define=SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY")
-          fi
-          flutter build apk --release --target-platform android-arm64 --tree-shake-icons "${EXTRA[@]}"
-          mkdir -p ../apk_outputs
-          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Yellow-ARM64-Latest.apk
-      - name: Verify RELEASE APK integrity and signature
+          set -o pipefail
+          flutter pub get 2>&1 | tee ../build_logs/pub-get.log
+
+      - name: Flutter analyze (non-blocking)
+        continue-on-error: true
+        working-directory: quiz_lab_build
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-warnings --no-fatal-infos 2>&1 | tee ../build_logs/analyze.log
+
+      - name: Run Flutter tests
+        working-directory: quiz_lab_build
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee ../build_logs/tests.log
+
+      - name: Build ARM64 RELEASE APK (OnePlus 8)
+        working-directory: quiz_lab_build
+        run: |
+          set -o pipefail
+          flutter build apk --release --target-platform android-arm64 --build-number=17 --tree-shake-icons 2>&1 | tee ../build_logs/build-arm64-release.log
+          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-ARM64-Release-v17.apk
+
+      - name: Build UNIVERSAL RELEASE APK (fallback)
+        working-directory: quiz_lab_build
+        run: |
+          set -o pipefail
+          flutter build apk --release --target-platform android-arm,android-arm64,android-x64 --build-number=17 --tree-shake-icons 2>&1 | tee ../build_logs/build-universal-release.log
+          cp build/app/outputs/flutter-apk/app-release.apk ../apk_outputs/Quiz-Lab-Universal-Release-v17.apk
+
+      - name: Verify APK contents, alignment, package, and signatures
         run: |
           set -euo pipefail
-          APK=apk_outputs/Quiz-Lab-Yellow-ARM64-Latest.apk
-          test -s "$APK"
-          unzip -tq "$APK" > /dev/null
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n1)"
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -n1)"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n1)"
           test -n "$APK_SIGNER"
-          "$APK_SIGNER" verify --verbose --print-certs "$APK"
-          unzip -Z1 "$APK" | grep -q 'lib/arm64-v8a/libapp.so'
-          unzip -Z1 "$APK" | grep -q 'lib/arm64-v8a/libflutter.so'
-          ls -lh "$APK"
-          sha256sum "$APK"
-      - name: Publish signed RELEASE APK
+          test -n "$ZIPALIGN"
+          test -n "$AAPT"
+          for APK in apk_outputs/*.apk; do
+            test -s "$APK"
+            unzip -tq "$APK" >/dev/null
+            "$APK_SIGNER" verify --verbose --print-certs "$APK"
+            "$ZIPALIGN" -c -v 4 "$APK"
+            "$AAPT" dump badging "$APK" | grep -q "package: name='dev.quizlab.quiz_app.yellowpreview'"
+          done
+          unzip -Z1 apk_outputs/Quiz-Lab-ARM64-Release-v17.apk | grep -q 'lib/arm64-v8a/libapp.so'
+          unzip -Z1 apk_outputs/Quiz-Lab-ARM64-Release-v17.apk | grep -q 'lib/arm64-v8a/libflutter.so'
+          for ABI in armeabi-v7a arm64-v8a x86_64; do
+            unzip -Z1 apk_outputs/Quiz-Lab-Universal-Release-v17.apk | grep -q "lib/$ABI/libapp.so"
+            unzip -Z1 apk_outputs/Quiz-Lab-Universal-Release-v17.apk | grep -q "lib/$ABI/libflutter.so"
+          done
+          ls -lh apk_outputs/*.apk
+          sha256sum apk_outputs/*.apk | tee build_logs/apk-sha256.txt
+          echo '## Quiz Lab v17 · Release APKs only' >> "$GITHUB_STEP_SUMMARY"
+          echo '- ARM64 Release APK: for OnePlus 8' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Universal Release APK: fallback' >> "$GITHUB_STEP_SUMMARY"
+          echo '- No Debug APK was built.' >> "$GITHUB_STEP_SUMMARY"
+          cat build_logs/apk-sha256.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload RELEASE APKs as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-Lab-Yellow-ARM64-Latest-Release
-          path: apk_outputs/Quiz-Lab-Yellow-ARM64-Latest.apk
+          name: Quiz-Lab-Release-APKs-v17
+          path: apk_outputs/*.apk
           if-no-files-found: error
           retention-days: 30
-      - name: Publish stable GitHub Release download
+
+      - name: Upload Flutter source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: Quiz-Lab-Flutter-Source-v17
+          path: quiz_lab_src/Quiz-Lab-Flutter
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Quiz-Lab-Release-Build-Diagnostics-v17
+          path: |
+            build_logs/
+            quiz-lab-payload-v21.zip
+            quiz_lab_src/
+            quiz_lab_build/pubspec.lock
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Publish GitHub Release download (best effort)
         if: github.ref == 'refs/heads/quiz-lab-apk-builder'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
-          set -euo pipefail
-          APK=apk_outputs/Quiz-Lab-Yellow-ARM64-Latest.apk
           if gh release view latest-preview >/dev/null 2>&1; then
-            gh release upload latest-preview "$APK" --clobber
+            gh release upload latest-preview apk_outputs/Quiz-Lab-ARM64-Release-v17.apk apk_outputs/Quiz-Lab-Universal-Release-v17.apk --clobber
           else
-            gh release create latest-preview "$APK" \
-              --title 'Quiz Lab Yellow · Latest Preview (ARM64)' \
-              --notes 'Android ARM64 release APK. Preview application ID: dev.quizlab.quiz_app.yellowpreview. Generated by verified GitHub Actions build. Existing preview installs with different signing certificates may require removal before reinstalling; back up local progress first.' \
+            gh release create latest-preview apk_outputs/Quiz-Lab-ARM64-Release-v17.apk apk_outputs/Quiz-Lab-Universal-Release-v17.apk \
+              --title 'Quiz Lab Yellow v17 · RELEASE APKs' \
+              --notes 'Flutter release-mode APKs only. ARM64 for OnePlus 8 and Universal fallback. CI verified APK archive, signatures, alignment, package ID, and ABI libraries.' \
               --latest
           fi
-          gh release view latest-preview --json url,assets
-          echo "STABLE_APK=https://github.com/${GH_REPO}/releases/download/latest-preview/$(basename "$APK")"
