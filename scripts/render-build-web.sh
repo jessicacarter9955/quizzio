@@ -6,11 +6,12 @@ RELEASES_JSON="${TMPDIR:-/tmp}/flutter-releases-linux.json"
 FLUTTER_ARCHIVE="${TMPDIR:-/tmp}/flutter-linux.tar.xz"
 FLUTTER_HOME="${TMPDIR:-/tmp}/flutter-sdk"
 
+echo "Fetching Flutter stable release metadata..."
 curl --fail --silent --show-error --location \
-  https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json \
+  "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json" \
   --output "$RELEASES_JSON"
 
-ARCHIVE_PATH="$(
+FLUTTER_DOWNLOAD_URL="$(
   python3 - "$RELEASES_JSON" <<'PY'
 import json
 import sys
@@ -20,17 +21,27 @@ with open(sys.argv[1], encoding="utf-8") as releases_file:
 
 stable_hash = data["current_release"]["stable"]
 release = next(item for item in data["releases"] if item["hash"] == stable_hash)
-print(release["archive"])
+archive = release["archive"]
+
+if archive.startswith(("https://", "http://")):
+    print(archive)
+else:
+    base_url = data.get(
+        "base_url",
+        "https://storage.googleapis.com/flutter_infra_release/releases",
+    ).rstrip("/")
+    print(f"{base_url}/{archive.lstrip('/')}")
 PY
 )"
 
-if [[ -z "$ARCHIVE_PATH" ]]; then
-  echo "Could not resolve the latest stable Flutter SDK archive." >&2
+if [[ -z "$FLUTTER_DOWNLOAD_URL" ]]; then
+  echo "Could not resolve the latest stable Flutter SDK download URL." >&2
   exit 1
 fi
 
+echo "Downloading Flutter SDK from: $FLUTTER_DOWNLOAD_URL"
 curl --fail --silent --show-error --location \
-  "https://storage.googleapis.com/flutter_infra_release/releases/$ARCHIVE_PATH" \
+  "$FLUTTER_DOWNLOAD_URL" \
   --output "$FLUTTER_ARCHIVE"
 
 mkdir -p "$FLUTTER_HOME"
