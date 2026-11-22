@@ -110,7 +110,9 @@ class _PatternScreenState extends State<PatternScreen> {
         .toList();
     if (_all) return filtered;
     final maximum = int.tryParse(_maxController.text);
-    if (maximum == null || maximum < 1) return [];
+    // An empty maximum means no cap; a positive value limits the quiz.
+    if (maximum == null) return filtered;
+    if (maximum < 1) return [];
     return filtered.take(maximum).toList();
   }
 
@@ -444,7 +446,7 @@ class _PatternScreenState extends State<PatternScreen> {
                 SizedBox(width: 100, child: TextField(
                   controller: _maxController,
                   decoration: const InputDecoration(
-                    isDense: true, labelText: 'Max', hintText: 'e.g. 100',
+                    isDense: true, labelText: 'Max (optional)', hintText: 'No limit',
                     border: OutlineInputBorder(),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
