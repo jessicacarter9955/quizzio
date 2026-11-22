@@ -10,14 +10,24 @@ curl --fail --silent --show-error --location \
   https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json \
   --output "$RELEASES_JSON"
 
-ARCHIVE_PATH="$(python3 -c '
+ARCHIVE_PATH="$(
+  python3 - "$RELEASES_JSON" <<'PY'
 import json
-with open("'"$RELEASES_JSON"'") as f:
-    data = json.load(f)
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as releases_file:
+    data = json.load(releases_file)
+
 stable_hash = data["current_release"]["stable"]
 release = next(item for item in data["releases"] if item["hash"] == stable_hash)
 print(release["archive"])
-')"
+PY
+)"
+
+if [[ -z "$ARCHIVE_PATH" ]]; then
+  echo "Could not resolve the latest stable Flutter SDK archive." >&2
+  exit 1
+fi
 
 curl --fail --silent --show-error --location \
   "https://storage.googleapis.com/flutter_infra_release/releases/$ARCHIVE_PATH" \
