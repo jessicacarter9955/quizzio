@@ -774,9 +774,11 @@ function renderWordCloudLayouts(){
  const active=wordCloudActiveKeys();
  const visibleSheet=sheets.find(sheet=>sheet.classList.contains('active'))||sheets[0];
  const visibleSvg=visibleSheet?.querySelector('[data-wordcloud-svg]');
- const visibleRect=visibleSvg?.getBoundingClientRect()||host.getBoundingClientRect();
- const W=Math.max(320,Math.floor(visibleRect.width||window.innerWidth||1180));
- const H=Math.max(220,Math.floor(visibleRect.height||window.innerHeight-190||700));
+ const stage=host.closest('.wordcloud-stage');
+ const stageRect=stage?.getBoundingClientRect()||host.getBoundingClientRect();
+ const visibleRect=visibleSvg?.getBoundingClientRect()||stageRect;
+ const W=Math.max(240,Math.floor(visibleRect.width||stageRect.width||window.innerWidth-36||1180));
+ const H=Math.max(180,Math.floor(visibleRect.height||stageRect.height||window.innerHeight-240||700));
  let page=0;
  function nextPage(){
   if(run!==wordCloudLayoutRun||state.tab!=='wordcloud')return;
@@ -836,26 +838,14 @@ function renderWordCloudLayouts(){
      if(run!==wordCloudLayoutRun||state.tab!=='wordcloud')return;
      const placedKeys=new Set(placed.map(word=>word.entry.key));
      const missing=words.filter(word=>!placedKeys.has(word.entry.key));
-     const required=Math.max(18,Math.ceil(words.length*.82));
+     const required=words.length;
      if(placed.length<required&&attempt<scales.length-1){attempt++;draw();return}
      if(placed.length<required){
       renderWordCloudFallback(sheet,words,active,false);
      }else{
-      // D3-cloud coordinates can be centered or absolute depending on the layout build.
-      // Center the actual placed-word bounds, then scale down only if their bounds exceed the viewport.
-      const bounds=placed.reduce((box,word)=>{
-       const left=word.x+(Number.isFinite(word.x0)?word.x0:-(word.width||0)/2);
-       const right=word.x+(Number.isFinite(word.x1)?word.x1:(word.width||0)/2);
-       const top=word.y+(Number.isFinite(word.y0)?word.y0:-(word.size||0)/2);
-       const bottom=word.y+(Number.isFinite(word.y1)?word.y1:(word.size||0)/2);
-       return {minX:Math.min(box.minX,left),maxX:Math.max(box.maxX,right),minY:Math.min(box.minY,top),maxY:Math.max(box.maxY,bottom)};
-      },{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity});
-      const clusterWidth=Math.max(1,bounds.maxX-bounds.minX),clusterHeight=Math.max(1,bounds.maxY-bounds.minY);
-      const scale=Math.min(1,(W-32)/clusterWidth,(H-32)/clusterHeight);
-      const centerX=(bounds.minX+bounds.maxX)/2,centerY=(bounds.minY+bounds.maxY)/2;
-      const tx=W/2-centerX*scale,ty=H/2-centerY*scale;
-      group.setAttribute('transform','translate('+tx+','+ty+') scale('+scale+')');
-      if(missing.length)renderWordCloudFallback(sheet,missing,active,true);
+      // d3-cloud already places every word inside the requested [W,H] viewport.
+      // Applying a second bounding-box transform moved the cluster off-canvas on some builds.
+      group.removeAttribute('transform');
      }
      page++;
      requestAnimationFrame(nextPage);
@@ -936,7 +926,35 @@ function quizView(){
 }
 function record(t,correct,rating){const x=prog(t),p={...x};let now=new Date();let start=p.start?new Date(p.start):new Date(now.getFullYear(),now.getMonth(),now.getDate());let w=Math.floor((utcDay(now)-utcDay(start))/7);if(p.mastered&&!correct){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;p.mastered=false;w=0}const missed=(w<0||w>2||(w>=1&&p.w1<3)||(w>=2&&p.w2<2));if(!p.mastered&&missed){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;w=0}p.start=start.toISOString();if(correct&&!p.mastered){if(w===0)p.w1++;else if(w===1)p.w2++;else if(w===2)p.w3++;p.mastered=p.w1>=3&&p.w2>=2&&p.w3>=1}p.c+=(correct?1:0);p.w+=(!correct?1:0);p.streak=correct?0:p.streak+1;let next=null;if(!p.mastered){const min=(!correct||rating==='again')?5:rating==='hard'?360:rating==='easy'?4320:1440;next=new Date(now.getTime()+min*60000);const count=[p.w1,p.w2,p.w3][w],quota=[3,2,1][w];const endWindow=new Date(start.getFullYear(),start.getMonth(),start.getDate()+(w+1)*7);if(count>=quota)next=endWindow;else if(next>endWindow)next=new Date(endWindow.getTime()-60000)}p.next=next?.toISOString()||null;state.progress[key(t)]=p;logPatternAnswer(t,'choice',correct);state.attempts.push({at:now.toISOString(),id:t.id,src:state.src,dst:state.dst,c:correct,kind:t.k,category:t.c,sub:t.s,rating});if(state.attempts.length>30000)state.attempts=state.attempts.slice(-30000);persist()}
 function navBar(){const active=state.tab==='wordcloud'?'patterns':state.tab;nav.innerHTML=[['home','⌂','Home'],['settings','◎','Study'],['patterns','⋈','Patterns'],['saved','☆','Saved'],['phrases','▤','Phrases'],['stats','▥','Stats']].map(([key,ico,title])=>`<button class="nav ${active===key?'active':''}" data-nav="${key}"><span class="sym">${ico}</span>${title}</button>`).join('')}
-function render(){navBar();const app=view.closest('.app');app.classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));app.classList.toggle('wordcloud-mode',state.tab==='wordcloud');document.body.classList.toggle('wordcloud-active',state.tab==='wordcloud');nav.hidden=state.tab==='wordcloud';switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'wordcloud':view.innerHTML=wordCloudView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'saved':view.innerHTML=savedView();break;case 'phrases':view.innerHTML=phrasesView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;window.dispatchEvent(new Event('quizlab:rendered'));if(state.tab==='wordcloud'){updateWordCloudSpeechControls();requestAnimationFrame(renderWordCloudLayouts);}}
+function render(){
+ navBar();
+ const app=document.querySelector('.app');
+ const cloudPortal=state.tab==='wordcloud';
+ if(cloudPortal){
+  document.body.appendChild(view);
+  view.classList.add('wordcloud-portal');
+ }else{
+  if(view.parentElement!==app)app.insertBefore(view,nav);
+  view.classList.remove('wordcloud-portal');
+ }
+ app.classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));
+ app.classList.toggle('wordcloud-mode',cloudPortal);
+ document.body.classList.toggle('wordcloud-active',cloudPortal);
+ nav.hidden=cloudPortal;
+ switch(state.tab){
+  case 'home':view.innerHTML=homeView();break;
+  case 'quiz':view.innerHTML=quizView();break;
+  case 'wordcloud':view.innerHTML=wordCloudView();break;
+  case 'stats':view.innerHTML=statsView();break;
+  case 'patterns':view.innerHTML=patternView();break;
+  case 'saved':view.innerHTML=savedView();break;
+  case 'phrases':view.innerHTML=phrasesView();break;
+  case 'settings':view.innerHTML=settingsView();break;
+ }
+ for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;
+ window.dispatchEvent(new Event('quizlab:rendered'));
+ if(cloudPortal){updateWordCloudSpeechControls();requestAnimationFrame(renderWordCloudLayouts);}
+}
 let wordCloudLayoutRun=0,wordCloudResizeFrame=0;
 window.addEventListener('resize',()=>{
  if(state.tab!=='wordcloud')return;
@@ -944,7 +962,7 @@ window.addEventListener('resize',()=>{
  wordCloudResizeFrame=window.requestAnimationFrame(()=>{wordCloudResizeFrame=0;renderWordCloudLayouts();});
 });
 function goStep(n){ui.setupStep=Math.min(2,Math.max(1,Number(n)));setTab('settings')}
-function setTab(v){if(state.tab==='wordcloud'&&v!=='wordcloud')stopWordCloudSpeech();if(state.tab==='quiz'&&v!=='quiz'){if(ui.patternStudyBefore){Object.assign(state,ui.patternStudyBefore);ui.patternStudyBefore=null;}if(ui.collectionStudyBefore){Object.assign(state,ui.collectionStudyBefore);ui.collectionStudyBefore=null;}}state.tab=v;persist();render();view.closest('.app').scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
+function setTab(v){if(state.tab==='wordcloud'&&v!=='wordcloud')stopWordCloudSpeech();if(state.tab==='quiz'&&v!=='quiz'){if(ui.patternStudyBefore){Object.assign(state,ui.patternStudyBefore);ui.patternStudyBefore=null;}if(ui.collectionStudyBefore){Object.assign(state,ui.collectionStudyBefore);ui.collectionStudyBefore=null;}}state.tab=v;persist();render();document.querySelector('.app')?.scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
 function setSetting(name,value){if(['src','dst','kind'].includes(name))patternReset();state[name]=value;if(name==='kind'&&value==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(name==='gameMode'&&value==='color')state.kind='word';ui.session=null;ui.question=null;persist();render()}
 function exportProgress(){const output=JSON.stringify({version:3,app:'Quiz Lab browser',exportedAt:new Date().toISOString(),progress:state.progress,attempts:state.attempts,excluded:state.excluded,typingHistory:state.typingHistory,patternAttempts:state.patternAttempts,similarity:state.similarity,preferredWords},null,2);const url=URL.createObjectURL(new Blob([output],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='quizlab-browser-progress.json';a.click();URL.revokeObjectURL(url)}
 function onFile(f){if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);let a=[];if(Array.isArray(data.terms)){a=data.terms.map((t,i)=>{const path=(t.topic||'General / General').split(' / ');return {id:'user:'+ (data.id||'pack') + ':'+t.id,c:t.category||path[0],s:t.subtopic||path[1]||'General',k:t.kind||'word',t:Object.fromEntries(Object.entries(t.translations||{}).map(([k,v])=>[k.toLowerCase(),String(v)]))}})}else if(Array.isArray(data.entries)){a=data.entries.map((t,i)=>({id:'user:'+t.id,c:t.category||'General',s:t.subtopic||'General',k:t.type||'word',t:Object.fromEntries(Object.entries(t.words||{}).map(([k,v])=>[k.toLowerCase(),String(v)]))}))}else if(Array.isArray(data.preferredWords))a=[];else throw Error('Expected a JSON object containing terms[], entries[] or preferredWords[].');a=a.filter(t=>t.id&&Object.keys(t.t).length>=2);let added=0;for(const t of a){if(!ids.has(t.id)){terms.push(t);ids.add(t.id);added++}}byId.clear();for(const t of terms)byId.set(t.id,t);localStorage.setItem(DATA_KEY,JSON.stringify(terms.slice(window.QUIZLAB_DATA.length)));let savedAdded=0;if(Array.isArray(data.preferredWords)){for(const p of data.preferredWords){if(!p||!p.id||!p.src||!p.dst||!p.sourceText||!p.targetText)continue;const k=preferredKey(p.id,p.src,p.dst,p.kind);if(!preferredWords.some(x=>preferredKey(x.id,x.src,x.dst,x.kind)===k)){preferredWords.push({...p,rating:['difficult','medium','easy'].includes(p.rating)?p.rating:null});savedAdded++}}preferredPersist()}ui.importStatus='Imported '+added+' new vocabulary items and '+savedAdded+' saved words ('+a.length+' valid records).';ui.question=null;setTab('settings')}catch(e){ui.importStatus='Import error: '+e.message;render()}};reader.readAsText(f,'utf-8')}
