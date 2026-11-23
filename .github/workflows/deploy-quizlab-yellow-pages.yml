@@ -41,7 +41,7 @@ jobs:
           test -s dist/app.js
           test -s dist/data.js
           grep -q 'src="data.js"' dist/index.html
-          grep -q 'src="app.js"' dist/index.html
+          grep -q 'src="app.js?v=' dist/index.html
 
           node --check dist/app.js
           node --check dist/data.js
