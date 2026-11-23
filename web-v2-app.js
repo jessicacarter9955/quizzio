@@ -512,7 +512,7 @@ function wordCloudView(){
  const labels=ui.wordCloudSelectionLabels.length?ui.wordCloudSelectionLabels.join(' · '):'Selected pattern groups';
  const pages=[];
  for(let i=0;i<pageCount;i++){
-  pages.push('<section class="wordcloud-sheet '+(i===pageIndex?'active':'')+'" data-wordcloud-sheet="'+i+'"><header class="wordcloud-sheet-header"><span>QUIZ LAB · PATTERNS</span><strong>'+encode(pair)+'</strong><small>'+encode(labels)+' · '+(i+1)+' / '+pageCount+'</small></header><svg class="wordcloud-svg" data-wordcloud-svg="'+i+'" viewBox="0 0 1180 700" role="img" aria-label="Word cloud page '+(i+1)+'"></svg><div class="wordcloud-fallback" data-wordcloud-fallback="'+i+'" aria-label="Word cloud words"></div><div class="wordcloud-overflow" data-wordcloud-overflow="'+i+'"></div><footer class="wordcloud-sheet-footer">Word cloud · '+encode(kind)+' · '+entries.length+' unique source terms</footer></section>');
+  pages.push('<section class="wordcloud-sheet '+(i===pageIndex?'active':'')+'" data-wordcloud-sheet="'+i+'"><header class="wordcloud-sheet-header"><span>'+encode(pair)+'</span><small>'+encode(labels)+' · Page '+(i+1)+' / '+pageCount+'</small></header><svg class="wordcloud-svg" data-wordcloud-svg="'+i+'" viewBox="0 0 1180 700" role="img" aria-label="Word cloud page '+(i+1)+'"></svg><div class="wordcloud-fallback" data-wordcloud-fallback="'+i+'" aria-label="Word cloud words"></div><div class="wordcloud-overflow" data-wordcloud-overflow="'+i+'"></div><footer class="wordcloud-sheet-footer">Quiz Lab · '+encode(kind)+' · '+entries.length+' unique source terms</footer></section>');
  }
  const placeholder=ui.wordCloudFilterMode==='prefix'?'e.g. ab':ui.wordCloudFilterMode==='suffix'?'e.g. ente':'e.g. 2';
  const speechSupported=wordCloudSpeechSupported();
@@ -520,13 +520,17 @@ function wordCloudView(){
  const noWords=ui.wordCloudCompletedKeys.size
   ?'<div class="listempty">All done — '+ui.wordCloudCompletedKeys.size+' words recognized. You can go back to Patterns or start another cloud.</div>'
   :'<div class="listempty">No words are available for this language pair.</div>';
- return '<div class="wordcloud-view">'+
-  '<div class="wordcloud-toolbar no-print"><div><button type="button" class="ghost" data-wordcloud-back="1">← Back to Patterns</button><div class="eyebrow wordcloud-eyebrow">PATTERN STUDY MODE</div><h1 class="h1">Word cloud</h1><p class="small">A full-width cloud. Speak a translation to remove that word and let the next one move in.</p></div><button type="button" class="primary wordcloud-print" data-wordcloud-print="1">Print A4 ↗</button></div>'+
-  '<section class="wordcloud-speech-panel no-print"><div class="wordcloud-speech-copy"><strong>Speak in '+encode(langNames[ui.patternTarget]||ui.patternTarget)+'</strong><small>Say the target-language translation of a visible word. It flashes green, then disappears. Depending on your browser, microphone audio may be processed online.</small></div><button type="button" class="primary wordcloud-speech-button" data-wordcloud-speech-toggle="1" aria-pressed="'+(ui.wordCloudSpeechWanted?'true':'false')+'" '+(!speechSupported?'disabled':'')+'>'+speechButton+'</button><p class="wordcloud-speech-status" id="wordCloudSpeechStatus" role="status" aria-live="polite">'+encode(wordCloudSpeechMessage())+'</p></section>'+
-  '<section class="wordcloud-filter-panel no-print"><div class="wordcloud-filter-heading"><strong>Occlusion filter</strong><span>'+encode(pair)+'</span></div><div class="wordcloud-mode-buttons" role="group" aria-label="Word cloud filter mode">'+modeButtons+'</div><label class="wordcloud-query-label"><span id="wordCloudFilterLabel">'+wordCloudFilterLabel()+'</span><input id="wordCloudFilter" class="field" type="search" value="'+attr(ui.wordCloudFilter)+'" placeholder="'+placeholder+'" autocomplete="off" spellcheck="false"></label><div class="wordcloud-filter-actions"><label class="wordcloud-occlusion-toggle"><input type="checkbox" data-wordcloud-occlusion="1" '+(ui.wordCloudOcclusion?'checked':'')+'> Dim words outside the filter</label><button type="button" class="text-button" data-wordcloud-clear="1">Reset to selected patterns</button></div></section>'+
-  '<div class="wordcloud-stats no-print" id="wordCloudStats"></div>'+
-  '<div class="wordcloud-detail no-print" id="wordCloudDetail" aria-live="polite"><span>Click a word to reveal its translation.</span></div>'+
-  (entries.length?'<div class="wordcloud-pager no-print"><button type="button" class="secondary" data-wordcloud-page="prev" '+(pageIndex===0?'disabled':'')+'>← Previous</button><strong id="wordCloudPageInfo">Page '+(pageIndex+1)+' of '+pageCount+'</strong><button type="button" class="secondary" data-wordcloud-page="next" '+(pageIndex>=pageCount-1?'disabled':'')+'>Next →</button></div><div class="wordcloud-pages" id="wordCloudPages">'+pages.join('')+'</div>':noWords)+
+ return '<div class="wordcloud-view wordcloud-fullscreen" id="wordCloudFullscreen">'+
+  '<header class="wordcloud-toolbar no-print">'+
+   '<div class="wordcloud-title-group"><button type="button" class="ghost" data-wordcloud-back="1">← Patterns</button><div><div class="eyebrow wordcloud-eyebrow">PATTERN STUDY MODE</div><h1 class="h1">Word cloud</h1><small>'+encode(pair)+'</small></div></div>'+
+   '<div class="wordcloud-top-actions"><div class="wordcloud-speech-copy"><strong>Speak in '+encode(langNames[ui.patternTarget]||ui.patternTarget)+'</strong><small>Say a visible word’s translation. It turns green, then disappears.</small></div><button type="button" class="primary wordcloud-speech-button" data-wordcloud-speech-toggle="1" aria-pressed="'+(ui.wordCloudSpeechWanted?'true':'false')+'" '+(!speechSupported?'disabled':'')+'>'+speechButton+'</button><button type="button" class="primary wordcloud-print" data-wordcloud-print="1">Print A4 ↗</button></div>'+
+  '</header>'+
+  '<div class="wordcloud-speech-status no-print" id="wordCloudSpeechStatus" role="status" aria-live="polite">'+encode(wordCloudSpeechMessage())+'</div>'+
+  '<section class="wordcloud-filter-panel no-print"><div class="wordcloud-mode-buttons" role="group" aria-label="Word cloud filter mode">'+modeButtons+'</div><label class="wordcloud-query-label"><span id="wordCloudFilterLabel">'+wordCloudFilterLabel()+'</span><input id="wordCloudFilter" class="field" type="search" value="'+attr(ui.wordCloudFilter)+'" placeholder="'+placeholder+'" autocomplete="off" spellcheck="false"></label><div class="wordcloud-filter-actions"><label class="wordcloud-occlusion-toggle"><input type="checkbox" data-wordcloud-occlusion="1" '+(ui.wordCloudOcclusion?'checked':'')+'> Dim words outside the filter</label><button type="button" class="text-button" data-wordcloud-clear="1">Reset to selected patterns</button></div></section>'+
+  '<div class="wordcloud-info-row no-print"><div class="wordcloud-stats" id="wordCloudStats"></div><div class="wordcloud-detail" id="wordCloudDetail" aria-live="polite"><span>Click a word to reveal its translation.</span></div>'+
+  (entries.length?'<div class="wordcloud-pager"><button type="button" class="secondary" data-wordcloud-page="prev" '+(pageIndex===0?'disabled':'')+'>← Previous</button><strong id="wordCloudPageInfo">Page '+(pageIndex+1)+' of '+pageCount+'</strong><button type="button" class="secondary" data-wordcloud-page="next" '+(pageIndex>=pageCount-1?'disabled':'')+'>Next →</button></div>':'')+
+  '</div>'+
+  (entries.length?'<main class="wordcloud-stage"><div class="wordcloud-pages" id="wordCloudPages">'+pages.join('')+'</div></main>':'<main class="wordcloud-stage">'+noWords+'</main>')+
  '</div>';
 }
 function wordCloudShowDetail(index){
@@ -763,12 +767,19 @@ function renderWordCloudFallback(sheet,words,active,onlyMissing=false){
 function renderWordCloudLayouts(){
  const host=document.getElementById('wordCloudPages');
  if(!host||state.tab!=='wordcloud')return;
+ const run=++wordCloudLayoutRun;
  const cloudFactory=window.d3Cloud;
  const sheets=[...host.querySelectorAll('[data-wordcloud-sheet]')];
- const pageSize=ui.wordCloudPageSize||100,W=1180,H=700,svgNS='http://www.w3.org/2000/svg';
+ const pageSize=ui.wordCloudPageSize||100,svgNS='http://www.w3.org/2000/svg';
  const active=wordCloudActiveKeys();
+ const visibleSheet=sheets.find(sheet=>sheet.classList.contains('active'))||sheets[0];
+ const visibleSvg=visibleSheet?.querySelector('[data-wordcloud-svg]');
+ const visibleRect=visibleSvg?.getBoundingClientRect()||host.getBoundingClientRect();
+ const W=Math.max(320,Math.floor(visibleRect.width||window.innerWidth||1180));
+ const H=Math.max(220,Math.floor(visibleRect.height||window.innerHeight-190||700));
  let page=0;
  function nextPage(){
+  if(run!==wordCloudLayoutRun||state.tab!=='wordcloud')return;
   if(page>=sheets.length){applyWordCloudOcclusion();updateWordCloudPager();return}
   const sheet=sheets[page],svg=sheet.querySelector('[data-wordcloud-svg]');
   const fallback=sheet.querySelector('.wordcloud-fallback');
@@ -793,15 +804,16 @@ function renderWordCloudLayouts(){
   let attempt=0;
   const scales=[1,.86,.74,.62,.52,.44];
   function draw(){
+   if(run!==wordCloudLayoutRun||state.tab!=='wordcloud')return;
    while(svg.firstChild)svg.removeChild(svg.firstChild);
    svg.setAttribute('viewBox','0 0 '+W+' '+H);
    const group=document.createElementNS(svgNS,'g');
-   group.setAttribute('transform','translate('+W/2+','+H/2+')');
    svg.appendChild(group);
    const factor=scales[attempt];
    const layoutWords=words.map(word=>({...word,size:Math.max(8,word.size*factor)}));
    cloudFactory().size([W,H]).words(layoutWords).padding(2).rotate(()=>0).font('Arial').fontSize(d=>d.size).timeInterval(40)
     .on('word',word=>{
+     if(run!==wordCloudLayoutRun)return;
      const revealed=active.has(word.entry.key);
      const node=document.createElementNS(svgNS,'text');
      node.setAttribute('class','cloud-word'+(revealed?' revealed':(ui.wordCloudOcclusion?' occluded':'')));
@@ -821,14 +833,29 @@ function renderWordCloudLayouts(){
      group.appendChild(node);
     })
     .on('end',placed=>{
+     if(run!==wordCloudLayoutRun||state.tab!=='wordcloud')return;
      const placedKeys=new Set(placed.map(word=>word.entry.key));
      const missing=words.filter(word=>!placedKeys.has(word.entry.key));
      const required=Math.max(18,Math.ceil(words.length*.82));
      if(placed.length<required&&attempt<scales.length-1){attempt++;draw();return}
      if(placed.length<required){
       renderWordCloudFallback(sheet,words,active,false);
-     }else if(missing.length){
-      renderWordCloudFallback(sheet,missing,active,true);
+     }else{
+      // D3-cloud coordinates can be centered or absolute depending on the layout build.
+      // Center the actual placed-word bounds, then scale down only if their bounds exceed the viewport.
+      const bounds=placed.reduce((box,word)=>{
+       const left=word.x+(Number.isFinite(word.x0)?word.x0:-(word.width||0)/2);
+       const right=word.x+(Number.isFinite(word.x1)?word.x1:(word.width||0)/2);
+       const top=word.y+(Number.isFinite(word.y0)?word.y0:-(word.size||0)/2);
+       const bottom=word.y+(Number.isFinite(word.y1)?word.y1:(word.size||0)/2);
+       return {minX:Math.min(box.minX,left),maxX:Math.max(box.maxX,right),minY:Math.min(box.minY,top),maxY:Math.max(box.maxY,bottom)};
+      },{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity});
+      const clusterWidth=Math.max(1,bounds.maxX-bounds.minX),clusterHeight=Math.max(1,bounds.maxY-bounds.minY);
+      const scale=Math.min(1,(W-32)/clusterWidth,(H-32)/clusterHeight);
+      const centerX=(bounds.minX+bounds.maxX)/2,centerY=(bounds.minY+bounds.maxY)/2;
+      const tx=W/2-centerX*scale,ty=H/2-centerY*scale;
+      group.setAttribute('transform','translate('+tx+','+ty+') scale('+scale+')');
+      if(missing.length)renderWordCloudFallback(sheet,missing,active,true);
      }
      page++;
      requestAnimationFrame(nextPage);
@@ -909,7 +936,13 @@ function quizView(){
 }
 function record(t,correct,rating){const x=prog(t),p={...x};let now=new Date();let start=p.start?new Date(p.start):new Date(now.getFullYear(),now.getMonth(),now.getDate());let w=Math.floor((utcDay(now)-utcDay(start))/7);if(p.mastered&&!correct){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;p.mastered=false;w=0}const missed=(w<0||w>2||(w>=1&&p.w1<3)||(w>=2&&p.w2<2));if(!p.mastered&&missed){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;w=0}p.start=start.toISOString();if(correct&&!p.mastered){if(w===0)p.w1++;else if(w===1)p.w2++;else if(w===2)p.w3++;p.mastered=p.w1>=3&&p.w2>=2&&p.w3>=1}p.c+=(correct?1:0);p.w+=(!correct?1:0);p.streak=correct?0:p.streak+1;let next=null;if(!p.mastered){const min=(!correct||rating==='again')?5:rating==='hard'?360:rating==='easy'?4320:1440;next=new Date(now.getTime()+min*60000);const count=[p.w1,p.w2,p.w3][w],quota=[3,2,1][w];const endWindow=new Date(start.getFullYear(),start.getMonth(),start.getDate()+(w+1)*7);if(count>=quota)next=endWindow;else if(next>endWindow)next=new Date(endWindow.getTime()-60000)}p.next=next?.toISOString()||null;state.progress[key(t)]=p;logPatternAnswer(t,'choice',correct);state.attempts.push({at:now.toISOString(),id:t.id,src:state.src,dst:state.dst,c:correct,kind:t.k,category:t.c,sub:t.s,rating});if(state.attempts.length>30000)state.attempts=state.attempts.slice(-30000);persist()}
 function navBar(){const active=state.tab==='wordcloud'?'patterns':state.tab;nav.innerHTML=[['home','⌂','Home'],['settings','◎','Study'],['patterns','⋈','Patterns'],['saved','☆','Saved'],['phrases','▤','Phrases'],['stats','▥','Stats']].map(([key,ico,title])=>`<button class="nav ${active===key?'active':''}" data-nav="${key}"><span class="sym">${ico}</span>${title}</button>`).join('')}
-function render(){navBar();const app=view.closest('.app');app.classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));app.classList.toggle('wordcloud-mode',state.tab==='wordcloud');nav.hidden=state.tab==='wordcloud';switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'wordcloud':view.innerHTML=wordCloudView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'saved':view.innerHTML=savedView();break;case 'phrases':view.innerHTML=phrasesView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;window.dispatchEvent(new Event('quizlab:rendered'));if(state.tab==='wordcloud'){updateWordCloudSpeechControls();requestAnimationFrame(renderWordCloudLayouts);}}
+function render(){navBar();const app=view.closest('.app');app.classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));app.classList.toggle('wordcloud-mode',state.tab==='wordcloud');document.body.classList.toggle('wordcloud-active',state.tab==='wordcloud');nav.hidden=state.tab==='wordcloud';switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'wordcloud':view.innerHTML=wordCloudView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'saved':view.innerHTML=savedView();break;case 'phrases':view.innerHTML=phrasesView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;window.dispatchEvent(new Event('quizlab:rendered'));if(state.tab==='wordcloud'){updateWordCloudSpeechControls();requestAnimationFrame(renderWordCloudLayouts);}}
+let wordCloudLayoutRun=0,wordCloudResizeFrame=0;
+window.addEventListener('resize',()=>{
+ if(state.tab!=='wordcloud')return;
+ if(wordCloudResizeFrame)window.cancelAnimationFrame(wordCloudResizeFrame);
+ wordCloudResizeFrame=window.requestAnimationFrame(()=>{wordCloudResizeFrame=0;renderWordCloudLayouts();});
+});
 function goStep(n){ui.setupStep=Math.min(2,Math.max(1,Number(n)));setTab('settings')}
 function setTab(v){if(state.tab==='wordcloud'&&v!=='wordcloud')stopWordCloudSpeech();if(state.tab==='quiz'&&v!=='quiz'){if(ui.patternStudyBefore){Object.assign(state,ui.patternStudyBefore);ui.patternStudyBefore=null;}if(ui.collectionStudyBefore){Object.assign(state,ui.collectionStudyBefore);ui.collectionStudyBefore=null;}}state.tab=v;persist();render();view.closest('.app').scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
 function setSetting(name,value){if(['src','dst','kind'].includes(name))patternReset();state[name]=value;if(name==='kind'&&value==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(name==='gameMode'&&value==='color')state.kind='word';ui.session=null;ui.question=null;persist();render()}

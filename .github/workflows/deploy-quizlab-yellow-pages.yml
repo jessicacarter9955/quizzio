@@ -92,8 +92,13 @@ jobs:
           grep -q 'wordCloudPageIndex' dist/app.js
           grep -q 'data-wordcloud-page' dist/app.js
           grep -q 'function renderWordCloudFallback' dist/app.js
+          grep -q 'wordcloud-fullscreen' dist/index.html
+          grep -q 'position:fixed;inset:0' dist/index.html
           grep -q 'wordcloud-fallback' dist/index.html
           grep -q 'size:A4 landscape' dist/index.html
+          grep -q 'id="wordCloudFullscreen"' dist/app.js
+          grep -q 'wordCloudLayoutRun' dist/app.js
+          grep -q 'wordcloud-stage' dist/app.js
           grep -q 'max-width:none!important' dist/index.html
           echo "Saved/Phrases filters, full-width paged D3 word cloud, resilient fallback, target-language speech recognition, and A4 landscape print sheets are present."
 
