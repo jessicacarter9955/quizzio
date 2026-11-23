@@ -372,6 +372,19 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .wordcloud-overflow{flex:none;max-height:20px;overflow:hidden;font-size:7px;line-height:1.3;color:#8d8476}
 .wordcloud-sheet-footer{flex:none;border-top:1px solid #eee9df;padding-top:5px;font-size:8px;color:#9b9283;text-align:right}
 @media(max-width:600px){.app.wordcloud-mode .content{padding:18px 12px 28px}.wordcloud-toolbar{gap:10px}.wordcloud-toolbar .h1{font-size:29px}.wordcloud-print{min-width:105px;padding:10px 11px;font-size:11px}.wordcloud-filter-panel{padding:12px}.wordcloud-sheet{padding:5mm 6mm 4mm;margin:12px auto}.wordcloud-sheet-header strong{font-size:12px}.wordcloud-sheet-header small{font-size:8px}.wordcloud-detail{gap:6px}}
+/* Word cloud speech recognition and spoken-word feedback */
+.wordcloud-speech-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 14px;border:1px solid #e6dfd1;border-radius:16px;background:#fffefa;padding:13px 16px;margin:12px 0}
+.wordcloud-speech-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.wordcloud-speech-copy strong{font-size:13px;color:#332d22}
+.wordcloud-speech-copy small{font-size:11px;color:#827867;line-height:1.45}
+.wordcloud-speech-button{white-space:nowrap;min-width:145px}
+.wordcloud-speech-button.listening{background:#e5f4e9;border-color:#8fc9a0;color:#237a45}
+.wordcloud-speech-button:disabled{opacity:.55;cursor:not-allowed}
+.wordcloud-speech-status{grid-column:1/-1;margin:0;color:#776d5d;font-size:11px;line-height:1.45}
+.cloud-word.spoken{fill:#159653!important;opacity:1!important;font-weight:800!important;filter:none!important;animation:wordcloud-spoken-flash .7s ease-out}
+@keyframes wordcloud-spoken-flash{0%{opacity:.25}30%{opacity:1}100%{opacity:1}}
+@media(max-width:600px){.wordcloud-speech-panel{grid-template-columns:1fr;gap:9px;padding:12px}.wordcloud-speech-button{width:100%}.wordcloud-speech-status{grid-column:auto}}
+
 @page{size:A4 portrait;margin:0}
 @media print{
  html,body{background:#fff!important;color:#111!important}

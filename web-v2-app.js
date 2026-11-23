@@ -5,7 +5,7 @@ const KEY='quizlab.mobile.preview.v3';const DATA_KEY='quizlab.mobile.custom.v1';
 const safeParse=(s,def)=>{try{return JSON.parse(s)||def}catch{return def}};let preferredWords=safeParse(localStorage.getItem(PREFERRED_KEY),[]);if(!Array.isArray(preferredWords))preferredWords=[];else preferredWords=preferredWords.filter(p=>p&&p.id&&p.src&&p.dst&&p.sourceText&&p.targetText);
 const initial={tab:'home',src:'en',dst:'es',instruction:'en',kind:'word',gameMode:'choice',quizLimit:10,showArticles:false,requireAccents:false,similarity:{},typingHistory:[],patternAttempts:[],writingStyle:'recall',patternReview:'mnemonic',reviewMode:'automatic',showMastered:false,excluded:[],progress:{},attempts:[],selectedOnly:true,patternSort:'alphabetical',patternSortDefaultVersion:11};
 const stored=safeParse(localStorage.getItem(KEY),{});const state={...initial,...stored};if(!Array.isArray(state.patternAttempts))state.patternAttempts=[];if(!['recall','copy'].includes(state.writingStyle))state.writingStyle='recall';if(!['mnemonic','all'].includes(state.patternReview))state.patternReview='mnemonic';if(!['word','phrase'].includes(state.kind))state.kind='word';if(state.kind==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(stored.patternSortDefaultVersion!==11){state.patternSort='alphabetical';state.patternSortDefaultVersion=11;}if(!['most','least','alphabetical'].includes(state.patternSort))state.patternSort='alphabetical';if(state.src===state.dst)state.dst=Object.keys(LANGUAGE_NAMES).find(k=>k!==state.src);
-const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,patternMode:'prefix',patternSource:state.src,patternTarget:state.dst,patternKind:'word',patternFromNav:false,patternStudyBefore:null,patternFocus:'',patternSearch:'',patternCollapsed:new Set(),patternShowAll:'',patternPools:new Map(),patternBranchRoot:null,patternBranchTrail:[],patternBranchShowAll:new Set(),patternBranchPools:new Map(),patternChecked:new Map(),patternCheckPools:new Map(),wordCloudEntries:[],wordCloudSelectedKeys:new Set(),wordCloudFilter:'',wordCloudFilterMode:'prefix',wordCloudOcclusion:true,wordCloudSelectionLabels:[],wordCloudPageSize:100,wordCloudAwaitingLibrary:false,preferredSearch:'',preferredFilter:'all',phraseSearch:'',savedPair:'',collectionFilters:{word:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'},phrase:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'}},quizReturnTab:'home',collectionStudyBefore:null};
+const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,patternMode:'prefix',patternSource:state.src,patternTarget:state.dst,patternKind:'word',patternFromNav:false,patternStudyBefore:null,patternFocus:'',patternSearch:'',patternCollapsed:new Set(),patternShowAll:'',patternPools:new Map(),patternBranchRoot:null,patternBranchTrail:[],patternBranchShowAll:new Set(),patternBranchPools:new Map(),patternChecked:new Map(),patternCheckPools:new Map(),wordCloudEntries:[],wordCloudSelectedKeys:new Set(),wordCloudFilter:'',wordCloudFilterMode:'prefix',wordCloudOcclusion:true,wordCloudSelectionLabels:[],wordCloudPageSize:100,wordCloudAwaitingLibrary:false,wordCloudSpeechWanted:false,wordCloudSpeechStatus:'idle',wordCloudSpeechError:'',wordCloudSpeechRecognizer:null,wordCloudCompletedKeys:new Set(),wordCloudRemovingKeys:new Set(),wordCloudOriginalCount:0,wordCloudLastHeard:'',preferredSearch:'',preferredFilter:'all',phraseSearch:'',savedPair:'',collectionFilters:{word:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'},phrase:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'}},quizReturnTab:'home',collectionStudyBefore:null};
 const terms=[...(window.QUIZLAB_DATA||[]),...safeParse(localStorage.getItem(DATA_KEY),[])];
 const ids=new Set(terms.map(t=>t.id));
 const langNames=LANGUAGE_NAMES;const byId=new Map(terms.map(t=>[t.id,t]));
@@ -395,6 +395,7 @@ function howManyOptions(t,pool){const right=shown(t,state.dst),a=pool.filter(x=>
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 function openPatternWordCloud(selectedPool){
+ stopWordCloudSpeech();
  const all=patternPool(),chosen=Array.isArray(selectedPool)?selectedPool:[];
  if(!all.length||!chosen.length)return;
  const grouped=new Map();
@@ -402,11 +403,18 @@ function openPatternWordCloud(selectedPool){
   const source=String(patternLexemeForLang(t,ui.patternSource)||'').trim();
   const key=patternIdentity(source);
   if(!key)continue;
-  if(!grouped.has(key))grouped.set(key,{key,text:source,ids:[],translations:[],locations:[]});
+  if(!grouped.has(key))grouped.set(key,{key,text:source,ids:[],translations:[],speechTranslations:[],locations:[]});
   const entry=grouped.get(key);
   if(!entry.ids.includes(t.id))entry.ids.push(t.id);
   const target=String(t.t[ui.patternTarget]||'').trim();
   if(target&&!entry.translations.some(x=>patternIdentity(x)===patternIdentity(target)))entry.translations.push(target);
+  const speechTarget=shownWord(t.t[ui.patternTarget],ui.patternTarget,t.k);
+  if(speechTarget&&!entry.speechTranslations.some(x=>matchingForm(x)===matchingForm(speechTarget)))entry.speechTranslations.push(speechTarget);
+  const nativeTargetLang=ui.patternTarget.endsWith('_it')?ui.patternTarget.slice(0,-3):'';
+  if(nativeTargetLang){
+   const nativeTarget=shownWord(t.t[nativeTargetLang],nativeTargetLang,t.k);
+   if(nativeTarget&&!entry.speechTranslations.some(x=>matchingForm(x)===matchingForm(nativeTarget)))entry.speechTranslations.push(nativeTarget);
+  }
   for(const location of (t.patternLocations||[t.c+' / '+t.s]))if(!entry.locations.includes(location))entry.locations.push(location);
  }
  ui.wordCloudEntries=[...grouped.values()].sort((a,b)=>a.text.localeCompare(b.text,ui.patternSource,{sensitivity:'base'}));
@@ -417,6 +425,14 @@ function openPatternWordCloud(selectedPool){
  ui.wordCloudOcclusion=true;
  ui.wordCloudSelectionLabels=[...ui.patternChecked.keys()].map(k=>k.replace(/^(root:|focus:|branch:)/,'').replace(/:/g,' → ')).filter(Boolean);
  ui.wordCloudPageSize=ui.patternKind==='phrase'?50:100;
+ ui.wordCloudCompletedKeys=new Set();
+ ui.wordCloudRemovingKeys=new Set();
+ ui.wordCloudOriginalCount=ui.wordCloudEntries.length;
+ ui.wordCloudLastHeard='';
+ ui.wordCloudSpeechError='';
+ ui.wordCloudSpeechStatus='idle';
+ ui.wordCloudSpeechWanted=false;
+ ui.wordCloudSpeechRecognizer=null;
  state.tab='wordcloud';
  render();
  view.closest('.app').scrollTo({top:0,behavior:'instant'});
@@ -426,11 +442,12 @@ function wordCloudFilterLabel(){
  return ({prefix:'Starts with',suffix:'Ends with',length:'Letters',words:'Word count'})[ui.wordCloudFilterMode]||'Starts with';
 }
 function wordCloudActiveKeys(){
+ const remaining=new Set(ui.wordCloudEntries.map(entry=>entry.key));
  const raw=String(ui.wordCloudFilter||'').trim();
- if(!raw)return new Set(ui.wordCloudSelectedKeys);
+ if(!raw)return new Set([...ui.wordCloudSelectedKeys].filter(key=>remaining.has(key)));
  const mode=ui.wordCloudFilterMode||'prefix';
  const q=patternNormalized(raw);
- if(!q)return new Set(ui.wordCloudSelectedKeys);
+ if(!q)return new Set([...ui.wordCloudSelectedKeys].filter(key=>remaining.has(key)));
  return new Set(ui.wordCloudEntries.filter(entry=>{
   const letters=patternNormalized(entry.text).replace(/[^\p{L}\p{N}]/gu,'');
   if(mode==='prefix')return letters.startsWith(q.replace(/[^\p{L}\p{N}]/gu,''));
@@ -450,7 +467,7 @@ function applyWordCloudOcclusion(){
   node.setAttribute('aria-pressed',revealed?'true':'false');
  });
  const stats=document.getElementById('wordCloudStats');
- if(stats)stats.textContent=active.size+' highlighted · '+Math.max(0,ui.wordCloudEntries.length-active.size)+' occluded · '+ui.wordCloudEntries.length+' total';
+ if(stats)stats.textContent=active.size+' highlighted · '+Math.max(0,ui.wordCloudEntries.length-active.size)+' occluded · '+ui.wordCloudEntries.length+' remaining · '+(ui.wordCloudCompletedKeys?.size||0)+' spoken';
 }
 function updateWordCloudControls(){
  view.querySelectorAll('[data-wordcloud-mode]').forEach(button=>button.classList.toggle('active',button.dataset.wordcloudMode===ui.wordCloudFilterMode));
@@ -473,12 +490,18 @@ function wordCloudView(){
   pages.push('<section class="wordcloud-sheet" data-wordcloud-sheet="'+i+'"><header class="wordcloud-sheet-header"><span>QUIZ LAB · PATTERNS</span><strong>'+encode(pair)+'</strong><small>'+encode(labels)+' · '+(i+1)+' / '+pageCount+'</small></header><svg class="wordcloud-svg" data-wordcloud-svg="'+i+'" viewBox="0 0 744 1030" role="img" aria-label="Word cloud page '+(i+1)+'"></svg><div class="wordcloud-overflow" data-wordcloud-overflow="'+i+'"></div><footer class="wordcloud-sheet-footer">Word cloud · '+encode(kind)+' · '+entries.length+' unique source terms</footer></section>');
  }
  const placeholder=ui.wordCloudFilterMode==='prefix'?'e.g. ab':ui.wordCloudFilterMode==='suffix'?'e.g. ente':'e.g. 2';
+ const speechSupported=wordCloudSpeechSupported();
+ const speechButton=ui.wordCloudSpeechWanted?'■ Stop listening':'🎙 Start speaking';
+ const noWords=ui.wordCloudCompletedKeys.size
+  ?'<div class="listempty">All done — '+ui.wordCloudCompletedKeys.size+' words recognized. You can go back to Patterns or start another cloud.</div>'
+  :'<div class="listempty">No words are available for this language pair.</div>';
  return '<div class="wordcloud-view">'+
   '<div class="wordcloud-toolbar no-print"><div><button type="button" class="ghost" data-wordcloud-back="1">← Back to Patterns</button><div class="eyebrow wordcloud-eyebrow">PATTERN STUDY MODE</div><h1 class="h1">Word cloud</h1><p class="small">Selected patterns stay readable; the rest of the vocabulary is softly occluded.</p></div><button type="button" class="primary wordcloud-print" data-wordcloud-print="1">Print A4 ↗</button></div>'+
+  '<section class="wordcloud-speech-panel no-print"><div class="wordcloud-speech-copy"><strong>Speak in '+encode(langNames[ui.patternTarget]||ui.patternTarget)+'</strong><small>Say the target-language translation of a visible word. It will flash green and leave the cloud.</small></div><button type="button" class="primary wordcloud-speech-button" data-wordcloud-speech-toggle="1" aria-pressed="'+(ui.wordCloudSpeechWanted?'true':'false')+'" '+(!speechSupported?'disabled':'')+'>'+speechButton+'</button><p class="wordcloud-speech-status" id="wordCloudSpeechStatus" role="status" aria-live="polite">'+encode(wordCloudSpeechMessage())+'</p></section>'+
   '<section class="wordcloud-filter-panel no-print"><div class="wordcloud-filter-heading"><strong>Occlusion filter</strong><span>'+encode(pair)+'</span></div><div class="wordcloud-mode-buttons" role="group" aria-label="Word cloud filter mode">'+modeButtons+'</div><label class="wordcloud-query-label"><span id="wordCloudFilterLabel">'+wordCloudFilterLabel()+'</span><input id="wordCloudFilter" class="field" type="search" value="'+attr(ui.wordCloudFilter)+'" placeholder="'+placeholder+'" autocomplete="off" spellcheck="false"></label><div class="wordcloud-filter-actions"><label class="wordcloud-occlusion-toggle"><input type="checkbox" data-wordcloud-occlusion="1" '+(ui.wordCloudOcclusion?'checked':'')+'> Dim words outside the filter</label><button type="button" class="text-button" data-wordcloud-clear="1">Reset to selected patterns</button></div></section>'+
   '<div class="wordcloud-stats no-print" id="wordCloudStats"></div>'+
   '<div class="wordcloud-detail no-print" id="wordCloudDetail" aria-live="polite"><span>Tap or click a word to reveal its translation.</span></div>'+
-  (entries.length?'<div class="wordcloud-pages" id="wordCloudPages">'+pages.join('')+'</div>':'<div class="listempty">No words are available for this language pair.</div>')+
+  (entries.length?'<div class="wordcloud-pages" id="wordCloudPages">'+pages.join('')+'</div>':noWords)+
  '</div>';
 }
 function wordCloudShowDetail(index){
@@ -488,6 +511,198 @@ function wordCloudShowDetail(index){
  const locations=entry.locations.slice(0,5).join(' · ')+(entry.locations.length>5?' · +'+(entry.locations.length-5)+' more':'');
  detail.innerHTML='<strong>'+encode(entry.text)+'</strong><span>'+encode(translations)+'</span><small>'+encode(locations)+'</small>';
 }
+
+function wordCloudSpeechSupported(){
+ return typeof window.SpeechRecognition==='function'||typeof window.webkitSpeechRecognition==='function';
+}
+function wordCloudSpeechLocale(){
+ const code=String(ui.patternTarget||'en').replace(/_it$/,'');
+ const locales={en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',pt:'pt-PT',ru:'ru-RU',zh:'zh-CN',ko:'ko-KR',ja:'ja-JP'};
+ return locales[code]||code;
+}
+function wordCloudSpeechMessage(){
+ if(ui.wordCloudSpeechError)return ui.wordCloudSpeechError;
+ if(!wordCloudSpeechSupported())return 'Speech recognition is not available in this browser. Try Chrome or Edge.';
+ const language=langNames[ui.patternTarget]||ui.patternTarget;
+ if(ui.wordCloudSpeechWanted)return 'Listening in '+language+'… say a translation. '+(ui.wordCloudLastHeard?'Last: '+ui.wordCloudLastHeard:'');
+ return ui.wordCloudLastHeard||'Microphone off. Start speaking to practise '+language+'.';
+}
+function updateWordCloudSpeechControls(){
+ const button=view.querySelector('[data-wordcloud-speech-toggle]');
+ if(button){
+  button.disabled=!wordCloudSpeechSupported()&&!ui.wordCloudSpeechWanted;
+  button.textContent=ui.wordCloudSpeechWanted?'■ Stop listening':'🎙 Start speaking';
+  button.classList.toggle('listening',ui.wordCloudSpeechWanted);
+  button.setAttribute('aria-pressed',ui.wordCloudSpeechWanted?'true':'false');
+ }
+ const status=document.getElementById('wordCloudSpeechStatus');
+ if(status)status.textContent=wordCloudSpeechMessage();
+}
+function wordCloudSpeechTokens(value){
+ return (String(value||'').normalize('NFC').toLocaleLowerCase().match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)||[]).map(matchingForm).filter(Boolean);
+}
+function speechTranscriptMatches(transcript,translation){
+ const targetText=String(translation||'').trim();
+ const targetTokens=wordCloudSpeechTokens(targetText);
+ if(!targetTokens.length)return false;
+ const hasCompactScript=/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(targetText);
+ if(hasCompactScript){
+  const heard=matchingForm(transcript),target=matchingForm(targetText);
+  return target.length>1?heard.includes(target):heard===target;
+ }
+ const heardTokens=wordCloudSpeechTokens(transcript);
+ if(targetTokens.length>heardTokens.length)return false;
+ for(let i=0;i<=heardTokens.length-targetTokens.length;i++){
+  let matches=true;
+  for(let j=0;j<targetTokens.length;j++)if(heardTokens[i+j]!==targetTokens[j]){matches=false;break;}
+  if(matches)return true;
+ }
+ return false;
+}
+function findWordCloudSpeechMatch(transcript){
+ const matches=[];
+ for(const entry of ui.wordCloudEntries){
+  if(ui.wordCloudCompletedKeys.has(entry.key)||ui.wordCloudRemovingKeys.has(entry.key))continue;
+  const translations=entry.speechTranslations?.length?entry.speechTranslations:entry.translations;
+  for(const translation of translations){
+   if(speechTranscriptMatches(transcript,translation)){
+    matches.push({entry,translation,wordCount:wordCloudSpeechTokens(translation).length});
+    break;
+   }
+  }
+ }
+ if(!matches.length)return null;
+ matches.sort((a,b)=>Number(ui.wordCloudSelectedKeys.has(b.entry.key))-Number(ui.wordCloudSelectedKeys.has(a.entry.key))||b.wordCount-a.wordCount||a.entry.index-b.entry.index);
+ return matches[0];
+}
+function markWordCloudSpoken(match,transcript){
+ const {entry,translation}=match||{};
+ if(!entry||ui.wordCloudRemovingKeys.has(entry.key)||ui.wordCloudCompletedKeys.has(entry.key))return;
+ ui.wordCloudRemovingKeys.add(entry.key);
+ ui.wordCloudLastHeard='✓ '+translation+' → '+entry.text;
+ const detail=document.getElementById('wordCloudDetail');
+ if(detail)detail.innerHTML='<strong>✓ '+encode(entry.text)+'</strong><span>'+encode(translation)+'</span><small>Recognized: '+encode(transcript)+'</small>';
+ view.querySelectorAll('[data-cloud-key]').forEach(node=>{
+  if(node.getAttribute('data-cloud-key')!==entry.key)return;
+  node.classList.remove('revealed','occluded');
+  node.classList.add('spoken');
+  node.setAttribute('aria-pressed','true');
+ });
+ updateWordCloudSpeechControls();
+ window.setTimeout(()=>{
+  if(!ui.wordCloudRemovingKeys.has(entry.key))return;
+  ui.wordCloudCompletedKeys.add(entry.key);
+  ui.wordCloudRemovingKeys.delete(entry.key);
+  ui.wordCloudSelectedKeys.delete(entry.key);
+  ui.wordCloudEntries=ui.wordCloudEntries.filter(item=>item.key!==entry.key);
+  ui.wordCloudEntries.forEach((item,index)=>item.index=index);
+  if(!ui.wordCloudEntries.length)stopWordCloudSpeech();
+  if(state.tab==='wordcloud')render();
+ },700);
+}
+function startWordCloudSpeech(){
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Recognition){
+  ui.wordCloudSpeechError='Speech recognition is not available in this browser. Try Chrome or Edge.';
+  ui.wordCloudSpeechStatus='error';
+  updateWordCloudSpeechControls();
+  return;
+ }
+ if(ui.wordCloudSpeechWanted)return;
+ const recognition=new Recognition();
+ recognition.lang=wordCloudSpeechLocale();
+ recognition.continuous=true;
+ recognition.interimResults=false;
+ recognition.maxAlternatives=4;
+ ui.wordCloudSpeechRecognizer=recognition;
+ ui.wordCloudSpeechWanted=true;
+ ui.wordCloudSpeechStatus='listening';
+ ui.wordCloudSpeechError='';
+ ui.wordCloudLastHeard='';
+ recognition.onstart=()=>{
+  if(ui.wordCloudSpeechRecognizer===recognition&&ui.wordCloudSpeechWanted){
+   ui.wordCloudSpeechStatus='listening';
+   updateWordCloudSpeechControls();
+  }
+ };
+ recognition.onresult=e=>{
+  if(!ui.wordCloudSpeechWanted||state.tab!=='wordcloud')return;
+  for(let i=e.resultIndex||0;i<e.results.length;i++){
+   const result=e.results[i];
+   if(!result.isFinal)continue;
+   let match=null,transcript='';
+   for(let j=0;j<result.length;j++){
+    const heard=result[j].transcript||'';
+    const found=findWordCloudSpeechMatch(heard);
+    if(found){match=found;transcript=heard;break;}
+   }
+   if(match)markWordCloudSpoken(match,transcript);
+   else{
+    transcript=result[0]?.transcript||'';
+    if(transcript.trim())ui.wordCloudLastHeard='Heard: '+transcript.trim()+' · no matching word yet';
+    updateWordCloudSpeechControls();
+   }
+  }
+ };
+ recognition.onerror=e=>{
+  if(ui.wordCloudSpeechRecognizer!==recognition)return;
+  const messages={
+   'not-allowed':'Microphone access was denied. Allow microphone access for this site and try again.',
+   'service-not-allowed':'The browser blocked its speech-recognition service.',
+   'audio-capture':'No microphone was found. Check your audio input.',
+   'network':'Speech recognition failed to connect. Check your internet connection.',
+   'language-not-supported':'Speech recognition is unavailable for this target language in this browser.'
+  };
+  if(e.error==='no-speech'){
+   ui.wordCloudLastHeard='No speech detected yet — keep speaking.';
+   updateWordCloudSpeechControls();
+   return;
+  }
+  ui.wordCloudSpeechError=messages[e.error]||'Speech recognition error: '+(e.error||'unknown');
+  ui.wordCloudSpeechStatus='error';
+  ui.wordCloudSpeechWanted=false;
+  updateWordCloudSpeechControls();
+ };
+ recognition.onend=()=>{
+  if(ui.wordCloudSpeechRecognizer!==recognition||!ui.wordCloudSpeechWanted||state.tab!=='wordcloud')return;
+  ui.wordCloudSpeechStatus='listening';
+  updateWordCloudSpeechControls();
+  window.setTimeout(()=>{
+   if(ui.wordCloudSpeechRecognizer!==recognition||!ui.wordCloudSpeechWanted||state.tab!=='wordcloud')return;
+   try{recognition.start();}
+   catch(error){
+    ui.wordCloudSpeechError='Could not restart listening. Press Start speaking again.';
+    ui.wordCloudSpeechStatus='error';
+    ui.wordCloudSpeechWanted=false;
+    ui.wordCloudSpeechRecognizer=null;
+    updateWordCloudSpeechControls();
+   }
+  },350);
+ };
+ try{
+  recognition.start();
+  updateWordCloudSpeechControls();
+ }catch(error){
+  ui.wordCloudSpeechWanted=false;
+  ui.wordCloudSpeechRecognizer=null;
+  ui.wordCloudSpeechStatus='error';
+  ui.wordCloudSpeechError='Could not start the microphone. Check browser permissions and try again.';
+  updateWordCloudSpeechControls();
+ }
+}
+function stopWordCloudSpeech(){
+ ui.wordCloudSpeechWanted=false;
+ const recognition=ui.wordCloudSpeechRecognizer;
+ ui.wordCloudSpeechRecognizer=null;
+ if(recognition){
+  recognition.onend=null;
+  try{recognition.stop();}catch(error){}
+ }
+ ui.wordCloudSpeechStatus='idle';
+ ui.wordCloudSpeechError='';
+ updateWordCloudSpeechControls();
+}
+
 // Uses the same d3-cloud@1 layout API as the Observable D3 word-cloud notebook.
 function renderWordCloudLayouts(){
  const host=document.getElementById('wordCloudPages');
@@ -625,14 +840,14 @@ function quizView(){
 }
 function record(t,correct,rating){const x=prog(t),p={...x};let now=new Date();let start=p.start?new Date(p.start):new Date(now.getFullYear(),now.getMonth(),now.getDate());let w=Math.floor((utcDay(now)-utcDay(start))/7);if(p.mastered&&!correct){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;p.mastered=false;w=0}const missed=(w<0||w>2||(w>=1&&p.w1<3)||(w>=2&&p.w2<2));if(!p.mastered&&missed){start=new Date(now.getFullYear(),now.getMonth(),now.getDate());p.w1=p.w2=p.w3=0;w=0}p.start=start.toISOString();if(correct&&!p.mastered){if(w===0)p.w1++;else if(w===1)p.w2++;else if(w===2)p.w3++;p.mastered=p.w1>=3&&p.w2>=2&&p.w3>=1}p.c+=(correct?1:0);p.w+=(!correct?1:0);p.streak=correct?0:p.streak+1;let next=null;if(!p.mastered){const min=(!correct||rating==='again')?5:rating==='hard'?360:rating==='easy'?4320:1440;next=new Date(now.getTime()+min*60000);const count=[p.w1,p.w2,p.w3][w],quota=[3,2,1][w];const endWindow=new Date(start.getFullYear(),start.getMonth(),start.getDate()+(w+1)*7);if(count>=quota)next=endWindow;else if(next>endWindow)next=new Date(endWindow.getTime()-60000)}p.next=next?.toISOString()||null;state.progress[key(t)]=p;logPatternAnswer(t,'choice',correct);state.attempts.push({at:now.toISOString(),id:t.id,src:state.src,dst:state.dst,c:correct,kind:t.k,category:t.c,sub:t.s,rating});if(state.attempts.length>30000)state.attempts=state.attempts.slice(-30000);persist()}
 function navBar(){const active=state.tab==='wordcloud'?'patterns':state.tab;nav.innerHTML=[['home','⌂','Home'],['settings','◎','Study'],['patterns','⋈','Patterns'],['saved','☆','Saved'],['phrases','▤','Phrases'],['stats','▥','Stats']].map(([key,ico,title])=>`<button class="nav ${active===key?'active':''}" data-nav="${key}"><span class="sym">${ico}</span>${title}</button>`).join('')}
-function render(){navBar();const app=view.closest('.app');app.classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));app.classList.toggle('wordcloud-mode',state.tab==='wordcloud');nav.hidden=state.tab==='wordcloud';switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'wordcloud':view.innerHTML=wordCloudView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'saved':view.innerHTML=savedView();break;case 'phrases':view.innerHTML=phrasesView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;window.dispatchEvent(new Event('quizlab:rendered'));if(state.tab==='wordcloud')requestAnimationFrame(renderWordCloudLayouts);}
+function render(){navBar();const app=view.closest('.app');app.classList.toggle('in-game',state.tab==='quiz'&&Boolean(ui.question));app.classList.toggle('wordcloud-mode',state.tab==='wordcloud');nav.hidden=state.tab==='wordcloud';switch(state.tab){case 'home':view.innerHTML=homeView();break;case 'quiz':view.innerHTML=quizView();break;case 'wordcloud':view.innerHTML=wordCloudView();break;case 'stats':view.innerHTML=statsView();break;case 'patterns':view.innerHTML=patternView();break;case 'saved':view.innerHTML=savedView();break;case 'phrases':view.innerHTML=phrasesView();break;case 'settings':view.innerHTML=settingsView();break;}for(const el of view.querySelectorAll('[data-indeterminate]'))el.indeterminate=true;window.dispatchEvent(new Event('quizlab:rendered'));if(state.tab==='wordcloud'){updateWordCloudSpeechControls();requestAnimationFrame(renderWordCloudLayouts);}}
 function goStep(n){ui.setupStep=Math.min(2,Math.max(1,Number(n)));setTab('settings')}
-function setTab(v){if(state.tab==='quiz'&&v!=='quiz'){if(ui.patternStudyBefore){Object.assign(state,ui.patternStudyBefore);ui.patternStudyBefore=null;}if(ui.collectionStudyBefore){Object.assign(state,ui.collectionStudyBefore);ui.collectionStudyBefore=null;}}state.tab=v;persist();render();view.closest('.app').scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
+function setTab(v){if(state.tab==='wordcloud'&&v!=='wordcloud')stopWordCloudSpeech();if(state.tab==='quiz'&&v!=='quiz'){if(ui.patternStudyBefore){Object.assign(state,ui.patternStudyBefore);ui.patternStudyBefore=null;}if(ui.collectionStudyBefore){Object.assign(state,ui.collectionStudyBefore);ui.collectionStudyBefore=null;}}state.tab=v;persist();render();view.closest('.app').scrollTo({top:0,behavior:'instant'});window.scrollTo(0,0)}
 function setSetting(name,value){if(['src','dst','kind'].includes(name))patternReset();state[name]=value;if(name==='kind'&&value==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(name==='gameMode'&&value==='color')state.kind='word';ui.session=null;ui.question=null;persist();render()}
 function exportProgress(){const output=JSON.stringify({version:3,app:'Quiz Lab browser',exportedAt:new Date().toISOString(),progress:state.progress,attempts:state.attempts,excluded:state.excluded,typingHistory:state.typingHistory,patternAttempts:state.patternAttempts,similarity:state.similarity,preferredWords},null,2);const url=URL.createObjectURL(new Blob([output],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='quizlab-browser-progress.json';a.click();URL.revokeObjectURL(url)}
 function onFile(f){if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);let a=[];if(Array.isArray(data.terms)){a=data.terms.map((t,i)=>{const path=(t.topic||'General / General').split(' / ');return {id:'user:'+ (data.id||'pack') + ':'+t.id,c:t.category||path[0],s:t.subtopic||path[1]||'General',k:t.kind||'word',t:Object.fromEntries(Object.entries(t.translations||{}).map(([k,v])=>[k.toLowerCase(),String(v)]))}})}else if(Array.isArray(data.entries)){a=data.entries.map((t,i)=>({id:'user:'+t.id,c:t.category||'General',s:t.subtopic||'General',k:t.type||'word',t:Object.fromEntries(Object.entries(t.words||{}).map(([k,v])=>[k.toLowerCase(),String(v)]))}))}else if(Array.isArray(data.preferredWords))a=[];else throw Error('Expected a JSON object containing terms[], entries[] or preferredWords[].');a=a.filter(t=>t.id&&Object.keys(t.t).length>=2);let added=0;for(const t of a){if(!ids.has(t.id)){terms.push(t);ids.add(t.id);added++}}byId.clear();for(const t of terms)byId.set(t.id,t);localStorage.setItem(DATA_KEY,JSON.stringify(terms.slice(window.QUIZLAB_DATA.length)));let savedAdded=0;if(Array.isArray(data.preferredWords)){for(const p of data.preferredWords){if(!p||!p.id||!p.src||!p.dst||!p.sourceText||!p.targetText)continue;const k=preferredKey(p.id,p.src,p.dst,p.kind);if(!preferredWords.some(x=>preferredKey(x.id,x.src,x.dst,x.kind)===k)){preferredWords.push({...p,rating:['difficult','medium','easy'].includes(p.rating)?p.rating:null});savedAdded++}}preferredPersist()}ui.importStatus='Imported '+added+' new vocabulary items and '+savedAdded+' saved words ('+a.length+' valid records).';ui.question=null;setTab('settings')}catch(e){ui.importStatus='Import error: '+e.message;render()}};reader.readAsText(f,'utf-8')}
 nav.addEventListener('click',e=>{const b=e.target.closest('[data-nav]');if(b){if(b.dataset.nav==='settings')ui.setupStep=1;setTab(b.dataset.nav)}});
-view.addEventListener('click',e=>{const b=e.target.closest('button,[data-toggle-cat],[data-toggle-sub],[data-cloud-index]');if(!b)return;const d=b.dataset;if(d.cloudIndex!==undefined){wordCloudShowDetail(Number(d.cloudIndex));return}if(d.wordcloudBack!==undefined)return setTab('patterns');if(d.wordcloudPrint!==undefined){window.print();return}if(d.wordcloudMode){ui.wordCloudFilterMode=d.wordcloudMode;updateWordCloudControls();applyWordCloudOcclusion();return}if(d.wordcloudClear!==undefined){ui.wordCloudFilter='';const input=document.getElementById('wordCloudFilter');if(input)input.value='';applyWordCloudOcclusion();return}if(d.patternSelectedCloud!==undefined){const pool=patternUniqueChecked();if(pool.length)openPatternWordCloud(pool);return}if(d.preferredSave!==undefined){togglePreferredWord(d.preferredSave,d.preferredSrc,d.preferredDst,d.preferredKind);return render()}if(d.preferredRate!==undefined){setPreferredRatingForQuiz(d.preferredId,d.preferredSrc,d.preferredDst,d.preferredKind,d.preferredRate);return render()}if(d.preferredRating!==undefined){setPreferredRatingByKey(d.preferredKey,d.preferredRating);return render()}if(d.preferredRemoveKey!==undefined){const idx=preferredWords.findIndex(p=>preferredKey(p.id,p.src,p.dst,p.kind)===d.preferredRemoveKey);if(idx>=0){preferredWords.splice(idx,1);preferredPersist()}return render()}if(d.preferredFilter!==undefined){ui.preferredFilter=d.preferredFilter;return render()}if(d.collectionStart!==undefined)return startCollectionQuiz(d.collectionStart);if(d.collectionDifficultyAll!==undefined){collectionFilterState(d.collectionDifficultyAll).difficulties=COLLECTION_DIFFICULTIES.map(x=>x.id);return render()}if(d.collectionDifficultyClear!==undefined){collectionFilterState(d.collectionDifficultyClear).difficulties=[];return render()}if(d.collectionCategoryAll!==undefined){collectionFilterState(d.collectionCategoryAll).categories=null;return render()}if(d.collectionCategoryClear!==undefined){collectionFilterState(d.collectionCategoryClear).categories=[];return render()}if(d.collectionCategorySort!==undefined){collectionFilterState(d.collectionCategorySort).categorySort=d.collectionCategoryOrder==='asc'?'asc':'desc';return render()}if(d.quizLimitMax!==undefined){state.quizLimit=0;persist();return render()}if(d.nav){if(d.nav==='settings')ui.setupStep=1;return setTab(d.nav)}if(d.step)return goStep(d.step);if(d.kind)return setSetting('kind',d.kind);if(d.mode)return setSetting('reviewMode',d.mode);if(d.quickmode){state.gameMode=d.quickmode;if(d.quickmode==='color')state.kind='word';persist();return goStep(1)}if(d.game)return setSetting('gameMode',d.game);if(d.limit)return setSetting('quizLimit',Number(d.limit));if(d.color)return setSimilarity(d.color);if(d.toggleCat!==undefined)return toggleGroup('cat',d.toggleCat);if(d.toggleSub!==undefined)return toggleGroup('sub',d.toggleSub);if(d.option!==undefined){if(ui.revealed)return;ui.answer=Number(d.option);ui.revealed=true;if(state.reviewMode==='automatic'){const good=ui.options[ui.answer]===shown(ui.question,state.dst);record(ui.question,good,good?'good':'again');ui.session[good?'correct':'wrong']++}render();return}if(d.rate){const good=ui.options[ui.answer]===shown(ui.question,state.dst)&&d.rate!=='again';record(ui.question,good,d.rate);ui.session[good?'correct':'wrong']++;advance();return}if(d.patternKind){ui.patternKind=d.patternKind;if(d.patternKind==='phrase'&&state.gameMode==='color')state.gameMode='choice';patternReset();persist();return render()}
+view.addEventListener('click',e=>{const b=e.target.closest('button,[data-toggle-cat],[data-toggle-sub],[data-cloud-index]');if(!b)return;const d=b.dataset;if(d.cloudIndex!==undefined){wordCloudShowDetail(Number(d.cloudIndex));return}if(d.wordcloudSpeechToggle!==undefined){if(ui.wordCloudSpeechWanted)stopWordCloudSpeech();else startWordCloudSpeech();return}if(d.wordcloudBack!==undefined)return setTab('patterns');if(d.wordcloudPrint!==undefined){window.print();return}if(d.wordcloudMode){ui.wordCloudFilterMode=d.wordcloudMode;updateWordCloudControls();applyWordCloudOcclusion();return}if(d.wordcloudClear!==undefined){ui.wordCloudFilter='';const input=document.getElementById('wordCloudFilter');if(input)input.value='';applyWordCloudOcclusion();return}if(d.patternSelectedCloud!==undefined){const pool=patternUniqueChecked();if(pool.length)openPatternWordCloud(pool);return}if(d.preferredSave!==undefined){togglePreferredWord(d.preferredSave,d.preferredSrc,d.preferredDst,d.preferredKind);return render()}if(d.preferredRate!==undefined){setPreferredRatingForQuiz(d.preferredId,d.preferredSrc,d.preferredDst,d.preferredKind,d.preferredRate);return render()}if(d.preferredRating!==undefined){setPreferredRatingByKey(d.preferredKey,d.preferredRating);return render()}if(d.preferredRemoveKey!==undefined){const idx=preferredWords.findIndex(p=>preferredKey(p.id,p.src,p.dst,p.kind)===d.preferredRemoveKey);if(idx>=0){preferredWords.splice(idx,1);preferredPersist()}return render()}if(d.preferredFilter!==undefined){ui.preferredFilter=d.preferredFilter;return render()}if(d.collectionStart!==undefined)return startCollectionQuiz(d.collectionStart);if(d.collectionDifficultyAll!==undefined){collectionFilterState(d.collectionDifficultyAll).difficulties=COLLECTION_DIFFICULTIES.map(x=>x.id);return render()}if(d.collectionDifficultyClear!==undefined){collectionFilterState(d.collectionDifficultyClear).difficulties=[];return render()}if(d.collectionCategoryAll!==undefined){collectionFilterState(d.collectionCategoryAll).categories=null;return render()}if(d.collectionCategoryClear!==undefined){collectionFilterState(d.collectionCategoryClear).categories=[];return render()}if(d.collectionCategorySort!==undefined){collectionFilterState(d.collectionCategorySort).categorySort=d.collectionCategoryOrder==='asc'?'asc':'desc';return render()}if(d.quizLimitMax!==undefined){state.quizLimit=0;persist();return render()}if(d.nav){if(d.nav==='settings')ui.setupStep=1;return setTab(d.nav)}if(d.step)return goStep(d.step);if(d.kind)return setSetting('kind',d.kind);if(d.mode)return setSetting('reviewMode',d.mode);if(d.quickmode){state.gameMode=d.quickmode;if(d.quickmode==='color')state.kind='word';persist();return goStep(1)}if(d.game)return setSetting('gameMode',d.game);if(d.limit)return setSetting('quizLimit',Number(d.limit));if(d.color)return setSimilarity(d.color);if(d.toggleCat!==undefined)return toggleGroup('cat',d.toggleCat);if(d.toggleSub!==undefined)return toggleGroup('sub',d.toggleSub);if(d.option!==undefined){if(ui.revealed)return;ui.answer=Number(d.option);ui.revealed=true;if(state.reviewMode==='automatic'){const good=ui.options[ui.answer]===shown(ui.question,state.dst);record(ui.question,good,good?'good':'again');ui.session[good?'correct':'wrong']++}render();return}if(d.rate){const good=ui.options[ui.answer]===shown(ui.question,state.dst)&&d.rate!=='again';record(ui.question,good,d.rate);ui.session[good?'correct':'wrong']++;advance();return}if(d.patternKind){ui.patternKind=d.patternKind;if(d.patternKind==='phrase'&&state.gameMode==='color')state.gameMode='choice';patternReset();persist();return render()}
  if(d.patternGame){state.gameMode=d.patternGame;persist();return render()}if(d.writingStyle){state.writingStyle=d.writingStyle;persist();return render()}if(d.patternReview){state.patternReview=d.patternReview;persist();return render()}if(d.patternRating){state.reviewMode=d.patternRating;persist();return render()}
  if(d.patternLimit){state.quizLimit=Number(d.patternLimit);persist();return render()}
  if(d.patternMode){ui.patternMode=d.patternMode;patternReset();return render()}

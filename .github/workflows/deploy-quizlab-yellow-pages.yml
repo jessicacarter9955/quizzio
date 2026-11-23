@@ -85,7 +85,12 @@ jobs:
           grep -q "case 'phrases'" dist/app.js
           grep -q 'wordCloudPageSize' dist/app.js
           grep -q 'data-wordcloud-occlusion' dist/app.js
-          echo "Saved/Phrases filters, D3 word cloud with pattern occlusion, translation details, and A4 print sheets are present."
+          grep -q 'function startWordCloudSpeech' dist/app.js
+          grep -q 'function findWordCloudSpeechMatch' dist/app.js
+          grep -q 'data-wordcloud-speech-toggle' dist/app.js
+          grep -q 'SpeechRecognition' dist/app.js
+          grep -q 'cloud-word.spoken' dist/index.html
+          echo "Saved/Phrases filters, D3 word cloud, pattern occlusion, target-language speech recognition, and A4 print sheets are present."
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
