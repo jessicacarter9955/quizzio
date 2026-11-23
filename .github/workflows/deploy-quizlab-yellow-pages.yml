@@ -96,6 +96,7 @@ jobs:
           grep -q 'position:fixed;inset:0' dist/index.html
           grep -q 'wordcloud-fallback' dist/index.html
           grep -q 'size:A4 landscape' dist/index.html
+          grep -q '#view.wordcloud-portal .wordcloud-sheet:not(.active){display:flex!important}' dist/index.html
           grep -q 'id="wordCloudFullscreen"' dist/app.js
           grep -q 'wordCloudLayoutRun' dist/app.js
           grep -q 'wordcloud-stage' dist/app.js
