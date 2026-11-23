@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:wordweaver/models/vocabulary_word.dart';
 import 'package:wordweaver/services/pattern_engine.dart';
 import 'package:wordweaver/services/word_difficulty_service.dart';
