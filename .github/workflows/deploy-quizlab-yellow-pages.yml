@@ -97,6 +97,12 @@ jobs:
           grep -q 'wordcloud-fallback' dist/index.html
           grep -q 'size:A4 landscape' dist/index.html
           grep -q '#view.wordcloud-portal .wordcloud-pages{display:block!important;flex:none!important;width:297mm!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}' dist/index.html
+          grep -q '#view.wordcloud-portal .wordcloud-sheet.active' dist/index.html
+          grep -q 'break-after:page!important' dist/index.html
+          grep -q 'wordCloudLayoutPromise' dist/app.js
+          grep -q 'printWordCloudAfterReady' dist/app.js
+          grep -q 'Preparing all pages' dist/app.js
+          grep -q '#view.wordcloud-portal .wordcloud-pages{display:block!important;flex:none!important;width:297mm!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}' dist/index.html
           grep -q 'body.wordcloud-active .app-shell{display:none!important}' dist/index.html
           grep -q 'page-break-after:always!important' dist/index.html
           grep -q 'wordCloudLayoutPromise' dist/app.js
