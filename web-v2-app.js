@@ -834,7 +834,7 @@ function renderWordCloudLayouts(){
      requestAnimationFrame(nextPage);
     }).start();
   }
-  draw();
+  try{draw()}catch(error){renderWordCloudFallback(sheet,words,active,false);page++;requestAnimationFrame(nextPage)}
  }
  nextPage();
 }
