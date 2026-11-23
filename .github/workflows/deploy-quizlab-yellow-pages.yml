@@ -79,7 +79,7 @@ jobs:
       pages: write
       id-token: write
     environment:
-      name: github-pages
+      name: wordweaver-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Configure GitHub Pages
