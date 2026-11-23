@@ -100,7 +100,17 @@ jobs:
           grep -q 'wordCloudLayoutRun' dist/app.js
           grep -q 'wordcloud-stage' dist/app.js
           grep -q 'max-width:none!important' dist/index.html
-          echo "Saved/Phrases filters, full-width paged D3 word cloud, resilient fallback, target-language speech recognition, and A4 landscape print sheets are present."
+          grep -q 'document.body.appendChild(view)' dist/app.js
+          grep -q 'wordcloud-portal' dist/app.js
+          grep -q '#view.wordcloud-portal' dist/index.html
+          grep -q 'wordcloud-sheet:not(.active)' dist/index.html
+          grep -q 'const required=words.length' dist/app.js
+          grep -q "group.removeAttribute('transform')" dist/app.js
+          if grep -q "group.setAttribute('transform'" dist/app.js; then
+            echo "Word cloud must not reapply the off-canvas group transform."
+            exit 1
+          fi
+          echo "Saved/Phrases filters, full-body viewport word-cloud portal, single-page display, D3 placement without off-canvas transforms, speech recognition, and A4 print sheets are present."
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
