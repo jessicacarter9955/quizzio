@@ -83,7 +83,9 @@ jobs:
           grep -q 'size:A4 portrait' dist/index.html
           grep -q "case 'wordcloud'" dist/app.js
           grep -q "case 'phrases'" dist/app.js
-          echo "Saved/Phrases filters, pattern word cloud with occlusion, D3 layout, A4 print, phrase quizzes, and pattern quiz handlers are present."
+          grep -q 'wordCloudPageSize' dist/app.js
+          grep -q 'data-wordcloud-occlusion' dist/app.js
+          echo "Saved/Phrases filters, D3 word cloud with pattern occlusion, translation details, and A4 print sheets are present."
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
