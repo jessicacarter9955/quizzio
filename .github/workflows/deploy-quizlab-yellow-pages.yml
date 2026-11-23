@@ -59,13 +59,22 @@ jobs:
           if (valid.length === 0) {
             throw new Error('Vocabulary dataset has no valid multilingual terms');
           }
-          console.log('Validated ' + valid.length + ' multilingual vocabulary records.');
+          const phrases = valid.filter(t => t.k === 'phrase');
+          if (phrases.length === 0) {
+            throw new Error('Phrase dataset is missing');
+          }
+          console.log('Validated ' + valid.length + ' multilingual vocabulary records, including ' + phrases.length + ' phrases.');
           NODE
 
           grep -q 'quizLimit' dist/app.js
           grep -q 'PREFERRED_RATINGS' dist/app.js
           grep -q 'patternSelectedPlay' dist/app.js
-          echo "Quiz limit, saved-word difficulty ratings, and combined pattern quiz handlers are present."
+          grep -q 'function phrasesView' dist/app.js
+          grep -q 'function startCollectionQuiz' dist/app.js
+          grep -q 'data-collection-difficulty' dist/app.js
+          grep -q 'data-collection-category' dist/app.js
+          grep -q "case 'phrases'" dist/app.js
+          echo "Quiz limits, Saved/Phrases difficulty and category filters, phrase quizzes, and pattern quiz handlers are present."
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
