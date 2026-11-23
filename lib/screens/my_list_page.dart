@@ -402,7 +402,7 @@ class _MyListPageState extends State<MyListPage> {
                   ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                  child: SizedBox 
+                  child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: pair != null && words.length > 1
