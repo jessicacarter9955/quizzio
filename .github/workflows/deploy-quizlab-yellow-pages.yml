@@ -73,8 +73,10 @@ jobs:
           grep -q 'function startCollectionQuiz' dist/app.js
           grep -q 'data-collection-difficulty' dist/app.js
           grep -q 'data-collection-category' dist/app.js
+          grep -q 'data-collection-category-sort' dist/app.js
+          grep -q 'categorySort' dist/app.js
           grep -q "case 'phrases'" dist/app.js
-          echo "Quiz limits, Saved/Phrases difficulty and category filters, phrase quizzes, and pattern quiz handlers are present."
+          echo "Saved/Phrases difficulty filters, category checkboxes and numeric category sorting, phrase quizzes, and pattern quiz handlers are present."
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
