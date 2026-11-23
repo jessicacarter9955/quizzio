@@ -5,7 +5,7 @@ const KEY='quizlab.mobile.preview.v3';const DATA_KEY='quizlab.mobile.custom.v1';
 const safeParse=(s,def)=>{try{return JSON.parse(s)||def}catch{return def}};let preferredWords=safeParse(localStorage.getItem(PREFERRED_KEY),[]);if(!Array.isArray(preferredWords))preferredWords=[];else preferredWords=preferredWords.filter(p=>p&&p.id&&p.src&&p.dst&&p.sourceText&&p.targetText);
 const initial={tab:'home',src:'en',dst:'es',instruction:'en',kind:'word',gameMode:'choice',quizLimit:10,showArticles:false,requireAccents:false,similarity:{},typingHistory:[],patternAttempts:[],writingStyle:'recall',patternReview:'mnemonic',reviewMode:'automatic',showMastered:false,excluded:[],progress:{},attempts:[],selectedOnly:true,patternSort:'alphabetical',patternSortDefaultVersion:11};
 const stored=safeParse(localStorage.getItem(KEY),{});const state={...initial,...stored};if(!Array.isArray(state.patternAttempts))state.patternAttempts=[];if(!['recall','copy'].includes(state.writingStyle))state.writingStyle='recall';if(!['mnemonic','all'].includes(state.patternReview))state.patternReview='mnemonic';if(!['word','phrase'].includes(state.kind))state.kind='word';if(state.kind==='phrase'&&state.gameMode==='color')state.gameMode='choice';if(stored.patternSortDefaultVersion!==11){state.patternSort='alphabetical';state.patternSortDefaultVersion=11;}if(!['most','least','alphabetical'].includes(state.patternSort))state.patternSort='alphabetical';if(state.src===state.dst)state.dst=Object.keys(LANGUAGE_NAMES).find(k=>k!==state.src);
-const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,patternMode:'prefix',patternSource:state.src,patternTarget:state.dst,patternKind:'word',patternFromNav:false,patternStudyBefore:null,patternFocus:'',patternSearch:'',patternCollapsed:new Set(),patternShowAll:'',patternPools:new Map(),patternBranchRoot:null,patternBranchTrail:[],patternBranchShowAll:new Set(),patternBranchPools:new Map(),patternChecked:new Map(),patternCheckPools:new Map(),wordCloudEntries:[],wordCloudSelectedKeys:new Set(),wordCloudFilter:'',wordCloudFilterMode:'prefix',wordCloudOcclusion:true,wordCloudSelectionLabels:[],wordCloudPageSize:100,preferredSearch:'',preferredFilter:'all',phraseSearch:'',savedPair:'',collectionFilters:{word:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'},phrase:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'}},quizReturnTab:'home',collectionStudyBefore:null};
+const ui={setupStep:1,expandedCats:new Set(),expandedSubs:new Set(),wordFilter:'',flash:null,toast:'',chosenDay:0,question:null,revealed:false,answer:-1,options:[],qIndex:0,search:'',bankFilter:'all',importStatus:'',session:null,typedHint:false,typedRevealed:false,typedEntry:'',typedSubmitted:false,patternMode:'prefix',patternSource:state.src,patternTarget:state.dst,patternKind:'word',patternFromNav:false,patternStudyBefore:null,patternFocus:'',patternSearch:'',patternCollapsed:new Set(),patternShowAll:'',patternPools:new Map(),patternBranchRoot:null,patternBranchTrail:[],patternBranchShowAll:new Set(),patternBranchPools:new Map(),patternChecked:new Map(),patternCheckPools:new Map(),wordCloudEntries:[],wordCloudSelectedKeys:new Set(),wordCloudFilter:'',wordCloudFilterMode:'prefix',wordCloudOcclusion:true,wordCloudSelectionLabels:[],wordCloudPageSize:100,wordCloudAwaitingLibrary:false,preferredSearch:'',preferredFilter:'all',phraseSearch:'',savedPair:'',collectionFilters:{word:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'},phrase:{difficulties:['difficult','medium','easy','unrated'],categories:null,categorySort:'desc'}},quizReturnTab:'home',collectionStudyBefore:null};
 const terms=[...(window.QUIZLAB_DATA||[]),...safeParse(localStorage.getItem(DATA_KEY),[])];
 const ids=new Set(terms.map(t=>t.id));
 const langNames=LANGUAGE_NAMES;const byId=new Map(terms.map(t=>[t.id,t]));
@@ -491,40 +491,54 @@ function wordCloudShowDetail(index){
 function renderWordCloudLayouts(){
  const host=document.getElementById('wordCloudPages');
  if(!host||state.tab!=='wordcloud')return;
- const d3lib=window.d3;
- if(!d3lib||!d3lib.layout||typeof d3lib.layout.cloud!=='function'){
-  host.insertAdjacentHTML('afterbegin','<div class="notice">The word-cloud layout library could not be loaded. Check your connection and reload this page.</div>');
+ const cloudFactory=window.d3Cloud;
+ if(typeof cloudFactory!=='function'){
+  host.innerHTML='<div class="notice">Loading the word-cloud layout…</div>';
+  if(!ui.wordCloudAwaitingLibrary){
+   ui.wordCloudAwaitingLibrary=true;
+   window.addEventListener('quizlab:d3-cloud-ready',function(){ui.wordCloudAwaitingLibrary=false;renderWordCloudLayouts()},{once:true});
+  }
   return;
  }
  const svgs=[...host.querySelectorAll('[data-wordcloud-svg]')];
- const pageSize=ui.wordCloudPageSize||100,W=744,H=1030;
+ const pageSize=ui.wordCloudPageSize||100,W=744,H=1030,svgNS='http://www.w3.org/2000/svg';
  let page=0;
  function nextPage(){
   if(page>=svgs.length){applyWordCloudOcclusion();return}
   const pageIndex=page,chunk=ui.wordCloudEntries.slice(pageIndex*pageSize,(pageIndex+1)*pageSize);
-  const svg=d3lib.select(svgs[pageIndex]);
-  const overflow=document.querySelector('[data-wordcloud-overflow="'+pageIndex+'"]');
+  const svg=svgs[pageIndex],overflow=document.querySelector('[data-wordcloud-overflow="'+pageIndex+'"]');
   let attempt=0;
   function draw(){
-   svg.selectAll('*').remove();
-   const group=svg.append('g').attr('transform','translate('+W/2+','+H/2+')');
+   while(svg.firstChild)svg.removeChild(svg.firstChild);
+   const group=document.createElementNS(svgNS,'g');
+   group.setAttribute('transform','translate('+W/2+','+H/2+')');
+   svg.appendChild(group);
    const scale=[1,.82,.68][attempt];
    const words=chunk.map(entry=>({
     text:entry.text,
     entry:entry,
     size:Math.max(12,Math.min(35,(35-Math.max(0,Array.from(entry.text).length-8)*.55)*scale))
    }));
-   d3lib.layout.cloud().size([W,H]).words(words).padding(3).rotate(function(){return 0;}).font('Arial').fontSize(function(d){return d.size;}).timeInterval(35)
+   const active=wordCloudActiveKeys();
+   cloudFactory().size([W,H]).words(words).padding(3).rotate(function(){return 0;}).font('Arial').fontSize(function(d){return d.size;}).timeInterval(35)
     .on('word',function(word){
-     const active=wordCloudActiveKeys().has(word.entry.key);
-     const node=group.append('text').attr('class','cloud-word '+(active?'revealed':(ui.wordCloudOcclusion?'occluded':'')))
-      .attr('data-cloud-key',word.entry.key).attr('data-cloud-index',word.entry.index)
-      .attr('text-anchor','middle').attr('font-size',word.size).attr('font-family','Arial, sans-serif')
-      .attr('font-weight',active?'700':'500')
-      .attr('transform','translate('+word.x+','+word.y+') rotate('+word.rotate+')')
-      .attr('tabindex','0').attr('role','button')
-      .text(word.text);
-     node.append('title').text(word.entry.text+' — '+word.entry.translations.join(' / '));
+     const revealed=active.has(word.entry.key);
+     const node=document.createElementNS(svgNS,'text');
+     node.setAttribute('class','cloud-word'+(revealed?' revealed':(ui.wordCloudOcclusion?' occluded':'')));
+     node.setAttribute('data-cloud-key',word.entry.key);
+     node.setAttribute('data-cloud-index',word.entry.index);
+     node.setAttribute('text-anchor','middle');
+     node.setAttribute('font-size',word.size);
+     node.setAttribute('font-family','Arial, sans-serif');
+     node.setAttribute('font-weight',revealed?'700':'500');
+     node.setAttribute('transform','translate('+word.x+','+word.y+') rotate('+word.rotate+')');
+     node.setAttribute('tabindex','0');
+     node.setAttribute('role','button');
+     node.textContent=word.text;
+     const title=document.createElementNS(svgNS,'title');
+     title.textContent=word.entry.text+' — '+word.entry.translations.join(' / ');
+     node.appendChild(title);
+     group.appendChild(node);
     })
     .on('end',function(placed){
      const placedKeys=new Set(placed.map(word=>word.entry.key));
@@ -539,7 +553,6 @@ function renderWordCloudLayouts(){
  }
  nextPage();
 }
-
 function startGame(explicitPool=null,fromPatterns=false,returnTab=null){ui.patternFromNav=fromPatterns;ui.quizReturnTab=returnTab||(fromPatterns?'patterns':'home');const source=Array.isArray(explicitPool)?explicitPool:totalActive();if(!source.length){ui.setupStep=2;setTab('settings');return;}const candidates=source.filter(t=>Array.isArray(explicitPool)||state.gameMode==='color'||state.showMastered||!prog(t).mastered);const limit=state.quizLimit===0?candidates.length:Math.min(Math.max(1,Math.floor(Number(state.quizLimit)||1)),candidates.length);let picks;
  if(fromPatterns&&state.patternReview==='mnemonic'&&!(state.gameMode==='typing'&&state.writingStyle==='copy')){
   const byReview=[...candidates].sort((a,b)=>{const pa=prog(a),pb=prog(b);
