@@ -334,8 +334,15 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 @media(max-width:600px){.bottom{grid-template-columns:repeat(6,minmax(0,1fr))}.nav{font-size:9px;min-width:0;padding-left:2px;padding-right:2px}.nav .sym{width:30px;height:30px}.collection-difficulty-grid,.collection-category-grid{gap:6px}.collection-difficulty-option,.collection-category-option{padding:8px 7px}}
 
 
-/* Word cloud v3: true viewport study screen, responsive D3 placement, no card clipping */
+/* Word cloud v4: move #view to document.body and force a real viewport portal, independent of the app grid */
 body.wordcloud-active{overflow:hidden!important}
+#view.wordcloud-portal{position:fixed!important;inset:0!important;z-index:999999!important;display:block!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#faf8f4!important}
+#view.wordcloud-portal .wordcloud-fullscreen{position:absolute!important;inset:0!important;display:flex!important;flex-direction:column!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;margin:0!important;padding:12px 18px 10px!important;overflow:hidden!important}
+#view.wordcloud-portal .wordcloud-stage{flex:1 1 auto!important;min-width:0!important;min-height:0!important;width:100%!important;border:0!important;border-radius:0!important;background:#faf8f4!important}
+#view.wordcloud-portal .wordcloud-pages{flex:1 1 auto!important;min-width:0!important;min-height:0!important;width:100%!important;height:100%!important;overflow:hidden!important}
+#view.wordcloud-portal .wordcloud-sheet:not(.active){display:none!important}
+#view.wordcloud-portal .wordcloud-sheet.active{display:flex!important;flex:1 1 auto!important;min-width:0!important;min-height:0!important;width:100%!important;height:100%!important;overflow:hidden!important}
+#view.wordcloud-portal .wordcloud-svg{width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;overflow:visible!important}
 .app.wordcloud-mode .topbar,.app.wordcloud-mode .bottom{display:none!important}
 .app.wordcloud-mode .content{width:100%!important;max-width:none!important;min-height:0!important;padding:0!important;overflow:visible!important}
 .wordcloud-fullscreen{position:fixed;inset:0;z-index:99999;isolation:isolate;display:flex;flex-direction:column;gap:8px;width:100vw;height:100vh;height:100dvh;max-width:none!important;margin:0;padding:12px 18px 10px;overflow:hidden;background:#faf8f4;color:#1c1b19;box-sizing:border-box}
@@ -429,6 +436,8 @@ body.wordcloud-active{overflow:hidden!important}
  .wordcloud-sheet-header small{font-size:8px}
 }
 @media print{
+ #view.wordcloud-portal{position:static!important;inset:auto!important;width:297mm!important;height:auto!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+ #view.wordcloud-portal .wordcloud-fullscreen{position:static!important;inset:auto!important;width:297mm!important;height:auto!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important}
  @page{size:A4 landscape;margin:0}
  html,body{background:#fff!important;color:#111!important;overflow:visible!important}
  body.wordcloud-active{overflow:visible!important}
