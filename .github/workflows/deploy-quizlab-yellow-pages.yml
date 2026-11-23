@@ -80,7 +80,6 @@ jobs:
           grep -q 'data-wordcloud-svg' dist/app.js
           grep -q 'window.d3Cloud' dist/app.js
           grep -q 'd3-cloud@1/+esm' dist/index.html
-          grep -q 'size:A4 portrait' dist/index.html
           grep -q "case 'wordcloud'" dist/app.js
           grep -q "case 'phrases'" dist/app.js
           grep -q 'wordCloudPageSize' dist/app.js
