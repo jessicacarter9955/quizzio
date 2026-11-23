@@ -448,6 +448,7 @@ class _PatternScreenState extends State<PatternScreen> {
                   decoration: const InputDecoration(
                     isDense: true, labelText: 'Max (optional)', hintText: 'No limit',
                     border: OutlineInputBorder(),
+                  ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (_) => setState(() {}),
