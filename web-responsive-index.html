@@ -333,4 +333,60 @@ html,body{background:#f7f0de;color:#1b1a18;font-family:Inter,"Avenir Next",ui-sa
 .collection-item-card .preferred-rating{padding:6px 8px}
 @media(max-width:600px){.bottom{grid-template-columns:repeat(6,minmax(0,1fr))}.nav{font-size:9px;min-width:0;padding-left:2px;padding-right:2px}.nav .sym{width:30px;height:30px}.collection-difficulty-grid,.collection-category-grid{gap:6px}.collection-difficulty-option,.collection-category-option{padding:8px 7px}}
 
-</style></head><body class="web-responsive"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script>window.QUIZLAB_SUPABASE_CONFIG=window.QUIZLAB_SUPABASE_CONFIG||{};</script><script src="data.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script></body></html>
+
+/* Pattern Word Cloud · D3 layout, filter occlusion and A4 print sheets */
+.app.wordcloud-mode{max-width:980px}
+.app.wordcloud-mode .content{padding:22px 24px 34px}
+.wordcloud-view{width:100%;max-width:100%}
+.wordcloud-toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.wordcloud-toolbar .h1{font-size:34px;margin:6px 0}
+.wordcloud-eyebrow{margin:13px 0 4px}
+.wordcloud-print{white-space:nowrap;min-width:130px}
+.wordcloud-filter-panel{border:1px solid #eee6d9;border-radius:18px;background:#fffefa;padding:15px 17px;margin:12px 0}
+.wordcloud-filter-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.wordcloud-filter-heading strong{font-size:13px;color:#302b22}
+.wordcloud-filter-heading span{font-size:11px;color:#887d6b}
+.wordcloud-mode-buttons{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 12px}
+.wordcloud-mode-buttons .pill{font-size:11px;padding:8px 11px}
+.wordcloud-query-label{display:block;max-width:360px}
+.wordcloud-query-label>span{display:block;font-size:11px;font-weight:800;color:#6d6251;margin-bottom:5px}
+.wordcloud-filter-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.wordcloud-occlusion-toggle{display:flex;align-items:center;gap:7px;font-size:11px;color:#645b4e}
+.wordcloud-occlusion-toggle input{accent-color:#d4a63c;width:15px;height:15px}
+.wordcloud-filter-actions .text-button{font-size:11px}
+.wordcloud-stats{font-size:11px;font-weight:800;color:#746a5a;margin:12px 2px}
+.wordcloud-detail{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border:1px solid #eee5d6;border-radius:12px;background:#fffefa;padding:10px 13px;margin:10px 0 18px;min-height:42px}
+.wordcloud-detail strong{font-size:14px;color:#2a251d}
+.wordcloud-detail span{font-size:12px;color:#6c604e}
+.wordcloud-detail small{font-size:10px;color:#999080}
+.wordcloud-sheet{width:min(100%,210mm);aspect-ratio:210/297;margin:18px auto;background:#fff;border:1px solid #eee5d8;border-radius:5px;box-shadow:0 9px 28px rgba(72,56,26,.09);padding:8mm 12mm 7mm;display:flex;flex-direction:column;overflow:hidden}
+.wordcloud-sheet-header{display:flex;flex-direction:column;gap:3px;flex:none;border-bottom:1px solid #eee9df;padding-bottom:7px;color:#8c806b}
+.wordcloud-sheet-header span{font-size:8px;font-weight:900;letter-spacing:1.4px}
+.wordcloud-sheet-header strong{font-size:15px;color:#26231e;letter-spacing:-.3px}
+.wordcloud-sheet-header small{font-size:9px;color:#8b8377;overflow-wrap:anywhere}
+.wordcloud-svg{display:block;flex:1;min-height:0;width:100%;height:auto;overflow:visible}
+.cloud-word{cursor:pointer;fill:#3e382f;transition:opacity .16s,fill .16s}
+.cloud-word.revealed{fill:#8a5d12;font-weight:700}
+.cloud-word.occluded{opacity:.14;fill:#bdb8ad;filter:grayscale(1)}
+.cloud-word:focus{outline:none;fill:#bd861e}
+.wordcloud-overflow{flex:none;max-height:20px;overflow:hidden;font-size:7px;line-height:1.3;color:#8d8476}
+.wordcloud-sheet-footer{flex:none;border-top:1px solid #eee9df;padding-top:5px;font-size:8px;color:#9b9283;text-align:right}
+@media(max-width:600px){.app.wordcloud-mode .content{padding:18px 12px 28px}.wordcloud-toolbar{gap:10px}.wordcloud-toolbar .h1{font-size:29px}.wordcloud-print{min-width:105px;padding:10px 11px;font-size:11px}.wordcloud-filter-panel{padding:12px}.wordcloud-sheet{padding:5mm 6mm 4mm;margin:12px auto}.wordcloud-sheet-header strong{font-size:12px}.wordcloud-sheet-header small{font-size:8px}.wordcloud-detail{gap:6px}}
+@page{size:A4 portrait;margin:0}
+@media print{
+ html,body{background:#fff!important;color:#111!important}
+ .app-shell,.app{display:block!important;width:210mm!important;max-width:none!important;min-height:0!important;max-height:none!important;overflow:visible!important;background:#fff!important;box-shadow:none!important;border:0!important}
+ .topbar,.bottom,.no-print{display:none!important}
+ .app{padding:0!important}
+ .content{padding:0!important;margin:0!important}
+ .wordcloud-view{width:210mm!important}
+ .wordcloud-sheet{width:210mm!important;height:297mm!important;aspect-ratio:auto!important;margin:0!important;padding:8mm 12mm 7mm!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;break-after:page;page-break-after:always}
+ .wordcloud-sheet:last-child{break-after:auto;page-break-after:auto}
+ .wordcloud-svg{width:100%!important;height:258mm!important;max-height:258mm!important;flex:1 1 auto!important}
+ .wordcloud-sheet-header strong{color:#111!important}
+ .cloud-word.occluded{opacity:.16!important;fill:#b9b9b9!important;filter:grayscale(1)!important}
+ .cloud-word.revealed{opacity:1!important;fill:#171717!important}
+ .wordcloud-overflow{font-size:6pt!important;max-height:12mm!important}
+}
+
+</style></head><body class="web-responsive"><div class="app-shell"><main class="app"><header class="topbar"><div class="brand"><div class="brandmark">Q<span style="font-size:24px;color:#dfaa28">.</span></div><div><div class="brandtext">Quiz Lab <span style="color:var(--mint)">.</span></div></div></div></header><div id="view" class="content"></div><nav id="bottomNav" class="bottom"></nav></main></div><script>window.QUIZLAB_SUPABASE_CONFIG=window.QUIZLAB_SUPABASE_CONFIG||{};</script><script src="data.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/d3@5.16.0/dist/d3.min.js"></script><script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.min.js"></script><script src="app.js"></script></body></html>
