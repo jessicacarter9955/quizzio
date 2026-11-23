@@ -488,6 +488,7 @@ function wordCloudShowDetail(index){
  const locations=entry.locations.slice(0,5).join(' · ')+(entry.locations.length>5?' · +'+(entry.locations.length-5)+' more':'');
  detail.innerHTML='<strong>'+encode(entry.text)+'</strong><span>'+encode(translations)+'</span><small>'+encode(locations)+'</small>';
 }
+// Uses the same d3-cloud@1 layout API as the Observable D3 word-cloud notebook.
 function renderWordCloudLayouts(){
  const host=document.getElementById('wordCloudPages');
  if(!host||state.tab!=='wordcloud')return;
