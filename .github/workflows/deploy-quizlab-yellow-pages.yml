@@ -78,7 +78,7 @@ jobs:
           grep -q 'data-pattern-selected-cloud' dist/app.js
           grep -q 'function renderWordCloudLayouts' dist/app.js
           grep -q 'data-wordcloud-svg' dist/app.js
-          grep -q 'd3lib.layout.cloud' dist/app.js
+          grep -q 'window.d3Cloud' dist/app.js
           grep -q 'd3-cloud@1.2.5' dist/index.html
           grep -q 'size:A4 portrait' dist/index.html
           grep -q "case 'wordcloud'" dist/app.js
