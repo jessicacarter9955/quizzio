@@ -1,9 +1,6 @@
-name: Build and deploy Wordweaver to GitHub Pages
+name: Build and deploy legacy Wordweaver Flutter web (manual only)
 
 on:
-  push:
-    branches:
-      - wordweaver-pattern-favorites-difficulty
   workflow_dispatch:
 
 permissions:
