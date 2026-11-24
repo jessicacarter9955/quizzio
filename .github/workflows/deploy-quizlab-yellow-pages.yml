@@ -77,11 +77,13 @@ jobs:
           const fs = require('node:fs');
           const vm = require('node:vm');
           const source = fs.readFileSync('dist/app.js', 'utf8');
-          const pairMatch = source.match(/function savedWordPairOptions\\(words=[\\s\\S]*?\\n\\}/);
-          const matchesMatch = source.match(/function savedWordPairMatches\\(record,src,dst\\)\\{[^\\n]*\\}/);
-          if (!pairMatch || !matchesMatch) throw new Error('Saved reverse-pair helpers are missing');
+          const pairStart = source.indexOf('function savedWordPairOptions(');
+          const matchesStart = source.indexOf('function savedWordPairMatches(', pairStart);
+          const recordsStart = source.indexOf('function collectionRecords(', matchesStart);
+          if (pairStart < 0 || matchesStart < 0 || recordsStart < 0) throw new Error('Saved reverse-pair helpers are missing');
+          const helpers = source.slice(pairStart, matchesStart) + source.slice(matchesStart, recordsStart);
           const sandbox = {};
-          vm.runInNewContext(pairMatch[0] + '\\n' + matchesMatch[0] + '\\nglobalThis.pairOptions=savedWordPairOptions;globalThis.pairMatches=savedWordPairMatches;', sandbox);
+          vm.runInNewContext(helpers + '\nglobalThis.pairOptions=savedWordPairOptions;globalThis.pairMatches=savedWordPairMatches;', sandbox);
           const words = [{src:'en',dst:'es'},{src:'fr',dst:'de'}];
           const options = Array.from(sandbox.pairOptions(words));
           for (const pair of ['en>es','es>en','fr>de','de>fr']) if (!options.includes(pair)) throw new Error('Missing saved language pair: ' + pair);
