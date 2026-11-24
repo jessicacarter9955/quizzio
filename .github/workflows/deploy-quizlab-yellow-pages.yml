@@ -77,6 +77,22 @@ jobs:
           const fs = require('node:fs');
           const vm = require('node:vm');
           const source = fs.readFileSync('dist/app.js', 'utf8');
+          const pairMatch = source.match(/function savedWordPairOptions\\(words=[\\s\\S]*?\\n\\}/);
+          const matchesMatch = source.match(/function savedWordPairMatches\\(record,src,dst\\)\\{[^\\n]*\\}/);
+          if (!pairMatch || !matchesMatch) throw new Error('Saved reverse-pair helpers are missing');
+          const sandbox = {};
+          vm.runInNewContext(pairMatch[0] + '\\n' + matchesMatch[0] + '\\nglobalThis.pairOptions=savedWordPairOptions;globalThis.pairMatches=savedWordPairMatches;', sandbox);
+          const words = [{src:'en',dst:'es'},{src:'fr',dst:'de'}];
+          const options = Array.from(sandbox.pairOptions(words));
+          for (const pair of ['en>es','es>en','fr>de','de>fr']) if (!options.includes(pair)) throw new Error('Missing saved language pair: ' + pair);
+          if (!sandbox.pairMatches({src:'en',dst:'es'},'es','en')) throw new Error('Reverse saved pair matching failed');
+          if (sandbox.pairMatches({src:'en',dst:'es'},'fr','de')) throw new Error('Unrelated saved pair matched');
+          console.log('Saved reverse language pairs verified.');
+          NODE
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const source = fs.readFileSync('dist/app.js', 'utf8');
           const match = source.match(/function collectionSortRecords\(records,sort='alphabetical'\)\{[\s\S]*?\n\}/);
           if (!match) throw new Error('Saved collection sort helper is missing');
           const sandbox = {};
@@ -100,6 +116,11 @@ jobs:
           grep -q 'data-collection-sort="word"' dist/app.js
           grep -q 'saved-category-group' dist/app.js
           grep -q 'saved-category-heading' dist/app.js
+          grep -q 'function savedWordPairOptions' dist/app.js
+          grep -q 'function savedWordPairMatches' dist/app.js
+          grep -q 'displaySrc:src,displayDst:dst' dist/app.js
+          grep -q 'data-saved-category-toggle' dist/app.js
+          grep -q 'saved-category-items.is-collapsed' dist/index.html
           grep -q 'data-pattern-selected-cloud' dist/app.js
           grep -q 'function renderWordCloudLayouts' dist/app.js
           grep -q 'data-wordcloud-svg' dist/app.js
@@ -147,7 +168,7 @@ jobs:
             echo "Word cloud must not reapply the off-canvas group transform."
             exit 1
           fi
-          echo "Saved words alphabetical/category grouping, three saved-word sort modes, Saved/Phrases filters, full-body viewport word-cloud portal, single-page display, D3 placement without off-canvas transforms, speech recognition, and A4 print sheets are present."
+          echo "Saved words alphabetical/category grouping, reversible saved language pairs, collapsible category groups, three saved-word sort modes, Saved/Phrases filters, full-body viewport word-cloud portal, single-page display, D3 placement without off-canvas transforms, speech recognition, and A4 print sheets are present."
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
